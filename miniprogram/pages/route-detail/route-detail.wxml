@@ -1,0 +1,75 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page route-page route-detail-page {{fontClass}}">
+  <view class="route-heading">
+    <view><view class="page-title serif">{{L.rt_title}}</view></view>
+    <view class="route-head-tools"><me-entry/></view>
+  </view>
+  <view wx:if="{{!route}}" class="route-introduction">
+    <view class="preview-intro"><view class="empty-title serif">{{L.rt_empty_title}}</view><view class="muted">{{L.rt_empty_desc}}</view></view>
+    <view class="route-map-card preview-map-card">
+      <view class="map-heading"><view class="map-title"><text class="map-glyph">⌖</text>{{L.rt_map_sites}}</view><text class="preview-label">{{L.rt_map_preview}}</text></view>
+      <map wx:if="{{routeMap.markers.length}}" id="preview-map" class="route-map preview-map" aria-label="{{L.rt_map_sites}}{{L.rt_map_preview}}"
+        latitude="{{routeMap.center.latitude}}" longitude="{{routeMap.center.longitude}}" scale="{{routeMap.scale}}"
+        markers="{{routeMap.markers}}" polyline="{{routeMap.polyline}}" include-points="{{routeMap.includePoints}}"
+        enable-poi="{{true}}" enable-building="{{true}}" enable-rotate="{{false}}" enable-scroll="{{true}}"
+        bindmarkertap="onPreviewMarkerTap" bindcallouttap="onPreviewMarkerTap"></map>
+      <view class="map-caption"><text>{{L.rt_tap_read_story}}</text></view>
+    </view>
+    <view class="preview-place-row"><view wx:for="{{previewPlaces}}" wx:key="id" class="preview-place" data-id="{{item.id}}" bindtap="openPreviewPlace">{{item.name}} <text>↗</text></view></view>
+    <view class="preview-action"><button id="start-route" class="button" bindtap="openWizard">{{L.rt_start_planning}}</button><view class="preview-hint">{{L.rt_start_hint}}</view></view>
+  </view>
+  <block wx:else>
+    <view wx:if="{{!route.ok}}" class="empty no-solution">
+      <view class="empty-title serif">{{L.rt_no_solution_title}}</view><view class="muted">{{route.reason || L.rt_no_solution_hint}}</view>
+      <button class="button" bindtap="editProfile">{{L.rt_modify_conditions}}</button><button wx:if="{{excludedIds.length}}" id="reset-stops" class="button-secondary" bindtap="resetStops">{{L.rt_restore_stops}}</button>
+    </view>
+    <block wx:else>
+      <view class="journey-summary">
+        <view class="summary-top"><view class="journey-date">{{dateLabel}}</view><text class="scenario-label">{{seasonTitle}}</text></view>
+        <view class="summary-main"><view class="journey-time">{{route.startTime}}<text>—</text>{{route.endTime}}</view><view class="journey-cost unknown-cost">{{L.rt_cost_tbd}}<text class="cost-suffix">{{L.rt_per_person_a}}{{profile.partySize}}{{L.rt_per_person_b}}</text></view></view>
+        <view class="summary-bottom"><text>{{transportLabel}} · {{stops.length}}{{L.rt_stops_unit}} · {{durationLabel}} · {{L.rt_roundtrip}}</text><button id="route-details" class="text-button" bindtap="toggleDetails">{{L.rt_details_title}} {{detailsVisible ? '−' : '+'}}</button></view>
+      </view>
+      <view class="demo-caption"><view class="demo-dot"></view><text>{{L.rt_time_note}}</text></view>
+      <view wx:if="{{detailsVisible}}" class="trip-details" id="trip-details">
+        <view class="detail-row"><text>{{L.rt_ticket_cost}}</text><text>{{visitCostKnown ? '¥' + visitCost : L.rt_cost_venue}}</text></view>
+        <view class="detail-row"><text>{{L.rt_transport_cost}}</text><text>{{L.rt_tbd_short}}</text></view>
+        <view class="detail-row"><text>{{L.rt_budget_label}}</text><text>¥{{profile.budget}}</text></view>
+        <view wx:for="{{warningList}}" wx:key="*this" class="detail-note">{{item}}</view>
+        <view wx:if="{{route.waitMinutes}}" class="detail-note">{{L.rt_wait_note}} {{route.waitMinutes}}{{L.rt_min_end}}</view>
+        <view class="detail-note">{{L.rt_history_note}}</view>
+      </view>
+      <view class="route-map-card">
+        <view class="map-heading"><view class="map-title"><text class="map-glyph">⌖</text>{{L.rt_trip_map}}</view><button id="toggle-route-map" class="text-button" bindtap="toggleMap">{{mapVisible ? L.rt_map_collapse : L.rt_map_expand}} </button></view>
+        <block wx:if="{{mapVisible && routeMap.markers.length}}">
+          <map id="route-map" class="route-map" aria-label="{{L.rt_map_sites}}{{L.rt_map_word}}"
+            latitude="{{routeMap.center.latitude}}" longitude="{{routeMap.center.longitude}}" scale="{{routeMap.scale}}"
+            markers="{{routeMap.markers}}" polyline="{{routeMap.polyline}}" include-points="{{routeMap.includePoints}}"
+            enable-poi="{{true}}" enable-building="{{true}}" enable-rotate="{{false}}" enable-scroll="{{true}}"
+            bindmarkertap="onMarkerTap" bindcallouttap="onMarkerTap"></map>
+          <view class="map-caption"><text>{{L.rt_map_cap_venue}}</text><text>{{L.rt_tap_marker}}</text></view>
+        </block>
+      </view>
+      <view class="route-subhead"><view class="section-title serif">{{L.rt_stops_title}} <text>{{stops.length}}</text></view><button id="edit-stops" class="text-button" bindtap="toggleEditing">{{editing ? L.rt_edit_done : L.rt_edit_trip}}</button></view>
+      <view wx:if="{{editing}}" class="edit-toolbar"><button id="recalculate-route" bindtap="regenerate">{{L.rt_reorder}}</button><button bindtap="editProfile">{{L.rt_adjust_prefs}}</button><view>{{L.rt_skip_hint}}</view></view>
+      <view class="itinerary-list">
+        <view wx:for="{{stops}}" wx:key="placeId" id="stop-{{item.placeId}}" class="stop-row {{activeStopId === item.placeId ? 'is-selected' : ''}}">
+          <view class="stop-overview" id="select-{{item.placeId}}" data-id="{{item.placeId}}" bindtap="selectStop" role="button" aria-expanded="{{activeStopId === item.placeId}}">
+            <view class="stop-time-column"><view class="stop-arrival">{{item.arrival}}</view><view class="stop-index">0{{item.number}}</view></view>
+            <view class="stop-main"><view class="stop-name">{{item.displayName}}</view><view class="stop-meta">{{L.rt_dwell}}{{item.duration}}{{L.rt_min}} <text>·</text> {{item.cost === null || item.cost === undefined ? L.rt_cost_tbd : item.cost === 0 ? L.rt_cost_free : L.rt_cost_known + item.cost}}</view></view>
+            <view class="stop-chevron {{activeStopId === item.placeId ? 'expanded' : ''}}">⌄</view>
+          </view>
+          <view wx:if="{{activeStopId === item.placeId}}" class="stop-expanded">
+            <view class="stop-reason">{{item.shortReason}}</view>
+            <view class="stop-logistics">{{transportLabel}}{{L.rt_arrive_a}}{{item.travelMinutes}}{{L.rt_arrive_b}}<text wx:if="{{item.waitMinutes}}">{{L.rt_wait_short}}{{item.waitMinutes}}{{L.rt_min}}</text> · {{item.departure}}{{L.rt_depart}}</view>
+            <view class="stop-actions"><button wx:if="{{editing}}" id="skip-{{item.placeId}}" class="stop-more" data-id="{{item.placeId}}" bindtap="excludeStop">{{L.rt_skip_stop}}</button><view class="stop-action-group"><button id="nav-{{item.placeId}}" class="nav-button" data-id="{{item.placeId}}" bindtap="navigateToStop" aria-label="{{L.rt_map_view}}{{item.displayName}}">{{L.rt_navigate}} ⌖</button><button class="experience-button" data-id="{{item.placeId}}" bindtap="openExperiences">{{L.rt_experiences}}</button><button id="story-{{item.placeId}}" class="story-button" data-id="{{item.placeId}}" bindtap="openStop">{{L.rt_read_story}} <text>↗</text></button></view></view>
+          </view>
+        </view>
+      </view>
+      <view class="return-row"><view class="return-mark">↩</view><text class="return-time">{{route.endTime}}</text><text class="return-origin">{{L.rt_return_to}} {{profile.origin.name}}</text><text class="return-duration">{{L.rt_return_duration}} {{route.returnMinutes}}{{L.rt_min}}</text></view>
+      <button wx:if="{{editing && excludedIds.length}}" id="reset-stops" class="reset-button" bindtap="resetStops">{{L.rt_restore_skipped}} {{excludedIds.length}}{{L.rt_restore_unit}}</button>
+      <view class="journey-end"><view></view><text class="serif">{{L.rt_trip_end}}</text><view></view></view>
+    </block>
+    <view wx:if="{{error}}" class="error-message">{{error}}</view>
+  </block>
+</view>
+<button class="route-add" id="route-add" bindtap="openWizard" aria-label="{{L.rt_add_aria}}">＋</button>

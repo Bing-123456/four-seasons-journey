@@ -1,0 +1,27 @@
+{
+  "name": "guayouji-wechat",
+  "version": "0.7.0",
+  "private": true,
+  "description": "瓜游记 · 四时乡野文化体验微信小程序",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/check-project.js",
+    "test:wechat": "node scripts/test-wechat.js",
+    "test:field": "node scripts/test-field-classroom.js",
+    "package": "node scripts/package-release.js",
+    "test:route": "node scripts/test-route-ui.js",
+    "eval:retrieval": "node scripts/evaluate-retrieval.js",
+    "eval:ablation": "node scripts/evaluate-ablation.js",
+    "test:service": "node scripts/smoke-service.js",
+    "deploy:vps": "bash scripts/deploy-vps.sh",
+    "deploy:existing": "bash scripts/release-existing-vps.sh"
+  },
+  "devDependencies": {
+    "gcoord": "1.0.7",
+    "miniprogram-automator": "0.12.1"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
+  }
+}

@@ -1,0 +1,305 @@
+{
+  "version": "culture-seed-2026-09-28-v2",
+  "labelStatus": "工程人员按公开事实ID编写，待队友独立复核；非真实用户样本，非模型训练成果。v2 修正：q004/q019/q026 的 placeId 由不存在的 autumn-field 改为 autumn-orchard（原值导致系统返回「没有找到这个文化条目」，属数据引用错误，非模型问题）。",
+  "splits": "dev用于调试；evaluation冻结用于报告，不据测试结果调优门限",
+  "items": [
+    {
+      "id": "q001",
+      "split": "dev",
+      "query": "瓜豆酱的原料是什么",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [
+        "f-guadou-process"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q002",
+      "split": "dev",
+      "query": "磨棒是旋转还是前后推拉",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-grain-motion"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q003",
+      "split": "dev",
+      "query": "河南博物院在哪里",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-henan-museum-address"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q004",
+      "split": "dev",
+      "query": "猕猴桃有哪些果心颜色",
+      "placeId": "autumn-orchard",
+      "relevantFactIds": [
+        "f-kiwi-colors"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q005",
+      "split": "dev",
+      "query": "介绍中牟西瓜栽培技艺",
+      "placeId": null,
+      "relevantFactIds": [
+        "f-watermelon-heritage"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q006",
+      "split": "dev",
+      "query": "今天青谷堆还有预约名额吗",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q007",
+      "split": "dev",
+      "query": "能用坏西瓜制作瓜豆酱吗",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q008",
+      "split": "dev",
+      "query": "中牟1893年的老瓜田在哪里",
+      "placeId": null,
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q009",
+      "split": "dev",
+      "query": "灵宝苹果冷库的资料",
+      "placeId": "winter-apple",
+      "relevantFactIds": [
+        "f-apple-storage"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q010",
+      "split": "dev",
+      "query": "介绍姚家草莓种植历史",
+      "placeId": "spring-strawberry",
+      "relevantFactIds": [
+        "f-strawberry-history"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q011",
+      "split": "evaluation",
+      "query": "做瓜豆酱用啥东西",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [
+        "f-guadou-process"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q012",
+      "split": "evaluation",
+      "query": "瓜豆酱有什么吃法",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [
+        "f-guadou-table"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q013",
+      "split": "evaluation",
+      "query": "磨盘磨棒出土在哪里",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-grain-origin"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q014",
+      "split": "evaluation",
+      "query": "磨棒怎样使用",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-grain-motion"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q015",
+      "split": "evaluation",
+      "query": "河南博物院的地址",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-henan-museum-address"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q016",
+      "split": "evaluation",
+      "query": "河南博物院常规周一闭馆吗",
+      "placeId": "summer-culture",
+      "relevantFactIds": [
+        "f-henan-museum-visit"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q017",
+      "split": "evaluation",
+      "query": "大河村经历哪些时代",
+      "placeId": "autumn-culture",
+      "relevantFactIds": [
+        "f-dahecun-settlement"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q018",
+      "split": "evaluation",
+      "query": "大河村新馆什么时候开放",
+      "placeId": "autumn-culture",
+      "relevantFactIds": [
+        "f-dahecun-opening"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q019",
+      "split": "evaluation",
+      "query": "猕猴桃的果心颜色",
+      "placeId": "autumn-orchard",
+      "relevantFactIds": [
+        "f-kiwi-colors"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q020",
+      "split": "evaluation",
+      "query": "草莓的保鲜库资料",
+      "placeId": "spring-strawberry",
+      "relevantFactIds": [
+        "f-strawberry-chain"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q021",
+      "split": "evaluation",
+      "query": "宁玉与雪里香是什么品种",
+      "placeId": "spring-strawberry",
+      "relevantFactIds": [
+        "f-strawberry-varieties"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q022",
+      "split": "evaluation",
+      "query": "灵宝苹果销售方式有什么变化",
+      "placeId": "winter-apple",
+      "relevantFactIds": [
+        "f-apple-sales"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q023",
+      "split": "evaluation",
+      "query": "冬天灵宝苹果如何贮藏",
+      "placeId": "winter-apple",
+      "relevantFactIds": [
+        "f-apple-storage"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q024",
+      "split": "evaluation",
+      "query": "郑州第六批非遗名录有多少项",
+      "placeId": null,
+      "relevantFactIds": [
+        "f-heritage-batch"
+      ],
+      "answerable": true
+    },
+    {
+      "id": "q025",
+      "split": "evaluation",
+      "query": "明天河南博物院有票吗",
+      "placeId": "summer-culture",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q026",
+      "split": "evaluation",
+      "query": "今年猕猴桃采摘多少钱",
+      "placeId": "autumn-orchard",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q027",
+      "split": "evaluation",
+      "query": "灵宝苹果明天会不会滞销",
+      "placeId": "winter-apple",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q028",
+      "split": "evaluation",
+      "query": "草莓园今天有多少库存",
+      "placeId": "spring-strawberry",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q029",
+      "split": "evaluation",
+      "query": "故宫有哪些草莓文化",
+      "placeId": "spring-strawberry",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q030",
+      "split": "evaluation",
+      "query": "磨棒每小时能加工多少斤",
+      "placeId": "summer-culture",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q031",
+      "split": "evaluation",
+      "query": "瓜豆酱发酵的安全温度",
+      "placeId": "summer-kitchen",
+      "relevantFactIds": [],
+      "answerable": false
+    },
+    {
+      "id": "q032",
+      "split": "evaluation",
+      "query": "四膜一布古法的开园传说",
+      "placeId": null,
+      "relevantFactIds": [],
+      "answerable": false
+    }
+  ]
+}

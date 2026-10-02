@@ -1,0 +1,87 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page search-page {{fontClass}}">
+  <!-- 头部：果灵身份 + 状态 + 清空 -->
+  <view class="chat-header">
+    <view class="chat-header-face"><companion-view config="{{companion}}" size="64"/></view>
+    <view class="chat-header-copy">
+      <view class="chat-header-title serif">{{L.ask_guoling}}<text class="chat-header-badge">AI</text></view>
+      <view class="chat-header-sub">{{L.chat_header_sub}}</view>
+    </view>
+    <view wx:if="{{messages.length}}" class="chat-header-clear" bindtap="clearChat" role="button" aria-label="{{L.chat_clear}}">{{L.chat_clear}}</view>
+  </view>
+
+  <!-- 消息滚动区 -->
+  <scroll-view class="chat-scroll" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation>
+    <!-- 空态：欢迎 + 推荐问法 + 最近提问 -->
+    <block wx:if="{{!messages.length && !pending}}">
+      <view class="chat-hero">
+        <view class="chat-hero-face"><companion-view config="{{companion}}" size="176" animated="{{true}}"/></view>
+        <view class="chat-hero-name serif">{{L.guoling}}</view>
+        <view class="chat-hero-copy">{{L.chat_welcome}}</view>
+      </view>
+      <view class="chat-suggest">
+        <view class="chat-suggest-title">{{L.chat_suggest_title}}</view>
+        <view wx:for="{{suggestions}}" wx:key="*this" class="suggest-chip" data-word="{{item}}" bindtap="tapRecent">{{item}}</view>
+      </view>
+      <view class="search-section" wx:if="{{recent.length}}">
+        <view class="search-section-head"><text>{{L.search_recent}}</text><text class="search-clear" bindtap="clearRecent">{{L.search_clear}}</text></view>
+        <view class="recent-row"><view wx:for="{{recent}}" wx:key="*this" class="recent-chip" data-word="{{item}}" bindtap="tapRecent">{{item}}</view></view>
+      </view>
+    </block>
+
+    <!-- 消息列表 -->
+    <block wx:for="{{messages}}" wx:key="id">
+      <view wx:if="{{item.role === 'user'}}" id="msg-{{item.id}}" class="chat-row row-user">
+        <view class="bubble bubble-user"><text user-select>{{item.text}}</text></view>
+      </view>
+      <view wx:else id="msg-{{item.id}}" class="chat-row row-elf">
+        <view class="elf-face"><companion-view config="{{companion}}" size="64"/></view>
+        <view class="elf-col">
+          <view class="elf-name serif">{{L.guoling}}</view>
+          <view class="bubble bubble-elf">
+            <text user-select>{{item.text}}</text>
+            <view class="bubble-actions">
+              <text class="read-btn" data-id="{{item.id}}" bindtap="readAnswer" role="button" aria-label="{{reading && readingId === item.id ? '停止朗读' : '朗读这条回答'}}">{{reading && readingId === item.id ? '⏹ 停止朗读' : '🔊 朗读'}}</text>
+            </view>
+            <view wx:if="{{item.evidence.length}}" class="msg-meta">
+              <text class="meta-label">{{L.chat_evidence}}</text>
+              <text wx:for="{{item.evidence}}" wx:for-item="ev" wx:key="*this" class="evidence-chip">{{ev}}</text>
+            </view>
+            <view wx:if="{{item.local}}" class="msg-meta"><text class="meta-label">{{L.chat_offline}}</text></view>
+            <view wx:if="{{item.chips.length}}" class="msg-jump">
+              <view wx:for="{{item.chips}}" wx:for-item="chip" wx:key="fullId" class="jump-pill" data-id="{{chip.fullId}}" bindtap="goFruit">{{chip.jumpLabel}}<text class="jump-arrow">→</text></view>
+            </view>
+            <view wx:if="{{item.followUps.length}}" class="msg-follow">
+              <view wx:for="{{item.followUps}}" wx:for-item="fup" wx:key="*this" class="follow-chip" data-word="{{fup}}" data-msg-id="{{item.id}}" bindtap="tapFollowUp">{{fup}}</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 思考中 -->
+    <view wx:if="{{pending}}" class="chat-row row-elf">
+      <view class="elf-face"><companion-view config="{{companion}}" size="64"/></view>
+      <view class="elf-col">
+        <view class="elf-name serif">{{L.guoling}}</view>
+        <view class="bubble bubble-elf bubble-pending">
+          <view class="typing"><text class="dot"></text><text class="dot"></text><text class="dot"></text></view>
+          <view class="pending-step">{{pendingSteps[pendingStep] || L.chat_step1}}</view>
+        </view>
+      </view>
+    </view>
+    <view id="chat-bottom" class="chat-bottom-space"></view>
+  </scroll-view>
+
+  <!-- 输入栏 -->
+  <view class="chat-inputbar" style="bottom:{{keyboardHeight ? keyboardHeight + 'px' : 'calc(24rpx + env(safe-area-inset-bottom))'}}">
+    <view class="voice-btn {{listening ? 'listening' : ''}} {{recognizing ? 'recognizing' : ''}}" bindtap="toggleVoice" role="button" aria-label="{{L.chat_voice}}">
+      <text class="voice-icon">🎤</text>
+      <view wx:if="{{listening}}" class="voice-pulse"></view>
+    </view>
+    <input class="chat-input" value="{{keyword}}" placeholder="{{L.chat_input_hint}}" placeholder-class="chat-placeholder" confirm-type="send" confirm-hold bindinput="onInput" bindconfirm="ask" bindkeyboardheightchange="onKeyboardHeight" cursor-spacing="16" maxlength="60" aria-label="{{L.id_search_aria}}"/>
+    <button class="chat-send" bindtap="ask" loading="{{pending}}" disabled="{{pending}}" aria-label="{{L.chat_send}}">{{L.chat_send}}</button>
+  </view>
+  <view wx:if="{{listening}}" class="listening-tip" style="bottom:{{keyboardHeight ? keyboardHeight + 90 + 'px' : 'calc(130rpx + env(safe-area-inset-bottom))'}}">{{L.chat_listening}}</view>
+  <view wx:if="{{recognizing}}" class="listening-tip" style="bottom:{{keyboardHeight ? keyboardHeight + 90 + 'px' : 'calc(130rpx + env(safe-area-inset-bottom))'}}">{{L.chat_recognizing}}</view>
+</view>

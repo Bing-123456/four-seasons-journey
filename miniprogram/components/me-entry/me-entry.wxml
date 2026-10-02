@@ -1,0 +1,3 @@
+<view class="me-entry" bindtap="go" role="button" aria-label="{{aria}}">
+  <image class="me-entry-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
+</view>

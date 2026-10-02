@@ -1,0 +1,50 @@
+.culture-head-card{margin:30rpx 36rpx 0;padding:30rpx 0 32rpx;border-bottom:1rpx solid #DADFD0}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:18rpx}
+.hero-kicker{font-size:21rpx;color:#927753;letter-spacing:2rpx;line-height:1.7}
+.favorite-button{padding:11rpx 18rpx;border:1rpx solid #CDD6BE;border-radius:12rpx;font-size:22rpx;line-height:1.5;flex-shrink:0;color:#536A4B;background:#EEF0E5}
+.favorite-button.is-favorite{background:#234B3C;color:#FFFCF3;border-color:#234B3C}
+.hero-place{font-size:46rpx;font-weight:600;line-height:1.45;color:#234B3C;margin:24rpx 0 16rpx;letter-spacing:1rpx}
+.hero-description{font-size:25rpx;color:#697760;line-height:1.9}
+.culture-body{padding-top:8rpx;padding-bottom:calc(64rpx + env(safe-area-inset-bottom))}
+.culture-body .demo-note{background:transparent;padding:0;margin:20rpx 0;color:#8B826F;font-size:21rpx;line-height:1.8}
+.read-card{background:#FFFDF8;border-radius:22rpx;padding:26rpx;margin-top:24rpx;box-shadow:0 5rpx 20rpx rgba(35,75,60,.03)}
+.read-head{display:flex;gap:18rpx;align-items:center;margin-bottom:18rpx}
+.read-face{width:64rpx;height:64rpx;border-radius:50%;background:#EDF0E2;overflow:hidden;flex-shrink:0}
+.read-copy{flex:1;min-width:0}
+.read-title{font-size:30rpx;color:#2E4A38;line-height:1.5}
+.read-hint{font-size:21rpx;line-height:1.7;margin-top:4rpx;color:#7E8872}
+.dialect-row{display:flex;flex-wrap:wrap;gap:10rpx;margin:20rpx 0}
+.dialect-chip{font-size:23rpx;line-height:1.5;color:#63715A;background:#F0F2E7;border-radius:10rpx;padding:12rpx 18rpx}
+.dialect-chip.on{background:#234B3C;color:#FFFCF3}
+.read-card .read-button{width:100%;margin:0;padding:20rpx 24rpx;font-size:25rpx}
+.lesson-entry{margin-top:28rpx;padding:26rpx;background:#E9EDDD;border-radius:22rpx}
+.lesson-kicker{font-size:20rpx;letter-spacing:2rpx;color:#7C866C;line-height:1.6}
+.lesson-row{display:flex;align-items:center;gap:22rpx;margin-top:14rpx}
+.lesson-copy{flex:1;min-width:0}
+.lesson-title{font-size:34rpx;line-height:1.5;color:#34543D}
+.lesson-description{font-size:23rpx;line-height:1.85;color:#78836C;margin-top:8rpx}
+.lesson-seal{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:76rpx;height:94rpx;border:1rpx solid #AFB88F;border-radius:38rpx 38rpx 12rpx 12rpx;color:#788056;font-size:36rpx}
+.lesson-bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14rpx;border-top:1rpx solid #D3DBC4;margin-top:22rpx;padding-top:18rpx;font-size:20rpx;color:#7F8B6F;line-height:1.7}
+.lesson-action{color:#41653F;font-size:22rpx}
+.reading-heading{display:flex;align-items:center;justify-content:space-between;gap:20rpx;margin:38rpx 0 26rpx}
+.reading-heading .section-title{margin:0;font-size:32rpx;flex:1;min-width:0}
+.fact-card{padding:0 0 30rpx;margin-bottom:28rpx;border-bottom:1rpx solid #DEE2D5}
+.fact-topic{display:flex;gap:14rpx;font-size:21rpx;color:#7C8A70;align-items:center;line-height:1.7}
+.fact-index{font-family:Georgia,serif;font-size:25rpx;color:#AA7853}
+.fact-title{font-size:34rpx;font-weight:600;line-height:1.6;color:#2E4A38;margin:14rpx 0}
+.fact-text{font-size:27rpx;line-height:1.95;color:#50624D}
+.ask-card{padding:28rpx;background:#EAEEDF;border-radius:24rpx;margin:32rpx 0 0}
+.ask-header{display:flex;gap:18rpx;align-items:flex-start;margin-bottom:14rpx}
+.ask-face{width:72rpx;height:72rpx;border-radius:50%;background:#F7F7EC;overflow:hidden;flex-shrink:0}
+.ask-header>view:last-child{flex:1;min-width:0}
+.ask-header .section-title{margin:0 0 8rpx;font-size:30rpx}
+.ask-intro{font-size:23rpx;line-height:1.8;color:#7B866E}
+.quick-questions{margin:20rpx 0}
+.quick-question{font-size:24rpx;color:#526A4B;padding:18rpx 0;border-bottom:1rpx solid #D6DFCA;line-height:1.8}
+.quick-question text{color:#8A987D;margin-left:8rpx}
+.question-input{box-sizing:border-box;width:100%;height:180rpx;border:1rpx solid #D9DFCD;border-radius:14rpx;padding:21rpx;background:#FFFDF5;font-size:25rpx;line-height:1.7;margin:22rpx 0}
+.answer-box{background:#FFFDF5;padding:26rpx;border-radius:16rpx;margin-top:24rpx;border-top:3rpx solid #8C9F75}
+.answer-insufficient{border-color:#C9996C}
+.answer-label{font-size:24rpx;font-weight:600;line-height:1.7;margin-bottom:14rpx}
+.answer-text{display:block;white-space:pre-wrap;font-size:26rpx;line-height:1.95;color:#4D6150}
+.error-message{padding:20rpx;background:#F4E9DF;color:#A06248;border-radius:14rpx;font-size:24rpx;line-height:1.8;margin-top:24rpx}

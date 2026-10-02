@@ -1,0 +1,61 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{unlockCelebration}}" class="unlock-overlay" catchtouchmove="noop">
+  <view class="unlock-card">
+    <view class="unlock-face"><companion-view config="{{unlockCelebration.config}}" size="240" animated="{{true}}"/></view>
+    <view class="unlock-title">{{unlockCelebration.alreadyOwned ? L.unlock_owned_title : L.unlock_title}}</view>
+    <view class="unlock-body">「{{unlockCelebration.name}}」{{unlockCelebration.alreadyOwned ? L.unlock_owned_body : L.unlock_body_suffix}}</view>
+    <button id="unlock-go" class="unlock-go" bindtap="goMine">{{L.unlock_go}}</button>
+    <button id="unlock-continue" class="unlock-continue" bindtap="closeUnlock">{{L.unlock_continue}}</button>
+  </view>
+</view>
+<view class="page playground-page {{fontClass}}">
+  <view class="playground-heading"><text class="playground-kicker">{{copy.back}}</text><view class="playground-title">{{activeTitle}}</view></view>
+  <view wx:if="{{game === 'identify'}}" id="game-identify" class="game-card">
+    <view class="game-head"><text class="game-num">01</text><view class="game-name">{{L.game_identify}}</view></view>
+    <view class="game-desc">{{L.game_identify_desc}}</view>
+    <button id="identify-fruit" class="game-button" bindtap="identifyFruit" loading="{{identifyBusy}}" disabled="{{identifyBusy}}">{{L.identify_btn}}</button>
+    <view wx:if="{{identifyResult}}" class="game-result {{identifyResult.fruit ? 'is-hit' : ''}}">
+      <block wx:if="{{identifyResult.fruit}}"><view class="result-line">{{L.identify_result_prefix}}{{identifyResult.fruit}}</view><button id="view-fruit" class="game-button" bindtap="viewFruit">{{L.go_seasons_story}}</button></block>
+      <view wx:else class="result-line">{{identifyResult.message}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{game === 'quiz'}}" id="game-quiz" class="game-card">
+    <view class="game-head"><text class="game-num">02</text><view class="game-name">{{L.game_quiz}}</view><text class="game-pill">{{L.quiz_pill}}</text></view>
+    <block wx:if="{{!quizDone}}">
+      <view class="quiz-progress">{{quizProgress}}</view>
+      <view class="quiz-kind">{{quiz[quizIndex].kind === 'proverb' ? L.quiz_proverb_type : L.quiz_knowledge_type}}</view>
+      <view class="quiz-question">{{quiz[quizIndex].text}}</view>
+      <view class="quiz-prompt">{{L.quiz_prompt}}</view>
+      <view wx:for="{{quiz[quizIndex].options}}" wx:key="index" class="quiz-option {{quizAnswered && item.correct ? 'is-correct' : ''}}" data-correct="{{item.correct ? '1' : '0'}}" bindtap="answer" role="button">
+        <text>{{item.label}}</text><text wx:if="{{quizAnswered && item.correct}}" class="quiz-mark">✓</text>
+      </view>
+      <view wx:if="{{quizAnswered}}" class="quiz-feedback {{quizCorrect ? 'good' : 'bad'}}">{{quizCorrect ? L.quiz_correct : L.quiz_wrong}}</view>
+      <view wx:if="{{quizAnswered && quiz[quizIndex].sourceTitle}}" class="quiz-source" bindtap="copyQuizSource" role="button">{{quiz[quizIndex].sourceTitle}} ↗</view>
+      <button wx:if="{{quizAnswered}}" class="game-button" bindtap="nextQuiz">{{L.quiz_next}}</button>
+    </block>
+    <block wx:else>
+      <view class="quiz-done">{{L.quiz_done}}<text>{{quizScoreLine}}</text></view>
+      <button class="game-button" bindtap="restartQuiz">{{L.quiz_again}}</button>
+    </block>
+  </view>
+
+  <view wx:if="{{game === 'paint'}}" id="game-paint" class="game-card">
+    <view class="paint-intro">
+      <view class="paint-intro-copy"><view class="game-head"><text class="game-num">03</text><view class="game-name">{{L.game_paint}}</view></view><view class="game-desc">{{L.game_paint_desc}}</view><text class="game-pill">{{L.story_pill}}</text></view>
+      <image class="paint-vignette" src="/assets/fruit-studio-illustration.jpg" mode="aspectFit" aria-hidden="true"/>
+    </view>
+    <view class="paint-examples">
+      <view wx:for="{{paintExamples}}" wx:key="*this" class="paint-example" data-word="{{item}}" bindtap="usePaintExample">{{item}}</view>
+    </view>
+    <input class="paint-input" value="{{paintKeyword}}" maxlength="40" placeholder="{{L.paint_ph}}" bindinput="paintInput"/>
+    <button class="game-button" bindtap="generatePaint" loading="{{paintBusy}}" disabled="{{paintBusy}}">{{L.paint_btn}}</button>
+    <view wx:if="{{paintNote}}" class="paint-note">{{paintNote}}</view>
+    <button wx:if="{{paintGoSetup}}" class="game-button paint-setup" bindtap="goSetup">{{L.learn_go_setup}}</button>
+    <view wx:if="{{paintImage}}" class="paint-result">
+      <image src="{{paintImage}}" mode="aspectFit" class="paint-art"/>
+      <button class="game-button" bindtap="savePaint" disabled="{{busy}}">{{L.save_album}}</button>
+      <button class="game-button game-share" open-type="share">{{L.share_friend}}</button>
+    </view>
+  </view>
+</view>

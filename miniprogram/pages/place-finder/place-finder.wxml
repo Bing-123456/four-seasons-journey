@@ -1,0 +1,51 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page finder-page">
+  <view class="finder-head">
+    <view class="finder-face"><companion-view config="{{companion}}" size="72"/></view>
+    <view class="finder-title serif">{{L.id_bag_title}}</view>
+    <view class="muted finder-sub">{{L.id_bag_sub}}</view>
+  </view>
+
+  <view wx:for="{{questions}}" wx:key="id" class="finder-question">
+    <view class="finder-q-title"><text class="finder-q-number">0{{index + 1}}</text><text class="finder-q-copy">{{item.title}}</text><text wx:if="{{item.multi}}" class="finder-multi">{{L.finder_multi}}</text></view>
+    <view class="finder-options">
+      <block wx:if="{{item.id === 'fruits'}}">
+        <view wx:for="{{item.options}}" wx:for-item="opt" wx:key="id" class="finder-option {{opt.selected ? 'chosen' : ''}}" data-qid="{{item.id}}" data-oid="{{opt.id}}" bindtap="toggleOption" role="button" aria-label="{{opt.label}}">
+          <text class="finder-check">{{opt.selected ? '✓' : ''}}</text><text class="finder-option-name">{{opt.label}}</text><text class="finder-season">{{opt.group}}</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view wx:for="{{item.options}}" wx:for-item="opt" wx:key="id" class="finder-option {{opt.selected ? 'chosen' : ''}}" data-qid="{{item.id}}" data-oid="{{opt.id}}" bindtap="toggleOption" role="button" aria-label="{{opt.label}}">
+          <text class="finder-check">{{opt.selected ? '✓' : ''}}</text><text class="finder-option-name">{{opt.label}}</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <view class="finder-actions">
+    <button class="finder-reset" bindtap="resetAnswers" disabled="{{busy}}">{{L.reset}}</button>
+    <button class="button finder-generate" bindtap="generate" loading="{{busy}}" disabled="{{busy}}">{{busy ? L.place_gen_busy : L.place_gen_btn}}</button>
+  </view>
+  <view wx:if="{{note}}" class="finder-note">{{note}}</view>
+  <button wx:if="{{canResume}}" class="finder-resume" bindtap="resume">{{L.refresh}}</button>
+
+  <block wx:if="{{places.length}}">
+    <view class="finder-result-title">{{L.place_result_title}}</view>
+    <view class="finder-virtual">{{L.virtual}}</view>
+    <view class="finder-season-note">{{L.seasonal}}</view>
+    <view wx:for="{{places}}" wx:key="id" class="place-card">
+      <view wx:if="{{item.image && !item.downloadFailed}}" class="place-photo-wrap">
+        <image class="place-photo" src="{{item.image}}" data-id="{{item.id}}" binderror="imageError" mode="aspectFit" lazy-load="{{true}}"/>
+        <text wx:if="{{item.local}}" class="place-photo-tag">{{L.illustration}}</text>
+      </view>
+      <view wx:else class="place-photo place-photo-fallback"><text>{{item.local ? L.localIdea : item.downloadFailed ? L.download : item.imageStatus === 'failed' ? L.imageFail : L.imageWait}}</text></view>
+      <view class="place-copy">
+        <view class="place-name">{{item.name}}</view>
+        <view class="place-intro">{{item.intro}}</view>
+        <view class="place-season">{{item.seasonText}}</view>
+        <view class="place-months">{{item.monthsText}}</view>
+        <button wx:if="{{item.imageStatus === 'failed' || item.downloadFailed}}" class="place-retry" data-id="{{item.id}}" bindtap="retryImage">{{L.retry}}</button>
+      </view>
+    </view>
+  </block>
+</view>

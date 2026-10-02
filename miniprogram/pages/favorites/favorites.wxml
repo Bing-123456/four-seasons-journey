@@ -1,0 +1,30 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page favorites-page {{fontClass}}">
+  <view class="collection-heading">
+  <view class="page-title serif">{{pageType === 'places' ? L.fav_page_places : L.fav_page_knowledge}}</view>
+  <view class="muted collect-intro">{{pageType === 'places' ? L.fav_page_places_intro : L.fav_page_knowledge_intro}}</view></view>
+
+  <block wx:if="{{pageType !== 'places'}}">
+    <view class="collection-section">{{L.fav_knowledge_title}} <text class="collection-count">{{knowledge.length}} {{L.fav_knowledge_count}}</text></view>
+    <view wx:if="{{knowledge.length}}" class="know-list">
+      <view wx:for="{{knowledge}}" wx:key="id" class="know-row" data-id="{{item.id}}" bindtap="openKnowledge" role="button">
+        <text class="know-name">{{item.name}}</text>
+        <text class="row-remove" data-id="{{item.id}}" catchtap="removeKnowledge" aria-label="{{L.remove}}">{{L.remove}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty-collection"><view class="empty-paper" aria-hidden="true"></view><view class="muted empty-tip">{{L.fav_knowledge_empty}}</view></view>
+  </block>
+
+  <block wx:else>
+    <view class="collection-section">{{L.fav_places_title}} <text class="collection-count">{{places.length}} {{L.fav_places_count}}</text></view>
+    <view wx:if="{{places.length}}" class="place-list">
+      <view wx:for="{{places}}" wx:key="id" class="place-row" data-id="{{item.id}}" bindtap="openPlace">
+        <image wx:if="{{item.imageView}}" class="row-thumb" src="{{item.imageView.src}}" mode="aspectFill"/>
+        <view wx:else class="row-thumb monogram serif">{{item.initial}}</view>
+        <view class="row-copy"><view class="row-name">{{item.name}}</view><view class="muted">{{item.kindLabel}}</view></view>
+        <text class="row-remove" data-id="{{item.id}}" catchtap="removePlace" aria-label="{{L.remove}}">{{L.remove}}</text>
+      </view>
+    </view>
+    <view wx:else class="empty-collection"><view class="empty-paper" aria-hidden="true"></view><view class="muted empty-tip">{{L.fav_places_empty}}</view></view>
+  </block>
+</view>

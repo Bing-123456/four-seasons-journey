@@ -1,0 +1,39 @@
+/* 分步向导：与行程页同一套米白卡片 + 深绿主色 #234B3C；不新增图片资源。
+   分包页面不能 @import 主包页面样式，route-heading / error-message 在此就地定义（与行程页一致）。 */
+.wizard-page{padding-bottom:230rpx}
+.route-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18rpx;margin:4rpx 0 28rpx}
+.route-heading>view:first-child{flex:1;min-width:0}
+.route-heading .page-title{font-size:44rpx;line-height:1.45;margin:0;letter-spacing:1rpx}
+.route-head-tools{display:flex;align-items:center;gap:14rpx;max-width:48%;flex-shrink:0}
+.wizard-page button{white-space:normal}
+.wiz-progress{display:flex;align-items:center;gap:10rpx;margin:2rpx 2rpx 26rpx}
+.wiz-dot{flex:1;height:8rpx;border-radius:6rpx;background:#E3E3D6}
+.wiz-dot.done{background:#A9BC8F}
+.wiz-dot.now{background:#234B3C}
+.wiz-step-word{flex-shrink:0;font-size:21rpx;color:#8B9274;margin-left:8rpx;font-variant-numeric:tabular-nums}
+.wiz-question{font-size:40rpx;font-weight:700;line-height:1.5;color:#294B38;letter-spacing:1rpx}
+.wiz-sub{margin:10rpx 2rpx 28rpx;line-height:1.8}
+.wiz-body{display:flex;flex-direction:column;gap:18rpx}
+.wiz-card{position:relative;background:#FBF9F0;border:1rpx solid #E0E1CE;border-radius:20rpx;padding:26rpx 24rpx}
+.wiz-card.is-on{border-color:#234B3C;background:#EFF3E4}
+.wiz-card-name{font-size:32rpx;font-weight:700;color:#344C37}
+.wiz-card-hook{font-size:24rpx;color:#7C876B;margin-top:10rpx;line-height:1.7}
+.wiz-check{position:absolute;top:22rpx;right:24rpx;color:#234B3C;font-size:26rpx;font-weight:700}
+.wiz-option{background:#FBF9F0;border:1rpx solid #E0E1CE;border-radius:18rpx;padding:24rpx;font-size:27rpx;color:#3C4B36;line-height:1.6;display:flex;justify-content:space-between;gap:14rpx;align-items:center;overflow-wrap:anywhere}
+.wiz-option.is-on{border-color:#234B3C;background:#EFF3E4;color:#234B3C;font-weight:600}
+.wiz-value{flex-shrink:0;font-size:22rpx;color:#8B9274;font-weight:400}
+.wiz-origin{font-size:24rpx;color:#5F7152;background:#F0EEE0;border-radius:14rpx;padding:18rpx 20rpx;line-height:1.7;overflow-wrap:anywhere}
+.wiz-pair{display:flex;gap:16rpx}
+.wiz-pair .button-secondary{flex:1;min-width:0}
+.wiz-tags{display:flex;flex-wrap:wrap;gap:16rpx}
+.wiz-tag{background:#FBF9F0;border:1rpx solid #E0E1CE;border-radius:999rpx;padding:18rpx 30rpx;font-size:26rpx;color:#3C4B36;line-height:1.5}
+.wiz-tag.is-on{background:#234B3C;border-color:#234B3C;color:#FFFDF5}
+.wiz-rows{background:#F0EEE0;border-radius:20rpx;padding:10rpx 24rpx}
+.wiz-row{display:flex;justify-content:space-between;gap:20rpx;padding:16rpx 0;border-bottom:1rpx solid #DFDFCD;font-size:24rpx;line-height:1.7}
+.wiz-row:last-child{border-bottom:0}
+.wiz-k{flex-shrink:0;color:#7C876B}
+.wiz-v{text-align:right;color:#3C4B36;overflow-wrap:anywhere}
+.wiz-footnote{font-size:21rpx;color:#8E947C;line-height:1.8}
+.error-message{font-size:24rpx;line-height:1.8;padding:20rpx 24rpx;color:#A1654B;background:#F4E7DD;border:1rpx solid #E7D0C0;border-radius:16rpx;overflow-wrap:anywhere}
+.wiz-footer{position:fixed;left:0;right:0;bottom:0;display:flex;gap:16rpx;padding:20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));background:rgba(245,245,247,.97);border-top:1rpx solid #E1E5D9}
+.wiz-footer .button,.wiz-footer .button-secondary{flex:1;min-width:0}

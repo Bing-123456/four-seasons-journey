@@ -1,0 +1,41 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{invalid}}" class="page empty"><view class="page-title serif">{{L.craft_empty_title}}</view><button class="button" bindtap="back">{{L.craft_back}}</button></view>
+<view wx:elif="{{fruit}}" class="page craft-page {{fontClass}}">
+  <view class="craft-kicker">{{fruit.seasonName}} · {{L.cl_kicker}}</view>
+  <view class="craft-title serif">{{L.cl_title_a}}{{learn.product}}</view>
+  <view class="craft-subtitle">{{fruit.name}} · {{learnView.intro}}</view>
+
+  <view class="craft-progress"><view class="craft-seg {{step >= 0 ? 'active' : ''}}"><text>01</text> {{L.craft_step_ingredients}}</view><view class="craft-seg {{step >= 1 ? 'active' : ''}}"><text>02</text> {{L.craft_step_craft}}</view><view class="craft-seg {{step >= 2 ? 'active' : ''}}"><text>03</text> {{L.craft_step_done}}</view></view>
+
+  <view wx:if="{{step === 0}}" class="craft-chapter">
+    <view class="craft-heading serif">{{L.craft_choose_two}}</view>
+    <view class="craft-ingredients">
+      <view wx:for="{{learnView.ingredients}}" wx:key="glyph" class="craft-ingredient">
+        <view class="craft-ingredient-art serif">{{item.glyph}}</view>
+        <view class="craft-ingredient-copy">
+          <view class="craft-ingredient-name">{{item.name}}</view>
+          <view class="craft-ingredient-detail">{{item.detail}}</view>
+        </view>
+      </view>
+    </view>
+    <button class="button craft-next" bindtap="nextStep">{{L.craft_next_craft}}</button>
+  </view>
+
+  <view wx:elif="{{step === 1}}" class="craft-chapter">
+    <view class="craft-heading serif">{{learnView.steps.length}} {{L.craft_steps_title}}</view>
+    <view wx:for="{{learnView.steps}}" wx:key="index" class="craft-step">
+      <view class="craft-step-no">{{index + 1}}</view>
+      <view class="craft-step-body"><view wx:if="{{item.title}}" class="craft-step-title">{{item.title}}</view><view class="craft-step-text">{{item.text}}</view></view>
+    </view>
+    <button class="button craft-next" bindtap="nextStep">{{L.craft_next_done}}</button>
+  </view>
+
+  <view wx:else class="craft-chapter">
+    <view class="craft-heading serif">{{L.craft_finish_title}}</view>
+    <view class="craft-summary">{{learnView.intro}}{{L.craft_done_note}}</view>
+    <button class="button craft-next" bindtap="saveKnowledge">{{favorite ? L.craft_saved : L.craft_save}}</button>
+    <button class="button-secondary craft-next" bindtap="restart">{{L.craft_restart}}</button>
+  </view>
+
+  <button class="leave-link" bindtap="back">{{L.craft_back}}</button>
+</view>

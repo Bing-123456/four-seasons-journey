@@ -1,0 +1,9 @@
+<view class="stage {{scene === 'grain-mill' ? 'mill-stage' : ''}}">
+  <view class="stage-orbit orbit-one"></view><view class="stage-orbit orbit-two"></view>
+  <view class="stage-floor"></view>
+  <canvas wx:if="{{scene === 'grain-mill'}}" id="heritage-canvas" type="webgl" class="canvas"></canvas>
+  <canvas wx:else id="heritage-canvas" type="webgl" class="canvas" catchtouchstart="touchStart" catchtouchmove="touchMove" catchtouchend="touchEnd" catchtouchcancel="touchEnd"></canvas>
+  <view wx:if="{{loading}}" class="stage-status">{{scene === 'grain-mill' ? L.hv_loading_mill : L.hv_loading_generic}}</view>
+  <view wx:if="{{error}}" class="stage-error">{{error}}</view>
+  <view class="stage-caption"><text class="caption-line"></text><text>{{scene === 'grain-mill' ? L.hv_caption_mill : L.hv_caption_generic}}</text><text class="caption-line"></text></view>
+</view>

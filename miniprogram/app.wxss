@@ -1,0 +1,70 @@
+/* Shared field-journal palette and type rhythm. */
+page {
+  --green: #234B3C;
+  --cream: #F5F5F7;
+  --red: #B96D50;
+  --muted: #6F7C70;
+  background: #F5F5F7;
+  color: #1D1D1F;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.65;
+}
+view, text, button, input, textarea { box-sizing: border-box; }
+button { font: inherit; margin: 0; border-radius: 18rpx; }
+button::after { border: none; }
+button[disabled] { opacity: .5; }
+input, textarea { font: inherit; color: #1D1D1F; }
+image { display: block; }
+.page { padding: 32rpx 36rpx 80rpx; }
+.tab-page { padding-bottom: calc(174rpx + env(safe-area-inset-bottom)); }
+.row { display: flex; align-items: center; gap: 16rpx; }
+.eyebrow { font-size: 19rpx; letter-spacing: 3rpx; color: #77836F; font-weight: 600; line-height: 1.6; }
+.page-title { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; font-size: 48rpx; line-height: 1.25; font-weight: 700; margin: 16rpx 0 20rpx; letter-spacing: -1rpx; }
+.serif { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
+.muted { color: #6F7C70; font-size: 24rpx; }
+.card { background: #FFFFFF; border: 0; border-radius: 28rpx; padding: 30rpx; margin-bottom: 24rpx; box-shadow: 0 4rpx 20rpx rgba(0,0,0,.025); }
+.button { width: 100%; background: #234B3C; color: #FFFDF8; text-align: center; font-weight: 600; font-size: 27rpx; line-height: 1.5; padding: 24rpx 28rpx; display: block; border-radius: 18rpx; letter-spacing: 1rpx; }
+.button-secondary { width: 100%; background: #E9EEE3; color: #234B3C; text-align: center; font-size: 26rpx; padding: 22rpx 26rpx; line-height: 1.5; display: block; border-radius: 18rpx; }
+button.button:not([size="mini"]), button.button-secondary:not([size="mini"]) { width: 100%; margin-left: 0; margin-right: 0; }
+.pill { display: inline-flex; align-items: center; border-radius: 8rpx; padding: 6rpx 14rpx; font-size: 21rpx; background: #EBEEE5; color: #47634B; margin-right: 10rpx; }
+.section-title { font-size: 32rpx; font-weight: 600; margin: 36rpx 0 22rpx; letter-spacing: 1rpx; line-height: 1.5; }
+.demo-note { font-size: 22rpx; color: #826B4B; background: #F0ECDE; padding: 20rpx 24rpx; border-radius: 14rpx; line-height: 1.8; margin: 22rpx 0; }
+.field-label { font-size: 26rpx; font-weight: 600; display: block; margin: 24rpx 0 12rpx; }
+.empty { padding: 70rpx 32rpx; text-align: center; color: #6F7C70; line-height: 1.9; }
+.empty .button { margin-top: 28rpx; }
+.divider { height: 1rpx; background: #E1E5D9; margin: 28rpx 0; }
+.small { font-size: 22rpx; }
+.link { color: #234B3C; text-decoration: underline; text-underline-offset: 5rpx; }
+.loading-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #A8BA88; display: inline-block; margin-right: 12rpx; }
+.subheading { font-size: 28rpx; font-weight: 600; }
+.safe-bottom { height: env(safe-area-inset-bottom); }
+/* 字体大小三档（「我的-字体大小」设置，评审 P05①）：页面根节点挂 fs-normal / fs-large / fs-xlarge
+   （app.js getFontClass()；mine 页已示范挂载）。normal 为默认档不写规则；下面按通用容器类名
+   覆盖正文字号，阅读类页面另可把正文容器标为 .prose 获得专门的放大档。 */
+.fs-large { font-size: 32rpx; }
+.fs-xlarge { font-size: 38rpx; }
+.fs-large .page-title { font-size: 56rpx; }
+.fs-large .section-title { font-size: 38rpx; }
+.fs-large .subheading { font-size: 34rpx; }
+.fs-large .field-label { font-size: 31rpx; }
+.fs-large .eyebrow { font-size: 23rpx; }
+.fs-large .muted { font-size: 29rpx; }
+.fs-large .small { font-size: 27rpx; }
+.fs-large .pill { font-size: 26rpx; }
+.fs-large .button, .fs-large .button-secondary { font-size: 32rpx; }
+.fs-large .empty, .fs-large .demo-note { font-size: 30rpx; }
+.fs-large .link { font-size: 29rpx; }
+.fs-large .prose, .fs-large .fs-text { font-size: 34rpx; line-height: 1.75; }
+.fs-xlarge .page-title { font-size: 64rpx; }
+.fs-xlarge .section-title { font-size: 44rpx; }
+.fs-xlarge .subheading { font-size: 40rpx; }
+.fs-xlarge .field-label { font-size: 36rpx; }
+.fs-xlarge .eyebrow { font-size: 27rpx; }
+.fs-xlarge .muted { font-size: 34rpx; }
+.fs-xlarge .small { font-size: 32rpx; }
+.fs-xlarge .pill { font-size: 30rpx; }
+.fs-xlarge .button, .fs-xlarge .button-secondary { font-size: 38rpx; }
+.fs-xlarge .empty, .fs-xlarge .demo-note { font-size: 36rpx; }
+.fs-xlarge .link { font-size: 34rpx; }
+.fs-xlarge .prose, .fs-xlarge .fs-text { font-size: 42rpx; line-height: 1.8; }

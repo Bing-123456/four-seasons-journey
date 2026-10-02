@@ -1,0 +1,11 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{invalid}}" class="page empty"><view class="page-title">{{L.fn_invalid_title}}</view><button class="button" bindtap="back">{{L.fn_back}}</button></view>
+<view wx:elif="{{fruit}}" class="page fruit-page {{fontClass}}">
+  <view class="fruit-heading"><view class="fruit-season">{{fruit.seasonName}}</view><view class="fruit-name">{{fruit.name}}</view><view class="fruit-intro">{{L.fruit_note_short}}</view></view>
+  <view class="fruit-categories">
+    <view wx:for="{{fruit.categories}}" wx:key="cat" id="fruit-cat-{{item.cat}}" class="fruit-cat">
+      <view class="fruit-cat-head" data-cat="{{item.cat}}" bindtap="openCategory" role="button" aria-label="{{item.label}}"><text class="category-number">0{{index + 1}}</text><view class="category-copy"><view class="fruit-cat-label">{{item.label}}</view><view class="category-preview">{{item.preview}}</view></view><view class="fruit-cat-tools"><view class="fruit-fav {{item.fav ? 'is-fav' : ''}}" data-id="{{item.favId}}" catchtap="toggleFavorite" role="button" aria-label="{{L.cal_fav_aria}}{{item.label}}">{{item.fav ? '♥' : '♡'}}</view><text class="fruit-toggle">›</text></view></view>
+    </view>
+  </view>
+  <button class="button-secondary back-button" bindtap="back">{{L.fn_back}}</button>
+</view>

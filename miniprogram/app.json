@@ -1,0 +1,97 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/calendar/calendar",
+    "pages/learn/learn",
+    "pages/route/route",
+    "pages/mine/mine",
+    "pages/favorites/favorites",
+    "pages/profile/profile",
+    "pages/culture/culture",
+    "pages/heritage/index",
+    "pages/workshop/index",
+    "pages/companion/companion",
+    "pages/seller/index",
+    "pages/graph/graph",
+    "pages/search/search",
+    "pages/craft-lesson/craft-lesson",
+    "pages/account/account",
+    "pages/fruit-note/fruit-note",
+    "pages/place-finder/place-finder",
+    "pages/journal/journal",
+    "pages/fruit-detail/fruit-detail",
+    "pages/playground/playground",
+    "pages/route-detail/route-detail"
+  ],
+  "window": {
+    "navigationBarTitleText": "果物四时记",
+    "navigationBarBackgroundColor": "#F5F5F7",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F5F7",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#798479",
+    "selectedColor": "#234B3C",
+    "backgroundColor": "#FFFDF8",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "发现"
+      },
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "四时"
+      },
+      {
+        "pagePath": "pages/learn/learn",
+        "text": "游戏"
+      },
+      {
+        "pagePath": "pages/route/route",
+        "text": "行程"
+      }
+    ]
+  },
+  "style": "v2",
+  "cloud": true,
+  "sitemapLocation": "sitemap.json",
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.5",
+      "provider": "wx069ba97219f66d99"
+    }
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "仅在主动设置行程起点时读取一次位置"
+    },
+    "scope.record": {
+      "desc": "仅用于果灵搜索的语音提问：点按麦克风开始录音，再点一次结束并转成文字"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation",
+    "getLocation"
+  ],
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index",
+    "me-entry": "/components/me-entry/me-entry"
+  },
+  "subPackages": [
+    {
+      "root": "packageWorld",
+      "pages": [
+        "pages/index/index"
+      ]
+    },
+    {
+      "root": "packageTrip",
+      "pages": [
+        "pages/trip-wizard/trip-wizard"
+      ]
+    }
+  ]
+}

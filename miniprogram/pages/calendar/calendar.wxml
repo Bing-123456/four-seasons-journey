@@ -1,0 +1,33 @@
+<template name="fruit-graph">
+  <view class="graph-canvas {{graphDense ? 'is-dense' : ''}}" aria-label="{{seasonMeta.name}}{{L.cal_graph_aria}}">
+    <view wx:for="{{graphLines}}" wx:key="id" class="graph-line" style="{{item.lineStyle}}"></view>
+    <view class="graph-center {{en ? 'en' : ''}}">{{seasonMeta.centerName}}</view>
+    <view wx:for="{{graphNodes}}" wx:key="id" id="fruit-node-{{item.id}}" class="graph-fruit {{en ? 'en' : ''}} {{item.locked ? 'is-locked' : ''}}" style="{{item.style}}" data-id="{{item.id}}" data-locked="{{item.locked ? '1' : ''}}" bindtap="selectFruit" role="button" aria-label="{{item.locked ? item.name + L.fruit_locked : item.name}}">
+      <view class="graph-fruit-art {{item.originClass}}"><view class="graph-fruit-crop"><image src="{{item.art.src}}" mode="scaleToFill" aria-hidden="true"/></view></view>
+      <text class="graph-fruit-name">{{item.name}}</text>
+    </view>
+  </view>
+</template>
+<view class="calendar-screen {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="calendar-content">
+    <view class="calendar-heading"><view><view class="screen-title">{{L.cal_title1}}</view><view class="screen-subtitle">{{L.graph_hint}}</view></view><me-entry/></view>
+    <view class="calendar-tabs" role="tablist">
+      <view wx:for="{{seasons}}" wx:key="id" id="season-{{item.id}}" data-id="{{item.id}}" bindtap="choose" class="calendar-tab {{season === item.id ? 'selected' : ''}}" role="tab" aria-selected="{{season === item.id}}"><text>{{item.shortName}}</text></view>
+    </view>
+    <view class="graph-panel season-{{season}}">
+      <view class="graph-toolbar">
+        <view class="graph-legend" aria-label="{{legend.native}}，{{legend.introduced}}">
+          <view class="graph-legend-item"><view class="graph-legend-ring is-native"></view><text>{{legend.native}}</text></view>
+          <view class="graph-legend-item"><view class="graph-legend-ring is-introduced"></view><text>{{legend.introduced}}</text></view>
+        </view>
+      </view>
+      <view class="graph-stage">
+        <template is="fruit-graph" data="{{graphNodes: graphNodes, graphLines: graphLines, seasonMeta: seasonMeta, en: en, L: L}}"/>
+      </view>
+    </view>
+    <view class="calendar-bottom">
+      <view id="guoling-search" class="bottom-entry" bindtap="openSearch" role="button" aria-label="{{L.id_search_aria}}"><view class="guoling-face"><companion-view wx:if="{{companionMini}}" config="{{companionMini}}" size="44"/></view><text>{{L.guoling_search_title}}</text><text class="entry-arrow">›</text></view>
+    </view>
+  </view>
+</view>

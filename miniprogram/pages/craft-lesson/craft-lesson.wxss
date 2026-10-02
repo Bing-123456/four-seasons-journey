@@ -1,0 +1,27 @@
+.craft-page{padding-bottom:calc(56rpx + env(safe-area-inset-bottom))}
+.craft-kicker{font-size:21rpx;color:#967954;margin-top:16rpx;letter-spacing:2rpx;line-height:1.8}
+.craft-title{font-size:46rpx;color:#234B3C;margin:16rpx 0 14rpx;line-height:1.45}
+.craft-subtitle{font-size:25rpx;color:#74816A;line-height:1.85;margin-bottom:18rpx}
+.craft-progress{display:flex;gap:12rpx;margin-bottom:30rpx}
+.craft-seg{flex:1;min-width:0;font-size:21rpx;line-height:1.6;color:#919985;padding:14rpx 0;border-top:4rpx solid #E0E4D5}
+.craft-seg.active{color:#31543F;border-color:#31543F;font-weight:600}
+.craft-seg text{font-family:Georgia,serif;margin-right:6rpx;color:#A08158}
+.craft-chapter{background:#FFFDF8;border-radius:24rpx;padding:28rpx;box-shadow:0 5rpx 20rpx rgba(35,75,60,.035)}
+.craft-heading{font-size:32rpx;color:#2E4A38;line-height:1.6;margin-bottom:22rpx}
+/* 评审 9.28①：食材卡整行横排（图标在左、文字铺满右侧），不再两列竖卡留白。 */
+.craft-ingredients{display:grid;grid-template-columns:1fr;gap:16rpx;margin-bottom:26rpx}
+.craft-ingredient{background:#F2F2E7;border-radius:18rpx;padding:24rpx;display:flex;align-items:flex-start;gap:20rpx;text-align:left}
+.craft-ingredient-art{width:90rpx;height:90rpx;line-height:90rpx;margin:0;flex-shrink:0;border-radius:50%;background:#E6EAD8;color:#687953;font-size:40rpx;text-align:center}
+.craft-ingredient-copy{flex:1;min-width:0}
+.craft-ingredient-name{font-size:27rpx;font-weight:600;color:#2E4A38;line-height:1.6}
+.craft-ingredient-detail{font-size:22rpx;color:#859078;margin-top:8rpx;line-height:1.75}
+.craft-step{display:flex;gap:18rpx;padding:24rpx 0;border-bottom:1rpx solid #E7E9DD}
+.craft-step:first-of-type{padding-top:0}
+.craft-step:last-of-type{border-bottom:0}
+.craft-step-no{width:42rpx;height:42rpx;line-height:42rpx;text-align:center;border-radius:50%;background:#EAECDC;color:#8E7953;font-size:22rpx;flex-shrink:0;font-family:Georgia,serif}
+.craft-step-body{flex:1;min-width:0}
+.craft-step-title{font-size:27rpx;font-weight:600;line-height:1.6;color:#2E4A38}
+.craft-step-text{font-size:25rpx;color:#6B7A60;line-height:1.85;margin-top:10rpx}
+.craft-summary{font-size:25rpx;color:#68745F;line-height:1.9;margin-bottom:26rpx}
+.craft-page .craft-next{width:100%;margin:18rpx 0 0}
+.craft-page .leave-link{width:auto;max-width:100%;margin:24rpx auto 0;padding:14rpx 18rpx;background:transparent;color:#748469;font-size:23rpx;line-height:1.6}

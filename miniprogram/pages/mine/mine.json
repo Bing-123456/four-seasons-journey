@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "我的 · 乡野手记",
+  "usingComponents": {
+    "companion-view": "/components/companion-view/companion-view",
+    "farm-plant": "/components/farm-plant/farm-plant"
+  }
+}

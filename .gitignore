@@ -1,0 +1,43 @@
+node_modules/
+.env*
+!.env.example
+.DS_Store
+project.private.config.json
+test-results/
+release/
+*.log
+
+# Local research, downloaded media, and intermediate artifacts
+/output/
+/tmp/
+/资料/
+/规划/
+
+# Credentials and local caches
+*.pem
+*.key
+*.p12
+*.pfx
+.npmrc
+__pycache__/
+*.pyc
+
+# 向量缓存（qwen3-vl-embedding 的返回结果，可重新生成）
+/.cache/
+
+# 飞书反馈截图临时目录
+.tmp-lark-media/
+
+# 设计工具的工作目录（约 25 MB 二进制导出：draft.xml / probe.xml / img / shots）
+# 项目内无任何文件引用它。若确认它是交付物，删掉本行即可。
+/draft_1b7b4c00_folder/
+
+# 另一个 agent 工具的临时计划文件
+/.zcode/
+
+# 往届参赛者的个人联系信息（姓名 / 邮箱 / 学校 / GitHub —— 第三方个人信息）
+# 文件仍完整保留在本地磁盘，只是不进版本库：一旦仓库转公开或加了协作者，
+# 这类信息就收不回来了。若确实要用 git 管理这份外联记录，删掉下面三行即可。
+docs/AIC往届参赛者联系清单-2026-09-27.csv
+docs/AIC往届参赛者GitHub联系清单-2026-09-27.md
+docs/AIC往届参赛者邮件草稿-2026-09-27.md

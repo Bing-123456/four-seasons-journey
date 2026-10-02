@@ -1,0 +1,48 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page profile-page">
+  <view class="profile-heading">
+    <view class="page-title serif"><view>{{L.pf_title1}}</view><view class="title-accent">{{L.pf_title2}}</view></view>
+    <view class="muted intro">{{L.pf_intro}}</view>
+  </view>
+  <view class="form-section origin-section">
+    <view class="origin-card">
+      <view class="origin-copy"><view class="field-label">{{L.pf_origin}}</view><view class="origin-name">{{profile.origin ? profile.origin.name : L.pf_no_origin}}</view><view class="origin-address">{{profile.origin ? profile.origin.address : (en ? 'Choose a verified place or a point on the map.' : '从已核实地点或地图中选择，不会自动读取你的位置。')}}</view></view>
+      <button id="choose-origin" class="button-secondary origin-button" loading="{{originBusy}}" disabled="{{originBusy}}" bindtap="chooseOrigin">{{profile.origin ? L.pf_change : L.pf_choose}} ↗</button>
+    </view>
+    <view class="origin-actions"><button id="use-current-location" bindtap="useCurrentLocation" loading="{{locating}}" disabled="{{originBusy || locating}}">{{L.pf_use_location}}</button><button id="choose-map-origin" bindtap="chooseMapOrigin" disabled="{{originBusy}}">{{L.pf_map_pick}}</button></view>
+    <view wx:if="{{locationDenied}}" class="location-settings"><button bindtap="openLocationSettings">{{L.pf_go_settings}}</button><text>{{L.pf_choose_below}}</text></view>
+    <view class="origin-shortcuts"><view class="origin-shortcut-label">{{L.pf_verified_places}}</view><view class="origin-chip-row"><button wx:for="{{originOptions}}" wx:key="id" id="origin-{{item.id}}" class="origin-chip {{profile.origin && profile.origin.name === item.name ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="chooseQuickOrigin" disabled="{{originBusy}}">{{en && item.enName ? item.enName : item.name}} <text>↗</text></button></view></view>
+    <view wx:if="{{originStatus}}" class="origin-status" aria-role="status">{{originStatus}}</view>
+  </view>
+
+  <view class="form-section preferences-section">
+    <view class="field-label section-label">{{L.pf_theme}}</view>
+    <view class="season-options"><view wx:for="{{seasons}}" wx:key="id" class="season-option {{profile.season === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="chooseSeason" role="button"><text class="season-number">{{item.symbol}}</text><view class="season-copy"><view class="season-name">{{item.name}}</view><view class="season-sub">{{item.crop}}{{L.pf_clue_suffix}}</view></view><text class="check">{{profile.season === item.id ? '✓' : '○'}}</text></view></view>
+    <view class="form-grid">
+      <view class="form-field"><view class="field-label">{{L.pf_date}}</view><picker id="profile-date" mode="date" value="{{profile.date}}" data-field="date" bindchange="setField"><view class="input-box">{{profile.date}} <text class="picker-arrow">⌄</text></view></picker></view>
+      <view class="form-field"><view class="field-label">{{L.pf_time}}</view><picker id="profile-time" mode="time" value="{{profile.startTime}}" data-field="startTime" bindchange="setField"><view class="input-box">{{profile.startTime}} <text class="picker-arrow">⌄</text></view></picker></view>
+      <view class="form-field"><view class="field-label">{{L.pf_budget}}</view><input id="profile-budget" class="input-box" type="number" value="{{profile.budget}}" data-field="budget" bindinput="setField" maxlength="6" aria-label="{{L.pf_budget}}"/></view>
+      <view class="form-field"><view class="field-label">{{L.pf_party}}</view><input id="profile-party" class="input-box" type="number" value="{{profile.partySize}}" data-field="partySize" bindinput="setField" maxlength="2" aria-label="{{L.pf_party}}"/></view>
+    </view>
+    <view class="field-label spaced">{{L.pf_duration}}</view><input id="profile-duration" class="input-box" type="digit" value="{{durationHours}}" data-field="durationHours" bindinput="setHours" maxlength="4" aria-label="{{L.pf_duration}}"/>
+    <view class="field-label spaced">{{L.pf_transport}}</view><view class="option-row"><view class="option-pill {{profile.transport === 'drive' ? 'active' : ''}}" data-field="transport" data-value="drive" bindtap="chooseValue" role="button">{{L.pf_drive}}</view><view class="option-pill {{profile.transport === 'walk' ? 'active' : ''}}" data-field="transport" data-value="walk" bindtap="chooseValue" role="button">{{L.pf_walk}}</view><view class="option-pill {{profile.transport === 'bike' ? 'active' : ''}}" data-field="transport" data-value="bike" bindtap="chooseValue" role="button">{{L.pf_bike}}</view></view><view wx:if="{{profile.transport === 'public'}}" class="service-status">{{L.pf_public_status}}</view>
+    <view class="field-label spaced">{{L.pf_interests}}</view><view class="option-row"><view wx:for="{{interestOptions}}" wx:key="id" class="option-pill {{item.selected ? 'active' : ''}}" data-id="{{item.id}}" bindtap="toggleInterest" role="button">{{item.selected ? '✓ ' : '+ '}}{{item.label}}</view></view>
+  </view>
+
+  <view class="card letter-card" id="extra-notes">
+    <view class="letter-top"><text>{{L.pf_extra}}</text><text class="letter-mark">✳</text></view>
+    <textarea id="profile-text" class="wish-input" value="{{text}}" bindinput="onTextInput" maxlength="500" placeholder="{{L.pf_extra_ph}}" placeholder-class="textarea-placeholder" auto-height="{{false}}" aria-label="{{L.pf_extra}}"/>
+    <view class="example-row"><view wx:for="{{examples}}" wx:key="*this" class="example" bindtap="useExample" data-index="{{index}}" role="button">{{index === 0 ? L.pf_example_1 : L.pf_example_2}}</view></view>
+    <button id="parse-profile" class="button-secondary parse-button" bindtap="parse" loading="{{parsing}}" disabled="{{parsing}}">{{parsing ? (en ? 'Understanding your plans…' : '正在理解你的想法') : (en ? 'Use these trip ideas →' : '理解我的出游想法 →')}}</button>
+    <view wx:if="{{status}}" class="service-status" aria-role="status">{{status}}</view><view wx:if="{{missingNotice}}" class="service-status">{{missingNotice}}</view>
+    <view wx:if="{{!cloudEnabled}}" class="service-status">{{L.pf_local_note}}</view>
+  </view>
+  <view class="demo-note planning-note">{{L.pf_planning_note}}</view>
+  <view wx:if="{{error}}" class="error-message" aria-role="alert">{{error}}</view>
+  <button id="create-route" class="button create-button" loading="{{building}}" disabled="{{parsing || building}}" bindtap="createRoute">{{L.pf_generate}}</button>
+  <view class="footnote">{{L.pf_footnote}}</view>
+</view>
+<view wx:if="{{locationSheet}}" class="sheet-overlay" catchtouchmove="noop"><view class="sheet-panel" catchtap="noop">
+  <view class="sheet-title serif">{{L.pf_sheet_title}}</view><view class="sheet-text">{{L.pf_sheet_text}}</view>
+  <view class="sheet-actions"><button id="sheet-allow" class="sheet-allow" bindtap="allowLocation">{{L.pf_sheet_allow}}</button><button id="sheet-deny" class="sheet-deny" bindtap="closeLocationSheet">{{L.pf_sheet_deny}}</button></view>
+</view></view>

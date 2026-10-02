@@ -1,0 +1,50 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page wizard-page {{fontClass}}">
+  <view class="route-heading"><view><view class="page-title serif">{{T.title}}</view><view class="muted">{{T.subtitle}}</view></view><view class="route-head-tools"><me-entry/></view></view>
+  <view class="wiz-progress"><view wx:for="{{progress}}" wx:key="n" class="wiz-dot {{item.state}}"></view><text class="wiz-step-word">{{progressText}}</text></view>
+  <view class="wiz-question serif">{{stepTitle}}</view>
+  <view class="muted wiz-sub">{{stepSub}}</view>
+  <view wx:if="{{step === 1}}" class="wiz-body">
+    <view wx:for="{{fruitCards}}" wx:key="id" class="wiz-card {{item.selected ? 'is-on' : ''}}" data-name="{{item.name}}" bindtap="onFruit">
+      <view class="wiz-card-name serif">{{item.name}}</view>
+      <view class="wiz-card-hook">{{item.hook}}</view>
+      <view wx:if="{{item.selected}}" class="wiz-check">✓</view>
+    </view>
+  </view>
+  <view wx:elif="{{step === 2}}" class="wiz-body">
+    <view class="wiz-pair">
+      <button class="button-secondary" disabled="{{locating}}" bindtap="useLocation">{{locating ? T.locating : T.useLocation}}</button>
+      <button class="button-secondary" bindtap="chooseMapPoint">{{T.mapPick}}</button>
+    </view>
+    <view wx:if="{{startPointLabel}}" class="wiz-origin">📍 {{T.originTag}}：{{startPointLabel}}</view>
+    <view class="field-label">{{T.orchardHeading}}</view>
+    <view wx:for="{{orchardOptions}}" wx:key="id" class="wiz-option {{item.selected ? 'is-on' : ''}}" data-name="{{item.name}}" bindtap="pickOrchard"><text>{{item.name}}</text><text wx:if="{{item.routeEligible}}" class="wiz-value">{{T.eligibleTag}}</text></view>
+  </view>
+  <view wx:elif="{{step === 3}}" class="wiz-body">
+    <picker mode="date" start="{{dateMin}}" value="{{wizard.date}}" bindchange="onDateChange"><view class="wiz-option is-on"><text>{{T.dateLabel}}</text><text class="wiz-value">{{wizard.date}}</text></view></picker>
+    <view class="field-label">{{T.durationHeading}}</view>
+    <view wx:for="{{durationOptions}}" wx:key="id" class="wiz-option {{item.selected ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDuration">{{item.label}}</view>
+  </view>
+  <view wx:elif="{{step === 4}}" class="wiz-body">
+    <view wx:for="{{peopleOptions}}" wx:key="id" class="wiz-option {{item.selected ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickPeople">{{item.label}}</view>
+  </view>
+  <view wx:elif="{{step === 5}}" class="wiz-body">
+    <view class="field-label">{{T.prefHeading}}</view>
+    <view class="wiz-tags"><view wx:for="{{preferenceOptions}}" wx:key="id" class="wiz-tag {{item.selected ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="togglePreference">{{item.label}}</view></view>
+    <view wx:if="{{familyHint}}" class="wiz-footnote">{{T.familyHint}}</view>
+  </view>
+  <view wx:elif="{{step === 6}}" class="wiz-body">
+    <view wx:for="{{budgetOptions}}" wx:key="id" class="wiz-option {{item.selected ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickBudget">{{item.label}}</view>
+    <view class="wiz-footnote">{{T.budgetNote}}</view>
+  </view>
+  <view wx:else class="wiz-body">
+    <view class="wiz-rows"><view wx:for="{{summaryRows}}" wx:key="k" class="wiz-row"><text class="wiz-k">{{item.k}}</text><text class="wiz-v">{{item.v}}</text></view></view>
+    <view class="wiz-footnote">{{T.budgetNote}}</view>
+    <view wx:if="{{error}}" class="error-message">{{error}}</view>
+  </view>
+</view>
+<view class="wiz-footer">
+  <button wx:if="{{step > 1}}" class="button-secondary" bindtap="prevStep">{{T.prev}}</button>
+  <button wx:if="{{step < 7}}" class="button" disabled="{{!canNext}}" bindtap="nextStep">{{T.next}}</button>
+  <button wx:else class="button" disabled="{{generating}}" bindtap="generate">{{generating ? T.generating : T.generate}}</button>
+</view>

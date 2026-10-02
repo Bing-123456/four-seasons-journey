@@ -1,0 +1,21 @@
+{
+  "tool": "built-in image_gen",
+  "targetCanvas": {
+    "width": 1086,
+    "height": 1383
+  },
+  "prompts": [
+    {
+      "name": "cover-plum",
+      "prompt": "Re-layout the supplied green-plum campaign poster for a NEW exact canvas: WIDTH 1086 px × HEIGHT 1383 px, width/height 0.78525, approximately 4:5 portrait. It must be broader than the tall reference. Full-bleed sharp illustrated artwork all the way to every edge; NO blurred sides, padding, panels, blank borders, inset poster or stretched objects.\n\nChinese rural watercolor and guofeng illustration. Preserve the reference's dark forest-green and jade palette, white Song-style title, blossom branches, green plum fruit cluster, orchard, ochre preserving urn, cream-and-gold clouds and red \"梅\" seal. Recompose for the wider 1086×1383 canvas: compact upper typography, large fruit spreading across the lower half, jar lower right. The reference is a CONTENT/STYLE reference, NOT the required output dimensions.\nKeep all typography and the seal within x=12–88% and y=12–87%, so small responsive crops remove only decorative background. Clear margins around the seal.\nAll text must be exactly:\n农事活动预告 · 春季篇\n后山梅子园\n青梅封坛\n青梅采摘 · 封存一整个春天\n3月25日 开放预约\nRed seal: 梅\nEyebrow and place near upper center, very large white title below, subtitle then yellow booking capsule. No additional lettering or watermarks."
+    },
+    {
+      "name": "cover-loquat",
+      "prompt": "Re-layout the supplied loquat campaign poster for an exact NEW CANVAS: WIDTH 1086 pixels × HEIGHT 1383 pixels. Width/height=0.78525, approximately 4:5 portrait. This is wider than the tall reference. Make sharp full-bleed illustrated art from edge to edge. No blurred sidebars, padding, border, inset poster, mockup or stretched objects.\n\nPreserve its Chinese rural watercolor / guofeng campaign look: warm burnt orange background, golden loquats and olive leaves on a branch, distant orchard and white village houses, bronze simmering pot at lower right with spoon pouring amber syrup, cream auspicious clouds, yellow rounded booking capsule, red fruit seal. Compact centered typography upper 40%, large fruit and pot spread across lower 60%, compositions naturally broadened for new canvas. Keep text within central 76% width, with at least 10% vertical margin. Keep red seal comfortably inside lower right, not cut.\nExact Chinese text:\n农事活动预告 · 春季篇\n山脚枇杷园\n枇杷熬膏\n枇杷采摘 · 慢熬一盏润心膏\n4月10日 开放预约\nSeal: 枇\nVery large white Song-style title, cream eyebrow/place/subtitle, black booking text on yellow pill. Must match the green plum companion poster's visual world and hierarchy. Reference is content and style only, not output size. Output new 1086×1383 proportions. No added lettering or watermarks."
+    },
+    {
+      "name": "cover-mulberry",
+      "prompt": "Re-layout the supplied mulberry campaign poster for an exact NEW CANVAS: WIDTH 1086 pixels × HEIGHT 1383 pixels. Width/height=0.78525, approximately 4:5 portrait, wider than the tall reference. Sharp full-bleed illustrated artwork edge to edge. No blurred sides, padding, frames, inset poster, mockup, stretching or artificial bands.\n\nSame warm Chinese rural watercolor/guofeng campaign world as references: deep mulberry-purple orchard background, giant ripe elongated purple mulberries, purple leaves and blossom branches, distant small village/orchard, glass jam jar lower right, cream auspicious clouds, yellow booking capsule and red \"桑\" seal. Spread fruit naturally across lower half of this broader canvas, compact centered typography in upper 40%. Match the companion green-plum poster's hierarchy and scale. The old tall poster is content/style reference only.\nExact readable Chinese text:\n农事活动预告 · 春季篇\n桑树湾果园\n桑葚果酱\n桑葚采摘 · 手作一罐紫时甜\n4月20日 开放预约\nRed seal: 桑\nHuge white Song-style title, pale gold eyebrow/place, white subtitle and black date text on yellow pill. All text inside central 76% width with generous top margin; seal comfortably inside lower right. Preserve all copy. No extra text or watermarks. Required output proportions 1086×1383."
+    }
+  ]
+}

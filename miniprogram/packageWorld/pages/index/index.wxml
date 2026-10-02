@@ -1,0 +1,31 @@
+<view class="page world-page">
+  <view class="eyebrow world-kicker">{{L.wd_title}}</view>
+  <view class="page-title serif">{{L.wd_head_a}}<view>{{L.wd_head_b}}</view></view>
+  <view class="intro">{{L.wd_intro}}</view>
+  <view class="scope-note">{{L.wd_scope_note}}</view>
+
+  <view wx:for="{{sites}}" wx:key="id" id="site-{{item.id}}" class="site-card {{expandedId === item.id ? 'is-open' : ''}}" data-id="{{item.id}}" bindtap="toggleSite" role="button" aria-expanded="{{expandedId === item.id}}">
+    <view class="site-photo-wrap">
+      <image class="site-photo" src="{{item.photo.src}}" mode="{{item.photo.fit || 'aspectFill'}}" aria-label="{{item.photo.caption}}"/>
+      <view class="site-continent">{{item.continent}}</view>
+    </view>
+    <view class="site-body">
+      <view class="site-country">{{item.country}}</view>
+      <view class="site-name serif">{{item.name}}</view>
+      <view class="site-name-en">{{item.nameEn}}</view>
+      <view class="site-theme">{{item.theme}} · {{item.designation}}</view>
+      <view class="site-toggle">{{expandedId === item.id ? L.collapse : L.wd_expand}}</view>
+      <block wx:if="{{expandedId === item.id}}">
+        <view class="site-description">{{item.description}}</view>
+        <view class="subheading">{{L.wd_notes}}</view>
+        <view wx:for="{{item.facts}}" wx:for-item="fact" wx:key="text" class="site-fact"><text class="fact-dot">·</text><view>{{fact.text}}</view></view>
+        <view class="subheading">{{L.wd_sources}}</view>
+        <view wx:for="{{item.sources}}" wx:for-item="source" wx:key="id" class="site-source" data-url="{{source.url}}" catchtap="copySource">{{source.title}} · {{source.publisher}}<text>{{L.wd_copy_link}}</text></view>
+        <view class="site-credit">{{item.photo.caption}} · {{item.photo.credit}}</view>
+      </block>
+    </view>
+  </view>
+
+  <view class="world-end"><view></view><text class="serif">{{L.wd_end}}</text><view></view></view>
+  <button class="button" bindtap="backHome">{{L.wd_back}}</button>
+</view>

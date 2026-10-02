@@ -1,0 +1,35 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{invalid}}" class="page empty"><view class="page-title serif">{{L.fn_invalid_title}}</view><button class="button" bindtap="back">{{L.fn_back}}</button></view>
+<view wx:elif="{{fruit}}" class="page note-page {{fontClass}}">
+  <view class="note-head">
+    <view class="note-kicker">{{fruit.seasonName}} · {{catLabel}}</view>
+    <view class="note-name serif">{{fruit.name}}</view>
+  </view>
+
+  <view class="note-body">
+    <view class="note-lead">{{category.text}}</view>
+    <view class="note-detail">{{category.detail}}</view>
+    <view wx:if="{{category.sourceNote}}" class="note-editorial muted">{{category.sourceNote}}</view>
+    <view wx:if="{{category.sources.length}}" class="note-sources">
+      <view class="muted">{{L.fn_sources}}</view>
+      <view wx:for="{{category.sources}}" wx:key="url"><view class="note-source" data-index="{{index}}" bindtap="copySource" role="button">{{item.title}} ↗</view><view class="muted">{{item.scope}}</view></view>
+    </view>
+    <view wx:if="{{category.cat === 'craft' && category.learn}}" class="note-learn-link" bindtap="goCraftLesson" role="button">{{L.fn_learn_a}}{{category.learn.product}} →</view>
+  </view>
+
+  <view id="guoling-read" class="read-card">
+    <view class="read-head">
+      <view class="read-face"><companion-view config="{{companion}}" size="64"/></view>
+      <view class="read-copy"><view class="read-title serif">{{L.read_aloud}}</view><view class="muted read-hint">{{L.read_aloud_hint}}</view></view>
+    </view>
+    <view class="dialect-row">
+      <view wx:for="{{dialects}}" wx:key="code" class="dialect-chip {{dialect === item.code ? 'on' : ''}}" data-code="{{item.code}}" bindtap="chooseDialect">{{item.label}}</view>
+    </view>
+    <button id="read-aloud" class="button read-button" bindtap="toggleRead" loading="{{readBusy}}">{{reading || readBusy ? L.read_stop : L.read_play}}</button>
+  </view>
+
+  <view class="note-foot-row">
+    <view class="note-fav {{fav ? 'is-fav' : ''}}" bindtap="toggleFavorite" role="button" aria-label="{{L.fn_fav_aria}}">{{fav ? L.fn_fav_on : L.fn_fav_off}}</view>
+    <view class="muted note-verify">{{L.note_verify_short}}</view>
+  </view>
+</view>

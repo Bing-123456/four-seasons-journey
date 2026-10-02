@@ -1,0 +1,39 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{!place}}" class="page empty"><view class="page-title serif">{{L.culture_empty_title}}</view><view>{{error}}</view><button class="button" bindtap="backHome">{{L.culture_back_home}}</button></view>
+<view wx:else class="culture-page">
+  <view class="culture-head-card">
+    <view class="hero-top"><text class="hero-kicker">{{place.kindLabel}}</text><view class="favorite-button {{favorite ? 'is-favorite' : ''}}" id="favorite-place" bindtap="toggleFavorite">{{favorite ? L.culture_fav_on : L.culture_fav_off}}</view></view>
+    <view class="hero-place serif">{{place.name}}</view>
+    <view class="hero-description">{{place.description}}</view>
+  </view>
+  <view class="page culture-body {{fontClass}}">
+    <view class="demo-note">{{L.note_verify_short}}</view>
+
+    <view id="guoling-read" class="read-card">
+      <view class="read-head">
+        <view class="read-face"><companion-view config="{{companion}}" size="64"/></view>
+        <view class="read-copy"><view class="read-title serif">{{L.read_aloud}}</view><view class="muted read-hint">{{L.read_aloud_hint}}</view></view>
+      </view>
+      <view class="dialect-row">
+        <view wx:for="{{dialects}}" wx:key="code" class="dialect-chip {{dialect === item.code ? 'on' : ''}}" data-code="{{item.code}}" bindtap="chooseDialect">{{item.label}}</view>
+      </view>
+      <button id="read-aloud" class="button read-button" bindtap="toggleRead" loading="{{readBusy}}">{{reading || readBusy ? L.read_stop : L.read_play}}</button>
+    </view>
+
+    <view wx:if="{{lesson}}" id="culture-lesson" class="lesson-entry" bindtap="openLesson" role="button" aria-label="{{lesson.action}}">
+      <view class="lesson-kicker">{{lesson.kicker}}</view>
+      <view class="lesson-row"><view class="lesson-copy"><view class="lesson-title serif">{{lesson.title}}</view><view class="lesson-description">{{lesson.description}}</view></view><view class="lesson-seal serif">{{lesson.symbol}}</view></view>
+      <view class="lesson-bottom"><text>{{lesson.label}}</text><text class="lesson-action">{{lesson.action}} ↗</text></view>
+    </view>
+    <view class="reading-heading"><view class="section-title serif">{{L.read_title}}</view></view>
+    <view wx:for="{{facts}}" wx:key="id" id="fact-{{item.id}}" class="fact-card is-open">
+      <view class="fact-topic"><text class="fact-index">0{{index + 1}}</text><text>{{item.topic}}</text></view>
+      <view class="fact-title serif">{{item.title}}</view>
+      <view class="fact-text">{{item.text}}</view>
+    </view>
+
+    <view class="ask-card"><view class="ask-header"><view class="ask-face"><companion-view config="{{companion}}" size="72"/></view><view><view class="section-title serif">{{L.ask_title}}</view><view class="muted ask-intro">{{L.ask_intro}}</view></view></view><view class="quick-questions"><view wx:for="{{quickQuestions}}" wx:key="q" class="quick-question" data-index="{{index}}" bindtap="useQuestion">{{item.enQ || item.q}} <text>↗</text></view></view><textarea id="culture-question" class="question-input" value="{{question}}" bindinput="onQuestionInput" maxlength="300" placeholder="{{L.ask_input_ph}}"/><button id="ask-culture" class="button" bindtap="ask" loading="{{asking}}" disabled="{{asking}}">{{asking ? L.ask_searching : L.ask_action}}</button><view wx:if="{{answer}}" class="answer-box {{answer.unanswerable ? 'answer-insufficient' : ''}}"><view class="answer-label">{{answer.unanswerable ? L.ask_thin : L.ask_found}}</view><text class="answer-text" selectable="{{true}}">{{answer.answer}}</text></view></view>
+
+    <view wx:if="{{error}}" class="error-message">{{error}}</view>
+  </view>
+</view>

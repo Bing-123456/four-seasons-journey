@@ -1,0 +1,50 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page companion-page {{fontClass}}">
+  <view class="companion-heading"><view class="companion-heading-copy"><view class="page-title">{{L.companion_page_title}}</view><view class="partition-label">{{partitionLabel}}</view></view><view class="companion-heading-preview"><companion-view config="{{config}}" size="120"/></view></view>
+
+  <view class="template-library" hidden="{{previewing}}">
+    <view class="section-heading"><text>{{L.companion_pick}}</text><text class="library-count">{{unlocks.length}} / {{templates.length}} {{L.companion_unlocked_suffix}}</text></view>
+    <view class="search-box"><text class="search-symbol">⌕</text><input placeholder="{{L.companion_search_ph}}" value="{{query}}" bindinput="queryChange" maxlength="30" aria-label="{{L.comp_search_aria}}"/></view>
+    <view class="template-grid">
+      <view wx:for="{{templates}}" wx:key="id" class="template-option {{config.templateId === item.id ? 'selected' : ''}} {{item.locked ? 'is-locked' : ''}}" data-id="{{item.id}}" data-locked="{{item.locked ? '1' : ''}}" data-name="{{item.name}}" bindtap="chooseTemplate" role="button" aria-label="{{item.locked ? L.companion_locked_label : '选择' + item.name + '模板'}}">
+        <view class="template-art {{item.locked ? 'is-locked' : ''}}"><companion-view config="{{item.config}}" size="144"/></view>
+        <view class="template-label"><text>{{item.name}}</text><text>{{item.locked ? '🔒' : (config.templateId === item.id ? '✓' : '+')}}</text></view>
+        <view wx:if="{{item.locked}}" class="template-lock-hint">{{item.lockHint}}</view>
+      </view>
+    </view>
+    <view wx:if="{{!templates.length}}" class="no-results">{{L.companion_no_result}}</view>
+  </view>
+
+  <view class="section-heading canvas-heading"><text>{{previewing ? L.companion_preview : L.companion_paint}}</text><text class="library-count">{{paintModeLabel}}</text></view>
+  <view class="canvas-paper {{previewing ? 'paper-preview' : ''}}">
+    <canvas type="2d" id="editor-canvas" class="editor-canvas" catchtouchstart="touchStart" catchtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchCancel" aria-label="{{L.comp_canvas_aria}}"></canvas>
+    <view wx:if="{{canvasError}}" class="canvas-error"><text>{{canvasError}}</text><button bindtap="initializeCanvas">{{L.companion_reopen_canvas}}</button></view>
+    <view class="paper-footer"><text>{{fruitName}}</text><text>{{dirty ? L.companion_unsaved : L.companion_saved_state}}</text></view>
+  </view>
+  <view class="editor-tools" hidden="{{previewing}}">
+    <view class="tool-switch"><button class="{{tool === 'fill' ? 'active' : ''}}" data-tool="fill" bindtap="chooseTool">{{L.companion_tool_fill}}</button><button class="{{tool === 'brush' ? 'active' : ''}}" data-tool="brush" bindtap="chooseTool">{{L.companion_tool_brush}}</button></view>
+    <view class="palette" aria-label="{{L.comp_palette_aria}}"><view wx:for="{{palette}}" wx:key="*this" class="swatch {{color === item ? 'active' : ''}}" style="background:{{item}}" data-color="{{item}}" bindtap="chooseColor" role="button" aria-label="{{L.comp_color_aria}}{{item}}"><text wx:if="{{color === item}}" class="swatch-dot"></text></view></view>
+    <view class="brush-options" wx:if="{{tool === 'brush'}}"><text>{{L.companion_brush}}</text><button class="{{penWidth === 3 ? 'chosen' : ''}}" data-width="3" bindtap="chooseWidth">{{L.companion_brush_thin}}</button><button class="{{penWidth === 7 ? 'chosen' : ''}}" data-width="7" bindtap="chooseWidth">{{L.companion_brush_mid}}</button><button class="{{penWidth === 13 ? 'chosen' : ''}}" data-width="13" bindtap="chooseWidth">{{L.companion_brush_thick}}</button></view>
+    <view class="transform-tools">
+      <button bindtap="rotate"><text class="tool-icon">↻</text>{{L.companion_rotate}}</button>
+      <button bindtap="flip"><text class="tool-icon">⇆</text>{{L.companion_flip}}</button>
+      <button disabled="{{!strokeCount}}" bindtap="stepBack"><text class="tool-icon">⤺</text>{{L.companion_stepback}}</button>
+      <button disabled="{{!strokeCount}}" bindtap="undoAll"><text class="tool-icon">↶</text>{{L.companion_undo_all}}</button>
+      <button bindtap="reset"><text class="tool-icon">↺</text>{{L.companion_default}}</button>
+    </view>
+    <view class="subtle-hint">{{config.kind === 'template' ? L.companion_hint_fill : L.companion_hint_generated}}</view>
+  </view>
+
+  <view class="photo-section">
+    <view class="photo-heading section-heading"><view><text>03 / </text><text>{{L.companion_gen_title}}</text><text class="photo-subtitle">{{L.companion_gen_sub}}</text></view></view>
+    <view class="photo-body">
+      <view wx:if="{{photoPath}}" class="photo-preview"><image src="{{photoPath}}" mode="aspectFit"/><view class="photo-status">{{L.companion_photo_chosen}}</view>
+      <button class="use-photo gen-button" bindtap="generateCartoon" loading="{{genBusy}}" disabled="{{photoBusy || genBusy}}">{{genBusy ? (genState || L.loading) : L.companion_gen_run}}</button><view wx:if="{{genMessage}}" class="photo-status gen-error">{{genMessage}}</view><button class="clear-photo" bindtap="clearPhoto">{{L.companion_remove_photo}}</button></view>
+      <button class="button-secondary" bindtap="choosePhoto" loading="{{photoBusy}}" disabled="{{photoBusy}}">{{photoPath ? L.companion_gen_pick_again : L.companion_gen_pick}}</button>
+      <view class="subtle-hint">{{L.companion_gen_local_note}}</view>
+    </view>
+  </view>
+  <view class="original-note">{{L.companion_craft_note}}</view>
+  <button class="leave-link" bindtap="leave">{{L.companion_back}}</button>
+  <view class="editor-bottom"><button class="preview-button" bindtap="preview" disabled="{{!canvasReady || saving}}">{{previewing ? L.companion_keep_editing : L.companion_preview_btn}}</button><button class="save-button" bindtap="save" loading="{{saving}}" disabled="{{!canvasReady || saving}}">{{saving ? L.companion_saving : L.companion_save}}</button></view>
+</view>

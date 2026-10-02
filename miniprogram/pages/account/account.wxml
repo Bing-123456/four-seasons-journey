@@ -1,0 +1,20 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page account-page {{fontClass}}">
+  <view class="account-heading"><view class="page-title serif">{{L.nav_account}}</view><view class="account-heading-line"></view></view>
+  <view class="account-avatar-block" bindtap="changeAvatar" role="button" aria-label="{{L.acc_avatar_aria}}">
+    <image class="account-avatar-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
+    <view class="account-avatar-edit">{{L.avatar_edit}}</view>
+    <view class="muted account-avatar-hint">{{L.avatar_set_hint}}</view>
+  </view>
+
+  <view class="account-field">
+    <view class="field-label">{{L.account_nickname_label}}</view>
+    <view class="account-input-row">
+      <input class="account-input" value="{{nicknameInput}}" bindinput="nicknameChange" maxlength="24" placeholder="{{L.nickname_ph}}" aria-label="{{L.acc_nick_aria}}"/>
+      <button class="account-save" size="mini" bindtap="saveNickname" loading="{{saving}}">{{L.save}}</button>
+    </view>
+    <view class="muted account-hint">{{L.account_nickname_hint}}</view>
+  </view>
+
+  <button class="leave-link" bindtap="back">{{L.account_back}}</button>
+</view>

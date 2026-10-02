@@ -1,0 +1,15 @@
+.account-page { padding-top: 32rpx; padding-bottom: calc(60rpx + env(safe-area-inset-bottom)); }
+.account-heading { display: flex; align-items: center; gap: 24rpx; }
+.account-heading .page-title { margin: 4rpx 0 20rpx; font-size: 43rpx; }
+.account-heading-line { flex: 1; height: 1rpx; background: #DDDCCA; margin-bottom: 16rpx; }
+.account-avatar-block { display: flex; flex-direction: column; align-items: center; background: #F0EBD9; border: 1rpx solid #E0D9C5; border-radius: 26rpx; padding: 42rpx 28rpx 30rpx; margin: 8rpx 0 28rpx; }
+.account-avatar-photo { display: block; width: 170rpx; height: 170rpx; box-sizing: border-box; border-radius: 50%; border: 2rpx solid #FFFDF8; background: #F4F0E7; box-shadow: 0 6rpx 20rpx rgba(58,55,44,.06); }
+.account-avatar-edit { margin-top: -14rpx; background: #345B42; color: #FFFDF4; border-radius: 12rpx; padding: 10rpx 24rpx; font-size: 23rpx; z-index: 1; }
+.account-avatar-hint { font-size: 23rpx; color: #847A5D; text-align: center; margin-top: 20rpx; line-height: 1.8; }
+.account-field { background: #FFFDF8; border: 1rpx solid #E0E5D6; border-radius: 24rpx; padding: 26rpx; }
+.account-field .field-label { margin-top: 0; }
+.account-input-row { display: flex; align-items: center; gap: 12rpx; margin-top: 16rpx; }
+.account-input { flex: 1; min-width: 0; width: 0; background: #F5F6ED; border: 1rpx solid #DCE3D0; border-radius: 14rpx; height: 86rpx; font-size: 27rpx; padding: 0 20rpx; }
+.account-save { flex-shrink: 0; width: auto; margin: 0; background: #345B42; color: #FFFDF5; border-radius: 14rpx; font-size: 25rpx; line-height: 1.5; padding: 24rpx 25rpx; }
+.account-hint { font-size: 23rpx; color: #79856C; margin-top: 16rpx; line-height: 1.8; }
+.account-page .leave-link { width: 100%; margin-top: 28rpx; background: transparent; color: #607452; font-size: 25rpx; line-height: 1.6; padding: 22rpx; }

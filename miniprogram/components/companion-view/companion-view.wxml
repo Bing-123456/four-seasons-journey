@@ -1,0 +1,7 @@
+<view class="companion {{animated && motionActive ? 'companion-greeting' : ''}}" style="width:{{size}}rpx;height:{{size}}rpx" aria-label="{{config.name || '我的水果伙伴'}}">
+  <image wx:if="{{config.kind === 'photo' && config.photoPath}}" class="photo-avatar" src="{{config.previewPath || config.photoPath}}" mode="aspectFill" binderror="onPhotoError" aria-label="{{config.name || '我的拍照伙伴'}}"/>
+  <image wx:if="{{imagePath}}" class="drawing" src="{{imagePath}}" mode="aspectFit" aria-label="{{config.name || '我的水果伙伴'}}"/>
+  <canvas type="2d" id="companion-display" class="drawing" hidden="{{failed || config.kind === 'photo' || imagePath}}"></canvas>
+  <view wx:if="{{wave}}" class="wave-layer" style="transform:rotate({{config.rotation || 0}}deg) scaleX({{config.flipped ? -1 : 1}})"><view class="wave-arm"><view class="wave-hand"></view></view></view>
+  <view wx:if="{{failed}}" class="fallback-fruit"><view class="fallback-eyes">··</view><view class="fallback-smile">⌣</view></view>
+</view>

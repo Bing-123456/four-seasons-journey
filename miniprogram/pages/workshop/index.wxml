@@ -1,0 +1,68 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{!validLesson}}" class="page empty"><view class="page-title serif">{{L.ws_invalid}}</view><view>{{error}}</view><button id="workshop-home" class="button" bindtap="backHome">{{L.ws_back_home}}</button></view>
+<view wx:else class="workshop-page">
+  <view class="masthead"><text class="eyebrow">{{L.ws_eyebrow}}</text><button class="text-button" id="workshop-skip" bindtap="skipToReading">{{L.ws_skip_reading}}</button></view>
+  <view class="lesson-intro"><view class="location">{{lessonView.location}}</view><view class="lesson-title serif">{{lessonView.title}}<text class="title-stop">。</text></view><view class="lesson-subtitle">{{lessonView.subtitle}} · {{L.ws_minute}}</view></view>
+  <view class="lesson-progress" wx:if="{{step < 3}}"><view class="progress-segment {{step >= 0 ? 'active' : ''}}"><text>01</text> {{L.ws_step1}}</view><view class="progress-segment {{step >= 1 ? 'active' : ''}}"><text>02</text> {{L.ws_step2}}</view><view class="progress-segment {{step >= 2 ? 'active' : ''}}"><text>03</text> {{L.ws_step3}}</view></view>
+
+  <view wx:if="{{step === 0}}" class="chapter ingredient-chapter">
+    <view class="chapter-heading serif">{{L.ws_ing_heading}}</view>
+    <view class="chapter-description">{{lessonView.intro}}</view>
+    <view class="choose-heading"><text>{{L.ws_choose}}</text><text class="selection-count">{{selectedIds.length}} / 2</text></view>
+    <view class="ingredients-grid">
+      <button wx:for="{{ingredientItems}}" wx:key="id" id="ingredient-{{item.id}}" class="ingredient-card {{item.selected ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectIngredient" aria-label="{{item.name}}，{{item.selected ? L.ws_selected : L.ws_unselected}}">
+        <view class="ingredient-check">{{item.selected ? '✓' : '+'}}</view>
+        <view class="ingredient-art art-{{item.kind}}">
+          <view wx:if="{{item.kind === 'melon'}}" class="melon-half"><view class="melon-inner"><text>· · ·</text></view></view>
+          <view wx:elif="{{item.kind === 'beans'}}" class="bean-group"><view></view><view></view><view></view><view></view><view></view></view>
+          <view wx:elif="{{item.kind === 'rice'}}" class="rice-bowl"><view class="rice-top"></view><view class="rice-body"></view></view>
+          <view wx:else class="apple-shape"><view class="apple-leaf"></view><view class="apple-stem"></view></view>
+        </view>
+        <view class="ingredient-name serif">{{item.name}}</view><view class="ingredient-detail">{{item.detail}}</view>
+      </button>
+    </view>
+    <view class="quiet-note">{{L.ws_ing_note}}</view>
+  </view>
+
+  <view wx:elif="{{step === 1}}" class="chapter process-chapter">
+    <view class="chapter-heading serif">{{L.ws_proc_heading}}</view>
+    <view class="chapter-description">{{L.ws_proc_desc}}</view>
+    <view class="process-tabs"><button wx:for="{{processItems}}" wx:key="id" id="process-{{item.id}}" class="process-tab {{item.active ? 'active' : ''}}" data-index="{{item.index}}" bindtap="selectProcess"><text class="process-tab-number">{{item.visited ? '✓' : '0' + (item.index + 1)}}</text><text>{{item.title}}</text></button></view>
+    <view class="process-card">
+      <view class="process-illustration process-{{activeProcess.illustration}}">
+        <view class="art-horizon"></view><view wx:if="{{activeProcess.illustration === 'sun'}}" class="art-sun"></view>
+        <view wx:if="{{activeProcess.illustration === 'boil'}}" class="steam-lines"><view></view><view></view><view></view></view>
+        <view class="sauce-pot"><view class="pot-rim"><view class="pot-content"><text wx:if="{{activeProcess.illustration !== 'rest'}}">· · · · ·</text></view></view><view class="pot-body"></view><view wx:if="{{activeProcess.illustration === 'rest'}}" class="pot-cloth"></view></view>
+        <view wx:if="{{activeProcess.illustration === 'coat'}}" class="flour-dots"><view>· ·</view><view>· · ·</view></view>
+        <text class="art-label">{{L.ws_art_label}}</text>
+      </view>
+      <view class="process-reading"><view class="eyebrow">{{L.ws_fragment}}0{{activeProcessIndex + 1}} / 04</view><view class="process-title serif">{{activeProcess.title}}<text>{{activeProcess.kicker}}</text></view><view class="process-text">{{activeProcess.text}}</view><view class="process-note">{{activeProcess.note}}</view></view>
+    </view>
+    <view class="quiet-note">{{L.ws_proc_note}}</view>
+  </view>
+
+  <view wx:elif="{{step === 2}}" class="chapter quiz-chapter">
+    <view class="quiz-symbol serif">味</view><view class="chapter-heading serif">{{lessonView.question.title}}</view>
+    <view class="chapter-description">{{L.ws_quiz_desc}}</view>
+    <view class="answer-list"><button wx:for="{{answerItems}}" wx:key="id" id="answer-{{item.id}}" class="answer-option {{item.selected ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectAnswer"><view class="answer-bullet">{{item.selected ? '✓' : index + 1}}</view><text>{{item.text}}</text></button></view>
+  </view>
+
+  <view wx:else class="chapter finish-chapter">
+    <view class="finish-card"><view class="finish-seal serif"><view>{{L.ws_finish_seal_a}}</view><view>{{L.ws_finish_seal_b}}</view></view><view class="finish-kicker">{{L.ws_finish_kicker}}</view><view class="finish-title serif">{{L.ws_finish_title}}</view><view class="finish-summary">{{L.ws_finish_summary}}</view><view class="finish-location"><text>{{L.ws_finish_loc}}</text><text>{{L.ws_finish_region}}</text></view></view>
+    <button id="workshop-save" class="button" bindtap="saveNote">{{favorite ? L.ws_fav_done : L.ws_fav_save}}</button>
+    <view wx:if="{{saveStatus}}" class="feedback success">{{saveStatus}}</view>
+    <button id="workshop-note" class="button-secondary read-note" bindtap="readNote">{{L.ws_read_note}}</button>
+    <view class="next-story"><view class="eyebrow">{{L.ws_next_eyebrow}}</view><view class="next-title serif">{{L.ws_next_title}}</view><view class="next-description">{{L.ws_next_desc}}</view><button id="workshop-mill" class="text-button next-link" bindtap="openMill">{{L.ws_open_mill}}</button></view>
+  </view>
+
+  <view wx:if="{{feedback}}" class="feedback {{feedbackKind}}" id="workshop-feedback" role="status">{{feedback}}</view>
+  <view wx:if="{{error}}" class="error-message" id="workshop-error">{{error}}</view>
+  <view class="chapter-actions" wx:if="{{step < 3}}">
+    <button wx:if="{{step === 0}}" id="workshop-confirm" class="button" bindtap="confirmIngredients">{{L.ws_confirm_ing}}</button>
+    <button wx:elif="{{step === 1}}" id="workshop-continue" class="button" bindtap="continueToQuiz">{{unreadCount ? L.ws_next_proc : L.ws_to_quiz}}</button>
+    <button wx:else id="workshop-complete" class="button" bindtap="completeLesson">{{L.ws_complete}}</button>
+  </view>
+  <view class="bottom-links"><button wx:if="{{step > 0}}" id="workshop-previous" class="text-button" bindtap="previousStep">{{L.ws_previous}}</button></view>
+  <view class="lesson-footnote"><view>{{L.ws_footnote1}}</view><view>{{L.ws_footnote2}}</view></view>
+  <view class="safe-bottom"></view>
+</view>

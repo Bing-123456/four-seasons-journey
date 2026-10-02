@@ -1,0 +1,215 @@
+.profile-header{display:flex;align-items:center;gap:22rpx;margin:25rpx 0 32rpx}.profile-avatar{height:106rpx;width:106rpx;border-radius:50%;background:#E2E8CC;border:1rpx solid #CCD6B5;display:flex;align-items:center;justify-content:center;font-size:48rpx;color:#486746;flex-shrink:0}.profile-header .page-title{font-size:42rpx;margin:0 0 8rpx}.profile-header .muted{font-size:22rpx}.stats{display:flex;justify-content:space-around;text-align:center;padding:27rpx 0 32rpx;border-top:1rpx solid #DDE2D3;border-bottom:1rpx solid #DDE2D3;margin-bottom:32rpx}.stats view{font-size:22rpx;color:#7E896F}.stats text{display:block;color:#234B3C;font-size:43rpx;font-family:Georgia,serif;line-height:1.5}.preference-head{display:flex;justify-content:space-between;align-items:center}.preference-head .link{font-size:22rpx}.tag-row{margin:20rpx 0 14rpx}.compact{background:#EDEFE4;border-radius:18rpx;padding:28rpx 20rpx;font-size:23rpx}.empty-symbol{font-size:47rpx;color:#9AA786}.saved-place{display:flex;align-items:center;gap:20rpx;background:#FFFDF8;border-radius:18rpx;padding:14rpx;margin-bottom:15rpx;border:1rpx solid #E4E8DA}.saved-place image{width:102rpx;height:108rpx;border-radius:11rpx}.saved-place view{font-size:27rpx}.saved-place view text{display:block;font-size:21rpx;color:#859079;margin-top:6rpx}.saved-arrow{margin-left:auto;margin-right:10rpx;font-size:30rpx}.intent-card .row{justify-content:space-between}.intent-bottom{display:flex;justify-content:space-between;margin-top:15rpx;font-size:21rpx;color:#87917C}.cancel-link{color:#A36A55}.setting-row{display:flex;justify-content:space-between;align-items:center}.setting-row .muted{font-size:20rpx;margin-top:7rpx}.setting-row switch{transform:scale(.85);transform-origin:right center}.api-input{background:#F0F2E7;border-radius:13rpx;padding:18rpx 20rpx;height:84rpx;font-size:24rpx}.setting-hint{font-size:20rpx;margin-top:12rpx}.setting-buttons{display:flex;gap:15rpx;margin-top:22rpx}.setting-buttons button{flex:1;font-size:23rpx;padding:20rpx 12rpx}.health-line{font-size:20rpx;color:#9A8061;margin-top:20rpx}.health-ok{color:#4B7750}.menu{margin-top:20rpx;border-top:1rpx solid #DDE2D3}.menu view{display:flex;justify-content:space-between;padding:27rpx 5rpx;border-bottom:1rpx solid #DDE2D3;font-size:26rpx}.menu .danger{color:#A16A56}.footer-note{font-size:20rpx;line-height:2;text-align:center;color:#A0A790;margin:43rpx 0 10rpx}
+.cloud-disclosure{margin-top:20rpx;padding:20rpx;background:#F0F2E7;border-radius:14rpx;color:#64765B;font-size:22rpx;line-height:1.8}.health-line{white-space:pre-wrap;line-height:1.8}.pairing-box{margin-top:26rpx;padding-top:24rpx;border-top:1rpx solid #DDE2D3}.pairing-input{margin:18rpx 0}.pairing-box button{width:100%;font-size:24rpx;box-sizing:border-box}
+
+.saved-entry{margin-bottom:18rpx}.saved-entry .saved-place{margin-bottom:0}.saved-place image,.saved-monogram{flex-shrink:0}.saved-monogram{width:102rpx;height:108rpx;border-radius:11rpx;background:#E7EAD9;color:#657A51;display:flex;align-items:center;justify-content:center;font-size:42rpx!important}.saved-copy{min-width:0;flex:1}.saved-copy>view{line-height:1.5}.saved-place .saved-copy text{font-size:20rpx;line-height:1.6}.saved-credit{padding:9rpx 12rpx 0;color:#839077;font-size:18rpx;line-height:1.6}.saved-arrow{flex-shrink:0}
+.demo-panel{background:#234B3C;color:#FCFAF1;border-radius:22rpx;padding:26rpx;margin:0 0 30rpx}.demo-topline{display:flex;align-items:center;justify-content:space-between;font-size:19rpx;color:#CBD8C5}.demo-badge{background:#E9D7A9;color:#36533E;padding:7rpx 13rpx;border-radius:7rpx;font-size:20rpx}.demo-title{font-size:36rpx;margin:22rpx 0 12rpx;line-height:1.5}.demo-description{font-size:23rpx;line-height:1.85;color:#DBE4D4}.demo-metrics{display:flex;flex-wrap:wrap;gap:16rpx;margin-top:20rpx;font-size:20rpx;color:#E9D7A9}.demo-actions{display:flex;gap:14rpx;margin-top:24rpx;padding-top:20rpx;border-top:1rpx solid #567160}.demo-actions button{margin:0;padding:12rpx 16rpx;line-height:1.8;width:auto;font-size:23rpx;border-radius:10rpx;background:#F3F0E1;color:#234B3C}.demo-actions button:first-child{flex:1}.demo-actions button:last-child{background:transparent;color:#F3F0E1;border:1rpx solid #809383}.demo-entry{display:flex;gap:20rpx;align-items:center;padding:23rpx;background:#EAEDE0;border-radius:18rpx;margin-bottom:25rpx}.demo-entry>view{flex:1}.demo-entry .muted{font-size:20rpx;margin-top:7rpx;line-height:1.7}.demo-entry button{width:auto;margin:0;padding:12rpx 16rpx;background:#234B3C;color:#F7F4E9;font-size:21rpx;border-radius:10rpx;line-height:1.8}.demo-small-label{font-size:19rpx;color:#8F7850;margin-left:12rpx}.demo-event{display:flex;gap:15rpx;align-items:center;padding:21rpx 4rpx;border-bottom:1rpx solid #DFE4D6;font-size:24rpx;line-height:1.7}.demo-event-dot{width:9rpx;height:9rpx;flex-shrink:0;border-radius:50%;background:#91A57A}.demo-event>view:nth-child(2){flex:1}.demo-event>text{font-size:18rpx;color:#999477;flex-shrink:0}.demo-history{margin-bottom:28rpx}
+
+.profile-header>view:last-child{min-width:0;overflow-wrap:anywhere}.companion-card{display:flex;align-items:center;gap:18rpx;background:#E9EDDE;border:1rpx solid #D8DFCB;border-radius:22rpx;padding:22rpx 16rpx;margin:28rpx 0}.companion-copy{flex:1;min-width:0}.companion-name{font-size:36rpx;margin:10rpx 0;overflow-wrap:anywhere}.companion-copy .eyebrow{font-size:17rpx;letter-spacing:2rpx}.companion-copy .muted{font-size:22rpx;line-height:1.8}.companion-copy .link{display:block;margin-top:18rpx;font-size:24rpx}.local-identity{padding:4rpx 0 28rpx}.nickname-row{display:flex;gap:14rpx;align-items:center}.nickname-row input{flex:1;min-width:0;height:72rpx;line-height:72rpx;background:#FFFDF8;border:1rpx solid #DDE2D3;border-radius:12rpx;padding:0 20rpx;font-size:26rpx;box-sizing:border-box}.nickname-row button{margin:0;font-size:24rpx;background:#234B3C;color:#FFFDF8;height:72rpx;line-height:72rpx;padding:0 30rpx;border-radius:12rpx;border:none;box-sizing:border-box}.welcome-setting{margin-top:24rpx}.profile-header .page-title{font-size:38rpx}
+
+/* ===== 我的小农场：打卡浇水 ===== */
+.farm-card{display:flex;gap:18rpx;background:#FFFDF8;border:1rpx solid #E0E5D5;border-radius:22rpx;padding:20rpx;margin:24rpx 0}
+.farm-scene{position:relative;width:230rpx;height:230rpx;background:linear-gradient(180deg,#EAF2E0 0%,#F5EFDC 68%,#E4D9BC 68%,#DCCFA9 100%);border-radius:16rpx;overflow:hidden;flex-shrink:0}
+.farm-ground{position:absolute;left:0;right:0;bottom:0;height:46rpx;background:#C9B88C}
+.farm-plant{position:absolute;left:50%;bottom:36rpx;width:0;transform-origin:50% 100%}
+.farm-plant.is-shaking{animation:plantShake 1.6s ease}
+.farm-stem{position:absolute;left:-3rpx;bottom:0;width:6rpx;background:#5F7C48;border-radius:3rpx;transition:height .6s ease}
+.farm-stage-0 .farm-stem{height:26rpx}
+.farm-stage-1 .farm-stem{height:44rpx}
+.farm-stage-2 .farm-stem{height:64rpx}
+.farm-stage-3 .farm-stem{height:84rpx}
+.farm-stage-4 .farm-stem{height:100rpx}
+.farm-stage-5 .farm-stem{height:112rpx}
+.farm-leaf{position:absolute;width:30rpx;height:16rpx;background:#6E8C55;border-radius:0 100% 0 100%;transition:all .6s ease}
+.farm-leaf-l{left:-32rpx}
+.farm-leaf-r{right:-32rpx;transform:scaleX(-1)}
+.farm-stage-0 .farm-leaf{opacity:0}
+.farm-stage-1 .farm-leaf{top:-40rpx}
+.farm-stage-2 .farm-leaf{top:-58rpx;width:38rpx}
+.farm-stage-3 .farm-leaf{top:-74rpx;width:44rpx}
+.farm-stage-4 .farm-leaf{top:-88rpx;width:50rpx}
+.farm-stage-5 .farm-leaf{top:-96rpx;width:54rpx}
+.farm-vine{position:absolute;left:-1rpx;bottom:60rpx;width:2rpx;height:52rpx;background:#7A925C;transform:rotate(18deg)}
+.farm-flower{position:absolute;left:-9rpx;top:-104rpx;width:18rpx;height:18rpx;background:#F2C94C;border-radius:50%;box-shadow:0 0 0 5rpx #F8E3A0 inset}
+.farm-fruit{position:absolute;left:-14rpx;top:-88rpx;width:26rpx;height:26rpx;background:#D56652;border-radius:50%;box-shadow:20rpx 14rpx 0 -4rpx #D56652}
+.farm-gardener{position:absolute;left:16rpx;bottom:30rpx;transition:transform .5s ease;transform-origin:50% 100%}
+.farm-gardener.is-watering{animation:gardenerSway 1.6s ease}
+.farm-can{position:absolute;right:26rpx;bottom:96rpx;width:44rpx;height:30rpx;background:#8FA982;border-radius:6rpx 6rpx 10rpx 10rpx;opacity:0;transform-origin:100% 100%;transition:opacity .3s}
+.farm-can::after{content:'';position:absolute;right:-16rpx;top:8rpx;width:18rpx;height:6rpx;background:#8FA982;border-radius:0 4rpx 4rpx 0}
+.farm-can.is-tilting{opacity:1;animation:canTilt 1.6s ease}
+.farm-stream{position:absolute;right:52rpx;top:60rpx;width:10rpx;height:110rpx;background:repeating-linear-gradient(180deg,#9CC7E8 0 10rpx,#C4E0F2 10rpx 20rpx);border-radius:0 0 8rpx 8rpx;transform:rotate(24deg);transform-origin:0 0;opacity:0;animation:streamFlow 1.6s linear}
+.farm-drop{position:absolute;width:10rpx;height:14rpx;background:#9CC7E8;border-radius:50% 50% 60% 60%;opacity:0}
+.farm-drop-1{right:78rpx;top:96rpx;animation:dropFall 1.5s ease-in .2s 2}
+.farm-drop-2{right:64rpx;top:88rpx;animation:dropFall 1.5s ease-in .45s 2}
+.farm-drop-3{right:92rpx;top:92rpx;animation:dropFall 1.5s ease-in .7s 2}
+@keyframes canTilt{0%{transform:rotate(0)}18%{transform:rotate(-42deg)}82%{transform:rotate(-42deg)}100%{transform:rotate(0)}}
+@keyframes streamFlow{0%,12%{opacity:0}20%{opacity:1}80%{opacity:1}90%,100%{opacity:0}}
+@keyframes dropFall{0%{opacity:0;top:88rpx}15%{opacity:1}100%{opacity:0;top:196rpx}}
+@keyframes plantShake{0%{transform:rotate(0)}25%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}75%{transform:rotate(-2deg)}100%{transform:rotate(0)}}
+@keyframes gardenerSway{0%{transform:rotate(0)}30%{transform:rotate(-4deg)}70%{transform:rotate(-4deg)}100%{transform:rotate(0)}}
+.farm-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.farm-head{display:flex;align-items:center;justify-content:space-between}
+.farm-title{font-size:29rpx;color:#2E4A38}
+.farm-stage-pill{font-size:19rpx;background:#EAF2E0;color:#4E6B3F;padding:5rpx 14rpx;border-radius:999rpx}
+.farm-meta{font-size:21rpx;color:#798479;margin-top:8rpx;line-height:1.6}
+.farm-done{color:#8a6d3b}
+.farm-progress{height:10rpx;background:#EDEEE4;border-radius:999rpx;margin-top:12rpx;overflow:hidden}
+.farm-progress-fill{height:100%;background:#6E8C55;border-radius:999rpx;transition:width .6s ease}
+.farm-next{font-size:19rpx;color:#98a587;margin-top:8rpx}
+.farm-crops{display:flex;flex-wrap:wrap;gap:10rpx;margin-top:12rpx}
+.farm-crop{font-size:21rpx;color:#5c6a52;background:#F2F4E9;border:1rpx solid #DDE2D3;border-radius:999rpx;padding:8rpx 20rpx}
+.farm-crop.chosen{background:#234B3C;color:#F5F3E6;border-color:#234B3C}
+.farm-button{margin-top:16rpx;background:#234B3C;color:#F5F3E6;font-size:24rpx;line-height:2.4;border-radius:14rpx;padding:0}
+.farm-button.is-disabled{background:#B9C2AC;color:#F0F2E8}
+.farm-button-close{margin-top:24rpx}
+.farm-overlay{position:fixed;inset:0;background:rgba(14,26,17,.62);z-index:120;display:flex;align-items:center;justify-content:center}
+.farm-proverb-card{width:560rpx;box-sizing:border-box;background:#F7EDC9;border-radius:26rpx;padding:44rpx 40rpx 36rpx;text-align:center;box-shadow:0 18rpx 60rpx rgba(0,0,0,.35)}
+.farm-proverb-kicker{font-size:19rpx;color:#8a6d3b;letter-spacing:3rpx}
+.farm-proverb-text{font-family:inherit;font-size:38rpx;color:#3A3423;line-height:1.7;margin:26rpx 0 20rpx}
+.farm-proverb-note{font-size:22rpx;color:#6d6344;line-height:1.8;text-align:left}
+.farm-proverb-growth{font-size:20rpx;color:#987f3c;margin-top:22rpx;line-height:1.6}
+
+.role-switch-row{display:flex;gap:14rpx}
+.role-chip{font-size:23rpx;color:#5c6a52;background:#F2F4E9;border:1rpx solid #DDE2D3;border-radius:999rpx;padding:12rpx 28rpx}
+.role-chip.chosen{background:#234B3C;color:#F5F3E6;border-color:#234B3C}
+
+.nickname-inline{display:flex;align-items:center;gap:12rpx;margin-top:12rpx}
+.nickname-inline input{flex:1;min-width:0;height:64rpx;line-height:64rpx;background:#FFFDF8;border:1rpx solid #DDE2D3;border-radius:12rpx;padding:0 18rpx;font-size:24rpx;box-sizing:border-box}
+.nickname-inline button{margin:0;background:#234B3C;color:#FFFDF8;height:64rpx;line-height:64rpx;padding:0 26rpx;font-size:22rpx;border-radius:12rpx;border:none}
+.role-switch-row{display:flex;gap:12rpx;margin-top:12rpx}
+.role-chip{font-size:22rpx;color:#5c6a52;background:#F2F4E9;border:1rpx solid #DDE2D3;border-radius:999rpx;padding:10rpx 24rpx}
+.role-chip.chosen{background:#234B3C;color:#F5F3E6;border-color:#234B3C}
+.fav-compact{background:#FFFDF8;border:1rpx solid #E0E5D5;border-radius:22rpx;padding:24rpx;margin:24rpx 0}
+.fav-head{display:flex;justify-content:space-between;align-items:center}
+.fav-head .section-title{margin:0;font-size:30rpx}
+.fav-toggle{font-size:21rpx;color:#63795d}
+.kf-list{margin-top:14rpx}
+.kf-row{display:flex;justify-content:space-between;align-items:center;padding:12rpx 0;border-bottom:1rpx dashed #E7E9DE;font-size:23rpx;color:#4a5c44}
+.kf-remove{font-size:20rpx;color:#ab4f3d}
+.fav-place-row{padding:12rpx 0;font-size:23rpx;color:#4a5c44;border-bottom:1rpx dashed #E7E9DE}
+
+.fav-place-row{display:flex;align-items:center;gap:16rpx;padding:12rpx 0;border-bottom:1rpx dashed #E7E9DE;font-size:23rpx;color:#4a5c44}
+.fav-thumb{width:64rpx;height:64rpx;border-radius:10rpx;flex-shrink:0}
+.fav-monogram{display:flex;align-items:center;justify-content:center;background:#EAF2E0;color:#658066;font-size:30rpx}
+.fav-place-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fav-place-name .muted{margin-left:10rpx;font-size:19rpx}
+.fav-arrow{color:#98a587;flex-shrink:0}
+
+.nickname-edit{display:flex;gap:12rpx;align-items:center;margin-top:12rpx}.nickname-input{flex:0 0 240rpx;height:56rpx;line-height:56rpx;background:#FFFDF8;border:1rpx solid #DDE2D3;border-radius:10rpx;padding:0 16rpx;font-size:22rpx;box-sizing:border-box}.nickname-save{margin:0;background:#234B3C;color:#FFFDF8;font-size:22rpx;height:56rpx;line-height:56rpx;padding:0 24rpx;border-radius:10rpx;border:none}
+
+/* 头像：用户相册照片，与打招呼小水果分开 */
+.profile-avatar-wrap{position:relative;width:140rpx;height:140rpx;flex-shrink:0}
+.profile-avatar-photo{display:block;width:140rpx;height:140rpx;box-sizing:border-box;border-radius:50%;border:2rpx solid #FFFDF8;background:#F4F0E7}
+.profile-avatar-edit{position:absolute;left:50%;bottom:-16rpx;transform:translateX(-50%);font-size:17rpx;background:#234B3C;color:#FFF9DF;border-radius:999rpx;padding:5rpx 16rpx;white-space:nowrap}
+/* 农场：用所选水果形象，左侧图画跟随选择变化 */
+.farm-plant-view{position:absolute;left:44rpx;bottom:60rpx;width:132rpx;height:132rpx}
+/* 浇水日历：浇水日深色，未浇水浅灰 */
+.farm-calendar{margin-top:18rpx;background:#F4F6EC;border-radius:14rpx;padding:18rpx 20rpx}
+.farm-calendar-title{font-size:22rpx;color:#4A5D42;font-weight:600;margin-bottom:10rpx}
+.farm-calendar-weeks{display:grid;grid-template-columns:repeat(7,1fr);font-size:18rpx;color:#98a587;text-align:center;margin-bottom:6rpx}
+.farm-calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6rpx}
+.farm-calendar-cell{height:52rpx;line-height:52rpx;text-align:center;font-size:20rpx;border-radius:10rpx;color:#9aa294;background:#EDF0E2}
+.farm-calendar-cell.is-out{opacity:.4}
+.farm-calendar-cell.is-watered{background:#234B3C;color:#F5F3E6;font-weight:600}
+.farm-calendar-cell.is-today{border:2rpx solid #8FAB7D;box-sizing:border-box}
+.farm-calendar-legend{display:flex;align-items:center;gap:8rpx;font-size:18rpx;color:#8b9484;margin-top:10rpx}
+.legend-dot{display:inline-block;width:18rpx;height:18rpx;border-radius:6rpx;margin-left:14rpx}
+.legend-watered{background:#234B3C;margin-left:0}
+.legend-plain{background:#EDF0E2;border:1rpx solid #CBD2C2}
+
+/* Give the profile and seven-column farm calendar their own breathing room. */
+.mine-page { padding-top: 30rpx; }
+.profile-header { gap: 24rpx; margin: 12rpx 0 40rpx; align-items: flex-start; }
+.profile-header > view:last-child { flex: 1; min-width: 0; }
+.profile-header .page-title { font-size: 36rpx; line-height: 1.5; }
+.profile-avatar-wrap, .profile-avatar-photo { width: 112rpx; height: 112rpx; }
+.profile-avatar-edit { font-size: 18rpx; padding: 5rpx 14rpx; }
+.nickname-edit { gap: 10rpx; margin-top: 16rpx; }
+.nickname-input { flex: 1; min-width: 0; height: 64rpx; line-height: 64rpx; font-size: 23rpx; }
+.nickname-save { flex-shrink: 0; height: 64rpx; line-height: 64rpx; padding: 0 22rpx; font-size: 22rpx; }
+.farm-card { display: block; padding: 0; border-radius: 26rpx; overflow: hidden; margin: 24rpx 0 28rpx; }
+.farm-scene { width: 100%; height: 188rpx; border-radius: 0; background: linear-gradient(180deg,#E4EBDA 0%,#EDF0DD 76%,#DCCFA9 76%,#DCCFA9 100%); }
+.farm-ground { height: 20rpx; background: #C8B78F; }
+.farm-plant-view { left: calc(50% - 66rpx); bottom: 30rpx; }
+.farm-can { right: calc(50% - 122rpx); bottom: 85rpx; }
+.farm-stream { right: calc(50% - 92rpx); top: 30rpx; }
+.farm-drop-1 { right: calc(50% - 60rpx); }
+.farm-drop-2 { right: calc(50% - 75rpx); }
+.farm-drop-3 { right: calc(50% - 46rpx); }
+.farm-info { padding: 28rpx; }
+.farm-head { gap: 16rpx; }
+.farm-title { font-size: 32rpx; font-weight: 600; }
+.farm-stage-pill { flex-shrink: 0; font-size: 20rpx; padding: 6rpx 14rpx; border-radius: 8rpx; }
+.farm-meta { font-size: 23rpx; color: #6B7964; line-height: 1.75; }
+.farm-next { font-size: 21rpx; color: #75816A; }
+.farm-calendar { margin-top: 22rpx; padding: 22rpx; border-radius: 18rpx; background: #F1F3E9; }
+.farm-calendar-title { font-size: 24rpx; margin-bottom: 18rpx; }
+.farm-calendar-weeks { font-size: 21rpx; color: #718064; margin-bottom: 10rpx; }
+.farm-calendar-grid { gap: 8rpx; }
+.farm-calendar-cell { height: 58rpx; line-height: 58rpx; font-size: 23rpx; color: #718064; background: #E8ECDF; }
+.farm-calendar-cell.is-today { line-height: 54rpx; }
+.farm-calendar-legend { flex-wrap: wrap; font-size: 20rpx; color: #718064; gap: 8rpx; margin-top: 16rpx; }
+.farm-button { font-size: 26rpx; line-height: 1.5; padding: 22rpx 24rpx; border-radius: 16rpx; margin-top: 22rpx; }
+.farm-crop { padding: 10rpx 20rpx; font-size: 23rpx; }
+.stats { background: #FFFDF8; border: 1rpx solid #E0E5D9; border-radius: 22rpx; padding: 24rpx 0; margin-bottom: 28rpx; }
+.stats > view { flex: 1; font-size: 23rpx; }
+.stats > view + view { border-left: 1rpx solid #E3E7DB; }
+.stats text { font-size: 46rpx; }
+.companion-card { padding: 22rpx; border-radius: 24rpx; background: #E8EDDD; }
+.companion-label { font-size: 20rpx; letter-spacing: 2rpx; color: #728264; }
+.companion-name { font-size: 34rpx; margin: 6rpx 0; }
+.local-identity { background: #FFFDF8; border: 1rpx solid #E0E5D9; border-radius: 24rpx; padding: 4rpx 28rpx 28rpx; }
+.role-switch-row { gap: 12rpx; }
+.role-chip { flex: 1; text-align: center; border-radius: 12rpx; padding: 14rpx; font-size: 24rpx; }
+.setting-row { gap: 20rpx; }
+.setting-row > view { flex: 1; min-width: 0; }
+.setting-row switch { flex-shrink: 0; }
+.cloud-disclosure, .setting-hint { font-size: 22rpx; color: #6F7D64; }
+.api-input { background: #F2F4EB; border: 1rpx solid #DFE5D6; font-size: 24rpx; }
+.setting-buttons button { font-size: 24rpx; }
+.health-line { background: #F2F0E6; padding: 14rpx 18rpx; border-radius: 10rpx; font-size: 22rpx; overflow-wrap: anywhere; }
+.health-ok { background: #EAF0E3; }
+.footer-note { color: #7E8977; }
+.hosted-service-button { width: auto; background: #E9EEE3; color: #345B43; font-size: 23rpx; line-height: 1.5; padding: 16rpx 22rpx; border-radius: 12rpx; margin-top: 16rpx; text-align: left; }
+
+/* tab bar 底部安全距离 */
+.page { padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); }
+
+/* A small orchard scene frames the living, user-selected fruit. */
+.mine-page { padding-top: 28rpx; }
+.profile-header { align-items: center; margin: 12rpx 0 36rpx; gap: 24rpx; }
+.profile-header .page-title { font-size: 36rpx; margin-bottom: 10rpx; }
+.profile-header .muted { line-height: 1.75; color: #77836D; }
+.profile-avatar-photo { box-shadow: 0 3rpx 12rpx rgba(58,55,44,.05); }
+.profile-avatar-edit { font-size: 19rpx; border-radius: 10rpx; padding: 6rpx 15rpx; }
+.farm-card { border-color: #DCDCC8; border-radius: 26rpx; }
+.farm-scene { height: 250rpx; background: #EDECD8; }
+.farm-landscape { position: absolute; inset: 0; width: 100%; height: 100%; }
+.farm-ground { height: 30rpx; background: linear-gradient(to top,rgba(209,199,162,.7),rgba(230,225,196,0)); }
+.farm-plant-view { bottom: 32rpx; z-index: 1; }
+.farm-can, .farm-stream, .farm-drop { z-index: 2; }
+.farm-can { bottom: 90rpx; }
+.farm-stream { top: 78rpx; }
+.farm-calendar { background: #F2F3E9; }
+.farm-calendar-cell { background: #E8ECDF; }
+.farm-calendar-cell.is-watered { background: #355A42; }
+.farm-button { width: 100%; }
+.farm-button[disabled]:not([type]) { background: #E4E9DA; color: #68775C; opacity: 1; }
+.demo-entry { border: 1rpx solid #DDE3D0; border-radius: 20rpx; background: #EDF0E3; }
+.demo-entry button { flex-shrink: 0; border-radius: 12rpx; padding: 14rpx 18rpx; font-size: 23rpx; }
+.stats { border-color: #E1E3D4; padding: 28rpx 0; }
+.companion-card { background: #F0EBD9; border-color: #DFD7BE; padding: 25rpx 20rpx; }
+.companion-label { color: #96805B; }
+.companion-name { color: #40593E; }
+.companion-copy .link { font-size: 24rpx; text-decoration: none; margin-top: 15rpx; }
+.local-identity { border-color: #E1E3D4; padding: 7rpx 28rpx 28rpx; }
+.role-chip { font-size: 24rpx; padding: 16rpx 12rpx; }
+.footer-note { margin-top: 30rpx; font-size: 21rpx; line-height: 1.85; }
+
+.farm-plant-view{width:300rpx;height:280rpx;left:50%;margin-left:-150rpx;bottom:0;transform:none}.farm-source{margin-top:12rpx;color:#86868B;font-size:21rpx;line-height:1.6}
+
+/* 字体大小设置（评审 P05①）：提示行；三档 class 规则统一放在 app.wxss。 */
+.font-scale-hint { margin-top: 10rpx; line-height: 1.6; }
+.font-slider-row{margin-top:16rpx;padding:0 8rpx}
+.font-slider-ticks{display:flex;justify-content:space-between;margin-top:-6rpx;color:#8E978B;font-size:21rpx}
+
+.farm-hint{margin-top:8rpx;font-size:20rpx;color:#9AA28F;line-height:1.7}

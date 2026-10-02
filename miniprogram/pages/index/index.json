@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "果物四时记",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "companion-view": "/components/companion-view/companion-view"
+  },
+  "disableScroll": true
+}

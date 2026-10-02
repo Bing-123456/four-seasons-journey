@@ -1,0 +1,3 @@
+<view wx:if="{{active}}" id="demo-account-banner" class="demo-notice" bindtap="openAccount" role="button" aria-label="{{L.comp_demo_aria}}">
+  <view class="notice-copy"><text class="notice-dot"></text><text>{{L.comp_demo_banner}}</text></view><text class="notice-arrow">↗</text>
+</view>

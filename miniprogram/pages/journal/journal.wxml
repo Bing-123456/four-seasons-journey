@@ -1,0 +1,17 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page journal-page {{fontClass}}"><view class="page-title">{{L.home_news}}</view>  <view id="culture-news" class="news-block">
+    <view class="news-card" id="news-term">
+      <view class="news-card-top"><view class="news-tag">{{L.news_term}} · {{termNote.name}}</view><view class="news-issue">01</view></view>
+      <view class="news-title serif">{{termNote.name}}｜{{termNote.headline}}</view>
+      <view class="news-text news-clamp {{termExpanded ? 'is-open' : ''}}">{{termNote.text}}</view>
+      <view class="news-more" bindtap="toggleTerm">{{termExpanded ? L.collapse_full : L.expand_full}}</view>
+    </view>
+    <view class="news-card" id="news-story">
+      <view class="news-card-top"><view class="news-tag">{{L.news_story}}</view><view class="news-issue">02</view></view>
+      <view class="news-story-visual"><image class="news-story-art" src="{{seasonStory.illustration}}" mode="widthFix" lazy-load="{{true}}" aria-label="{{visualCopy.illustration}}"/><text class="news-art-credit">{{visualCopy.illustration}}</text></view>
+      <view class="news-title serif">{{seasonStory.fruit}}｜{{seasonStory.name}}（{{seasonStory.place}}）</view>
+      <view class="news-text news-clamp {{storyExpanded ? 'is-open' : ''}}">{{seasonStory.text}}</view>
+      <view class="news-more" bindtap="toggleStory">{{storyExpanded ? L.collapse_full : L.expand_full}}</view>
+    </view>
+  </view>
+<view class="demo-note">{{L.note_verify}}</view></view>

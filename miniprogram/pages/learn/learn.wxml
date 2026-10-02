@@ -1,0 +1,29 @@
+<view class="learn-shell {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="learn-page">
+    <view class="learn-head">
+      <view class="learn-head-copy"><view class="learn-title">{{copy.title}}</view></view>
+      <me-entry/>
+    </view>
+    <view class="learn-choices">
+      <view id="game-paint" class="game-entry" data-game="paint" bindtap="openGame" role="button" aria-label="{{L.game_paint}}">
+        <image class="featured-art" src="/assets/illustrations/game-paint-wide.jpg" mode="aspectFill" aria-hidden="true"/>
+        <view class="featured-shade"></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.paint}}</view><view class="featured-subtitle">{{copy.paintHint}}</view></view>
+        <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
+      </view>
+      <view id="game-quiz" class="game-entry" data-game="quiz" bindtap="openGame" role="button" aria-label="{{L.game_quiz}}">
+        <image class="featured-art" src="/assets/illustrations/game-plum-wide.jpg" mode="aspectFill" aria-hidden="true"/>
+        <view class="featured-shade"></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.quiz}}</view><view class="featured-subtitle">{{copy.quizHint}}</view></view>
+        <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
+      </view>
+      <view id="game-identify" class="game-entry" data-game="identify" bindtap="openGame" role="button" aria-label="{{L.game_identify}}">
+        <image class="featured-art" src="/assets/illustrations/game-loquat-wide.jpg" mode="aspectFill" aria-hidden="true"/>
+        <view class="featured-shade"></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.identify}}</view><view class="featured-subtitle">{{copy.identifyHint}}</view></view>
+        <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
+      </view>
+    </view>
+  </view>
+</view>

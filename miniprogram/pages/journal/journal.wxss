@@ -1,0 +1,22 @@
+.journal-page { background:#F5F5F7; }
+.news-head { display:none; }
+.news-block { margin: 25rpx 0 32rpx; }
+.news-head .section-title { font-family:inherit; margin: 0 0 20rpx; font-size: 34rpx; }
+.news-card { background: #FFFDF8; border: 1rpx solid #E0E4D7; border-radius: 22rpx; padding: 28rpx; margin-bottom: 20rpx; overflow: hidden; }
+.news-card-top { display: flex; justify-content: space-between; align-items: baseline; gap: 20rpx; margin-bottom: 16rpx; }
+.news-tag { font-size: 20rpx; letter-spacing: 1rpx; color: #95754E; }
+.news-issue { font-family: Georgia, serif; font-size: 23rpx; color: #B4A483; }
+.news-title { font-size: 30rpx; font-weight: 600; color: #34523C; line-height: 1.6; margin-bottom: 15rpx; }
+.news-text { font-size: 24rpx; color: #69785F; line-height: 1.9; }
+.news-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.news-clamp.is-open { display: block; -webkit-line-clamp: unset; }
+.news-more { font-size: 23rpx; color: #345B43; margin-top: 18rpx; padding: 5rpx 0; }
+.news-story-visual { position: relative; margin: 4rpx 0 22rpx; border-radius: 14rpx; overflow: hidden; background: #EFE8D7; }
+.news-story-art { display: block; width: 100%; height: auto; }
+.news-art-credit { position: absolute; right: 10rpx; bottom: 10rpx; padding: 4rpx 9rpx; border-radius: 6rpx; background: rgba(255,253,246,.85); color: #65735B; font-size: 17rpx; }
+.news-en { display: inline-block; margin-top: 12rpx; color: #758168; font-size: 21rpx; background: #F0F1E7; border-radius: 8rpx; padding: 7rpx 15rpx; }
+.news-en.on { color: #FFFDF6; background: #355C43; }
+.news-src { margin-top: 14rpx; font-size: 20rpx; color: #A3A995; line-height: 1.6; }
+
+.news-title { font-family:inherit; }
+.news-card { background:#FFF; border:0; border-radius:28rpx; }

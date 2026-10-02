@@ -1,0 +1,10 @@
+<view class="growth-scene form-{{form}} phase-{{stage}}" style="transform:scale({{scale}});transform-origin:50% 95%" aria-label="{{days}} / 30">
+  <view class="soil-shadow"></view>
+  <view class="plant-stem"></view>
+  <view class="plant-leaf leaf-left leaf-1"></view><view class="plant-leaf leaf-right leaf-2"></view>
+  <block wx:if="{{stage >= 1}}"><view class="plant-leaf leaf-left leaf-3"></view><view class="plant-leaf leaf-right leaf-4"></view></block>
+  <block wx:if="{{stage >= 2}}"><view class="plant-leaf leaf-left leaf-5"></view><view class="plant-leaf leaf-right leaf-6"></view></block>
+  <block wx:if="{{stage >= 3}}"><view class="plant-branch branch-left"></view><view class="plant-branch branch-right"></view><view class="plant-leaf leaf-left leaf-7"></view><view class="plant-leaf leaf-right leaf-8"></view></block>
+  <block wx:if="{{stage >= 4}}"><view class="plant-flower flower-left"><view class="flower-center"></view></view><view class="plant-flower flower-right"><view class="flower-center"></view></view></block>
+  <view wx:if="{{stage >= 5}}" class="ripe-fruit"><companion-view config="{{fruit}}" size="100"/></view>
+</view>

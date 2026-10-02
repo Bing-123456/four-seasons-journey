@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "文化手记",
+  "navigationBarBackgroundColor": "#F5F5F7",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "companion-view": "/components/companion-view/companion-view"
+  }
+}

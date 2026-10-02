@@ -1,0 +1,62 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page heritage-page {{fontClass}}">
+  <view class="exhibit-heading">
+    <text class="eyebrow">{{L.hg_title}}</text>
+    <view class="exhibit-title serif">{{L.hg_exhibit_a}}<text class="title-second">{{L.hg_exhibit_b}}</text></view>
+    <text class="exhibit-intro">{{L.hg_subtitle}}</text>
+  </view>
+
+  <block wx:if="{{isMill}}">
+    <view id="mill-lesson" class="exhibit-frame mill-frame">
+      <view class="exhibit-topline"><text class="exhibit-label">{{artifact.title}}</text><text class="live-pill">{{textMode ? L.hg_text_mode : L.hg_3d_mode}}</text></view>
+      <view wx:if="{{!started || textMode}}" id="mill-cover" class="mill-cover">
+        <view class="cover-circle circle-large"></view><view class="cover-circle circle-small"></view>
+        <view class="mill-illustration {{textMode && step > 0 ? 'illustration-working' : ''}}">
+          <view class="draw-shadow"></view>
+          <view class="draw-foot foot-one"></view><view class="draw-foot foot-two"></view>
+          <view class="draw-plate"><view class="draw-grains"><text>·</text><text>·</text><text>·</text><text>·</text><text>·</text><text>·</text><text>·</text><text>·</text><text>·</text></view></view>
+          <view class="draw-rod"><view class="rod-highlight"></view></view>
+          <text class="drawing-label label-rod">{{L.hg_roller}}</text><view class="label-line line-rod"></view>
+          <text class="drawing-label label-plate">{{L.hg_slab}}</text><view class="label-line line-plate"></view>
+          <text wx:if="{{textMode && step > 0}}" class="drawing-motion">↔</text>
+        </view>
+        <view class="cover-caption"><text class="caption-dot"></text>{{L.hg_schematic}}</view>
+      </view>
+      <heritage-viewer wx:else id="artifact-viewer" scene="grain-mill" bind:ready="onViewerReady" bind:error="onViewerError" bind:viewchange="onViewChange"></heritage-viewer>
+
+      <view wx:if="{{!started}}" class="cover-action">
+        <text class="cover-invitation">{{L.hg_cover_invite}}</text>
+        <button id="start-lesson" class="button" bindtap="startLesson">{{L.hg_try}} <text class="button-arrow">↗</text></button>
+        <button id="cover-text-mode" class="subtle-button" bindtap="toggleTextMode">{{L.hg_see_text}}</button>
+      </view>
+      <view wx:elif="{{textMode}}" id="text-lesson" class="text-lesson">
+        <text wx:if="{{error}}" class="fallback-message">{{L.hg_3d_fail}}</text>
+        <view class="text-step"><text class="step-counter">0{{step + 1}} / 03</text><text class="text-step-title">{{artifact.observations[step].title}}</text></view>
+        <text class="text-step-copy">{{artifact.observations[step].text}}</text>
+        <button wx:if="{{step < 2}}" id="next-text-step" class="button-secondary" bindtap="nextTextStep">{{L.hg_continue}}</button>
+        <text wx:else class="text-finish">{{L.hg_answer_prompt}}</text>
+      </view>
+      <view wx:else class="mill-controls">
+        <view class="camera-tabs"><button id="camera-overview" class="camera-tab {{cameraView === 'overview' ? 'active' : ''}}" data-view="overview" bindtap="setCamera" disabled="{{!ready}}">{{L.hg_view_front}}</button><button id="camera-top" class="camera-tab {{cameraView === 'top' ? 'active' : ''}}" data-view="top" bindtap="setCamera" disabled="{{!ready}}">{{L.hg_view_top}}</button><button id="camera-side" class="camera-tab {{cameraView === 'side' ? 'active' : ''}}" data-view="side" bindtap="setCamera" disabled="{{!ready}}">{{L.hg_view_side}}</button><button id="reset-mill" class="reset-control" bindtap="resetView" disabled="{{!ready}}">{{L.hg_reset}}</button></view>
+        <view class="motion-instruction"><text>{{L.hg_roll_hint}}</text><text class="motion-count">{{strokes}} / 4{{L.hg_strokes_unit}}</text></view>
+        <slider id="grind-slider" value="{{position}}" min="0" max="100" step="1" activeColor="#3B5B43" backgroundColor="#D8D4C3" block-color="#FAF8EF" block-size="25" disabled="{{!ready}}" bindchanging="moveGrind" bindchange="moveGrind" show-value="{{false}}" />
+        <view class="grind-buttons"><button id="grind-back" class="grind-button" bindtap="grindBack" disabled="{{!ready || position < 1}}">{{L.hg_pull_back}}</button><button id="grind-forward" class="grind-button" bindtap="grindForward" disabled="{{!ready || position > 99}}">{{L.hg_push_far}}</button></view>
+        <text class="motion-hint">{{motionHint}}</text>
+      </view>
+      <view wx:if="{{started}}" class="mode-switch-row"><button id="toggle-text-mode" class="subtle-button" bindtap="toggleTextMode">{{textMode ? L.hg_try_3d : L.hg_switch_text}}</button><text>{{L.hg_switch}}</text></view>
+    </view>
+    <text class="diagram-notice">{{L.hg_schematic_note}}</text>
+
+    <view wx:if="{{started && (strokes >= 2 || (textMode && step === 2))}}" id="lesson-question" class="knowledge-card">
+      <text class="eyebrow">{{L.hg_keep_note}}</text><text class="knowledge-title">{{artifact.question}}</text>
+      <button wx:for="{{artifact.choices}}" wx:key="id" id="answer-{{item.id}}" class="answer-option {{answer === item.id ? (answerCorrect ? 'answer-right' : 'answer-wrong') : ''}}" data-answer="{{item.id}}" bindtap="answerQuestion"><text class="answer-symbol">{{answer === item.id && answerCorrect ? '✓' : '○'}}</text>{{item.text}}</button>
+      <view wx:if="{{answer}}" id="answer-feedback" class="answer-feedback {{answerCorrect ? 'correct-feedback' : ''}}">{{answerCorrect ? L.hg_answer_right : L.hg_answer_wrong}}</view>
+      <text wx:if="{{completed}}" id="lesson-completed" class="completed-label">{{L.hg_done}}</text>
+    </view>
+  </block>
+
+  <view class="exhibit-copy"><text class="section-title">{{L.hg_field_to_table}}</text><text class="exhibit-description">{{artifact.description}}</text></view>
+  <view class="observation-list"><view class="observation" wx:for="{{artifact.observations}}" wx:key="number"><text class="observation-number">{{item.number}}</text><view class="observation-copy"><text class="observation-title">{{item.title}}</text><text class="observation-text">{{item.text}}</text></view></view></view>
+
+  <view id="explore-experience" class="experience-card" bindtap="exploreExperience"><view><text class="experience-eyebrow">{{L.hg_explore_next}}</text><text class="experience-title">{{artifact.experienceLabel}}</text><text wx:if="{{isMill}}" class="experience-note">{{L.hg_sauce_note}}</text></view><text class="experience-arrow">↗</text></view>
+</view>

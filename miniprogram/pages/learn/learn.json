@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "游戏",
+  "usingComponents": {
+    "companion-view": "/components/companion-view/companion-view"
+  },
+  "disableScroll": false
+}

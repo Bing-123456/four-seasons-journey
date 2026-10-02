@@ -1,0 +1,89 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page tab-page mine-page {{fontClass}}">
+  <view class="profile-header">
+    <view class="profile-avatar-wrap" bindtap="openAccount" role="button" aria-label="{{L.mine_profile_aria}}">
+      <image class="profile-avatar-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
+      <view class="profile-avatar-edit">{{L.account_edit}}</view>
+    </view>
+    <view><view class="page-title">{{identity.nickname || L.traveller}}{{L.mine_notes}}</view><view class="muted">{{demoSummary.active ? L.demo_account : L.account_entry}}</view></view>
+  </view>
+  <view id="farm-card" class="farm-card">
+    <view class="farm-scene">
+      <image class="farm-landscape" src="/assets/illustrations/orchard-garden.jpg" mode="aspectFill" aria-hidden="true"/>
+      <view class="farm-ground"></view>
+      <view class="farm-plant-view"><farm-plant crop="{{farmCropChoice}}" days="{{farm.totalWatered || 0}}"/></view>
+      <view class="farm-can {{watering ? 'is-tilting' : ''}}"></view>
+      <view wx:if="{{watering}}" class="farm-stream"></view>
+      <view wx:if="{{watering}}" class="farm-drop farm-drop-1"></view>
+      <view wx:if="{{watering}}" class="farm-drop farm-drop-2"></view>
+      <view wx:if="{{watering}}" class="farm-drop farm-drop-3"></view>
+    </view>
+    <view class="farm-info">
+      <view class="farm-head"><view class="farm-title serif">{{L.my_farm}}</view><text wx:if="{{farm.stageLabel}}" class="farm-stage-pill">{{farm.stageLabel}}</text></view>
+      <view wx:if="{{farm.planted}}" class="farm-meta">{{farmMetaText}}</view>
+      <view wx:if="{{farm.planted && !farm.canWater}}" class="farm-meta farm-done">{{L.farm_watered_today}}</view>
+      <view wx:if="{{!farm.planted}}" class="farm-meta">{{L.farm_intro}}</view>
+      <view wx:if="{{farm.planted}}" class="farm-progress"><view class="farm-progress-fill" style="width: {{farm.progress}}%"></view></view>
+      <view wx:if="{{farm.planted && farm.stageNext}}" class="farm-next">{{farmNextText}}</view>
+        <view wx:if="{{farm.planted}}" class="farm-hint">{{L.farm_hint}}</view>
+      <view class="farm-calendar">
+        <view class="farm-calendar-title">{{L.farm_calendar_title}} · {{calendarMonthLabel}}</view>
+        <view class="farm-calendar-weeks"><text wx:for="{{calendarWeekHeaders}}" wx:key="*this">{{item}}</text></view>
+        <view class="farm-calendar-grid">
+          <view wx:for="{{calendarCells}}" wx:key="key" class="farm-calendar-cell {{item.watered ? 'is-watered' : ''}} {{item.isToday ? 'is-today' : ''}} {{item.inMonth ? '' : 'is-out'}}">{{item.day}}</view>
+        </view>
+        <view class="farm-calendar-legend"><text class="legend-dot legend-watered"></text>{{L.farm_calendar_watered}}<text class="legend-dot legend-plain"></text>{{L.farm_calendar_plain}}</view>
+      </view>
+      <block wx:if="{{!farm.planted}}">
+        <view class="farm-crops">
+          <view wx:for="{{farmCrops}}" wx:key="id" class="farm-crop {{farmCropChoice === item.id ? 'chosen' : ''}}" data-id="{{item.id}}" bindtap="chooseFarmCrop">{{item.label}}</view>
+        </view>
+        <button id="farm-plant" class="farm-button" bindtap="plantFarmCrop">{{L.farm_plant}}</button>
+      </block>
+      <button wx:else id="farm-water" class="farm-button {{farm.canWater ? '' : 'is-disabled'}}" bindtap="waterFarmCrop" loading="{{watering}}" disabled="{{watering || !farm.canWater}}">{{farm.canWater ? L.farm_water : L.farm_watered_btn}}</button>
+    </view>
+  </view>
+  <view wx:if="{{proverbVisible}}" class="farm-overlay" catchtouchmove="noop" bindtap="closeProverb">
+    <view class="farm-proverb-card" catchtap="noop">
+      <view class="farm-proverb-text serif">"{{proverb.text}}"</view>
+      <view class="farm-proverb-note">{{proverb.note}}</view><view class="farm-source" wx:if="{{proverb.sourceTitle}}">{{proverb.sourceTitle}}</view>
+      <view class="farm-proverb-growth">{{proverbGrowthText}}</view>
+      <button id="farm-proverb-close" class="farm-button farm-button-close" bindtap="closeProverb">{{L.proverb_close}}</button>
+    </view>
+  </view>
+  <view wx:if="{{demoSummary.active}}" id="demo-summary" class="demo-panel">
+    <view class="demo-topline"><text class="demo-badge">{{L.demo_badge}}</text><text>{{L.demo_account}}</text></view>
+    <view class="demo-title serif">{{L.demo_scenario_label}}</view>
+    <view class="demo-description">{{L.demo_desc}}</view>
+    <view class="demo-metrics"><text>{{demoSummary.routeStops}} {{L.demo_metric_stops}}</text><text>{{demoSummary.completedLessons}} {{L.demo_metric_lessons}}</text><text>{{L.demo_metric_cloud}}</text></view>
+    <view class="demo-actions"><button id="exit-demo" bindtap="exitDemo">{{L.exit_demo}}</button><button id="reset-demo" bindtap="resetDemo">{{L.reset_demo}}</button></view>
+  </view>
+  <view wx:else class="demo-entry"><view><view class="subheading">{{L.demo_entry_title}}</view><view class="muted">{{L.demo_entry_sub}}</view></view><button id="enter-demo" bindtap="enterDemo">{{L.demo_entry_btn}}</button></view>
+  <view class="stats"><view id="stat-knowledge" bindtap="openKnowledgeFavorites"><text>{{knowledgeFavorites.length}}</text>{{L.stat_culture}}</view><view id="stat-places" bindtap="openPlaceFavorites"><text>{{favorites.length}}</text>{{L.stat_places}}</view></view>
+  <view id="my-companion" class="companion-card" bindtap="companion">
+    <companion-view config="{{companion}}" size="180"/>
+    <view class="companion-copy">
+      <view class="companion-label">{{L.companion_pet}}</view>
+      <view class="serif companion-name">{{L.companion_guoling}}</view>
+      <view class="muted">{{L.companion_desc}}</view>
+      <text class="link">{{L.start_customize}}</text>
+    </view>
+  </view>
+  <view class="local-identity"><view class="field-label">{{L.language}}</view><view class="role-switch-row"><view class="role-chip {{appLanguage !== 'en' ? 'chosen' : ''}}" bindtap="toggleAppLanguage">中文</view><view class="role-chip {{appLanguage === 'en' ? 'chosen' : ''}}" bindtap="toggleAppLanguage">English</view></view>
+<view class="field-label" style="margin-top:20rpx">{{L.my_identity}}</view><view class="role-switch-row"><view class="role-chip {{identity.role === 'tourist' ? 'chosen' : ''}}" data-role="tourist" bindtap="switchRole">{{L.role_tourist}}</view><view class="role-chip {{identity.role === 'farmer' ? 'chosen' : ''}}" data-role="farmer" bindtap="switchRole">{{L.role_farmer}}</view></view>
+<view class="field-label" style="margin-top:20rpx" id="font-scale-title">{{fontCopy.title}}</view>
+<view class="font-slider-row">
+  <slider id="font-scale-slider" class="font-slider" min="0" max="2" step="1" value="{{fontIndex}}" activeColor="#234B3C" backgroundColor="#DCE5D0" block-size="24" block-color="#234B3C" bindchanging="onFontSlider" bindchange="onFontSlider" aria-label="{{fontCopy.title}}"/>
+  <view class="font-slider-ticks" aria-hidden="true"><text>{{fontTickLeft}}</text><text>{{fontTickMid}}</text><text>{{fontTickRight}}</text></view>
+</view>
+<view class="muted font-scale-hint">{{fontCopy.hint}}</view>
+</view>
+  <view class="section-title">{{L.settings_title}}</view>
+  <view wx:if="{{demoSummary.active}}" class="cloud-disclosure">{{L.settings_note_demo}}</view>
+  <view wx:else class="card">
+    <view class="setting-row"><view><view class="subheading">{{L.cloud_ai}}</view><view class="muted">{{L.cloud_ai_sub}}</view></view><switch id="cloud-toggle" color="#234B3C" checked="{{settings.useAI}}" bindchange="toggleAI"/></view>
+    <view class="cloud-disclosure">{{L.cloud_connected_note}}</view>
+  </view>
+  <view class="menu"><view bindtap="clearData" class="danger"><text>{{demoSummary.active ? L.clear_demo : L.clear_data}}</text><text>↺</text></view></view>
+  <view class="footer-note">{{L.footer_note}}</view>
+</view>
