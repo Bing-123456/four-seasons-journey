@@ -214,9 +214,49 @@
 
 .farm-hint{margin-top:8rpx;font-size:calc(20rpx * var(--fs-scale, 1));color:#9AA28F;line-height:1.7}
 
-/* 我的节气手账入口（P13 行程 / 果农工作台重构） */
-.journal-entry{display:flex;align-items:center;gap:18rpx;background:#E8EDDD;border:1rpx solid #D8DFCB;border-radius:22rpx;padding:22rpx 24rpx;margin:0 0 28rpx}
-.journal-entry .je-title{font-size:calc(32rpx * var(--fs-scale,1));color:#234B3C;font-weight:600}
-.journal-entry .je-text{flex:1;min-width:0}
-.journal-entry .muted{font-size:calc(22rpx * var(--fs-scale,1));color:#728264;margin-top:6rpx}
-.journal-entry .je-arrow{font-size:calc(34rpx * var(--fs-scale,1));color:#3C9D6E}
+/* 我的节气手账入口已于 2026-10-06 改版中移除（用户拍板删除），样式随之清理。 */
+
+/* ===== 「我的」页 5 组分组改版（2026-10-06，用户拍板）=====
+   现状 8 坨堆叠 → 5 组：我的果园 / 我的收获 / 我的伙伴 / 偏好设置（+ 底部演示条）
+   配色：淡绿底 #F1F4E4 + 米白卡 #FDFDF8（仅本页，覆盖此前「暂不动配色」约定）。 */
+.mine-page { background: #F1F4E4; }
+.group { margin-bottom: 30rpx; }
+.group-title {
+  font-size: calc(23rpx * var(--fs-scale, 1));
+  color: #7C8870; font-weight: 700; letter-spacing: 2rpx;
+  margin: 0 0 14rpx 6rpx;
+}
+/* 组内卡片统一米白 + 细边，替代原先糊成一片的灰白底 */
+.group .farm-card,
+.group .stats,
+.group .companion-card,
+.prefs-card {
+  background: #FDFDF8; border: 1rpx solid #DFE4D0; border-radius: 24rpx;
+}
+.group .farm-card { border-color: #DCDCC8; }
+.group .stats { border-color: #E1E3D4; }
+/* 果灵卡改米白底（原先偏黄绿），保持与其它组一致 */
+.group .companion-card { background: #FDFDF8; border-color: #DFE4D0; }
+.companion-label { color: #8A9276; }
+.companion-name { color: #40593E; }
+
+/* 偏好设置：把语言/身份/字号/云端AI 收进一张卡，行间用细线分隔 */
+.prefs-card { padding: 6rpx 28rpx 20rpx; margin-bottom: 0; }
+.pref-row { padding: 22rpx 0; }
+.pref-row .field-label { margin-bottom: 12rpx; }
+.pref-row-slider { padding-bottom: 8rpx; }
+.pref-row .setting-row { padding: 0; }
+.pref-row .cloud-disclosure { margin-top: 14rpx; }
+.pref-divider { height: 1rpx; background: #E7EADC; }
+
+/* 浇水月历默认收起，点链接就地展开 */
+.farm-calendar-toggle {
+  margin-top: 18rpx; padding: 14rpx 0 2rpx;
+  font-size: calc(23rpx * var(--fs-scale, 1)); color: #63795D;
+  display: flex; align-items: center; gap: 8rpx;
+}
+.farm-calendar-caret { font-size: calc(20rpx * var(--fs-scale, 1)); color: #8FA982; }
+
+/* 演示条：贴在偏好设置之后、清除数据之前，不再独占半屏 */
+.demo-panel { margin: 30rpx 0 24rpx; }
+.demo-entry { margin-bottom: 24rpx; }
