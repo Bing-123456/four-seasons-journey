@@ -407,7 +407,9 @@ function matchedChips(question) {
 
 Page({
   data: { L: {}, keyword: '', recent: [], messages: [], pending: false, pendingStep: 0, pendingSteps: [], scrollInto: '', listening: false, recognizing: false, keyboardHeight: 0,
-    suggestions: ['现在吃什么水果当季', '如何挑选西瓜', '西瓜是怎么传入中国的', '李子和杏子有什么区别', '立冬有什么讲究', '凤梨和菠萝是什么关系'],
+    suggestions: i18n.getLang() === 'en'
+      ? ["What's in season right now", "How to pick a good watermelon", "How did watermelon reach China", "Plum vs apricot: what's the difference", "What does Start of Winter mean", "Pineapple vs pineapple fruit"]
+      : ['现在吃什么水果当季', '如何挑选西瓜', '西瓜是怎么传入中国的', '李子和杏子有什么区别', '立冬有什么讲究', '凤梨和菠萝是什么关系'],
     companion: null,
     // 兼容保留：finishSearch 作为离线兜底引擎，仍写入这些字段（测试与降级路径使用）。
     searching: false, step: 0, steps: [], result: null, answerBlocks: [], thinMaterial: false, matched: [], proverbs: [], terms: [], empty: false, emptyNote: '' },
@@ -445,7 +447,11 @@ Page({
     // 拒答同时把本土替代果做成可点的追问，给用户指路（2026-10-01 用户反馈）。
     const scope = fruitScope.classify(question);
     if (scope.scope === 'out') {
-      const advice = scope.suggestions && scope.suggestions.length ? '\n可以换成这些本土水果问我：' + scope.suggestions.join('、') + '。' : '';
+      const advice = scope.suggestions && scope.suggestions.length
+        ? (i18n.getLang() === 'en'
+            ? '\nYou could ask about these local fruits instead: ' + scope.suggestions.join(', ') + '.'
+            : '\n可以换成这些本土水果问我：' + scope.suggestions.join('、') + '。')
+        : '';
       this.appendElf(scope.message + advice, { local: true, followUps: (scope.suggestions || []).slice(0, 2) });
       return;
     }

@@ -919,6 +919,7 @@ const dict = {
   companion_photo_stale: ['原作品图片已失效，可选择内置模板重新创作', 'The original image expired; pick a built-in template to create again'],
   companion_unsaved_body: ['水果伙伴还有未保存的修改，离开后将不会保留。', 'Your fruit buddy has unsaved edits; they will be lost if you leave.'],
   companion_replace_body: ['当前未保存的修改将被替换。', 'Unsaved edits will be replaced.'],
+  companion_replace_title: ['更换水果模板？', 'Switch fruit template?'],
   companion_replace_ok: ['更换模板', 'Replace'],
   companion_gen_note: ['生成图片可以描画，但没有预设填色区', 'Generated images support drawing but have no fill zones'],
   companion_stroke_cap: ['已保留 100 笔，可以回退后继续', 'Kept 100 strokes; step back to continue'],
@@ -982,6 +983,14 @@ const dict = {
   fruit_sugarcane: ['甘蔗', 'Sugarcane'],
   fruit_mangosteen: ['山竹', 'Mangosteen'],
   fruit_watermelon: ['西瓜', 'Watermelon'],
+  // 果灵定制模板的六个水果（data/companion-templates.js 按 templateId 查 fruit_<id>）。
+  // 此前只有 watermelon/apple/pear 三个键，草莓/葡萄/猕猴桃缺失会回退显示中文。
+  comp_fruit_watermelon: ['西瓜', 'Watermelon'],
+  comp_fruit_strawberry: ['草莓', 'Strawberry'],
+  comp_fruit_apple: ['苹果', 'Apple'],
+  comp_fruit_pear: ['梨', 'Pear'],
+  comp_fruit_grape: ['葡萄', 'Grapes'],
+  comp_fruit_kiwi: ['猕猴桃', 'Kiwifruit'],
   fruit_peach: ['桃子', 'Peach'],
   'fruit_plum-fruit': ['李子', 'Plum'],
   fruit_lychee: ['荔枝', 'Lychee'],

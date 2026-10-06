@@ -8,7 +8,10 @@ function templatesWithLocks(query, unlocks) {
   return companion.searchTemplates(query).map(item => {
     const locked = unlocks.indexOf(item.id) === -1;
     const zh = i18n.getLang() !== 'en';
-    return Object.assign({}, item, { locked, lockHint: zh ? i18n.t('companion_locked_hint') : 'Locked · answer its quiz' });
+    // 模板网格里的水果名走 comp_fruit_* 中英对照（六个模板齐全），缺失时才回退模板自带中文名。
+    const nameKey = 'comp_fruit_' + item.id;
+    const name = !zh && i18n.dict[nameKey] ? i18n.t(nameKey) : item.name;
+    return Object.assign({}, item, { name, locked, lockHint: zh ? i18n.t('companion_locked_hint') : 'Locked · answer its quiz' });
   });
 }
 
@@ -33,8 +36,10 @@ Page({
     const templates = require('../../data/companion-templates').templates;
     if(config.kind==='generated-image'||config.kind==='photo') return i18n.getLang()==='en'?'My fruit buddy':'我的水果伙伴';
     const template = templates.find(item=>item.id===config.templateId);
-    const nameKey='fruit_'+config.templateId;
-    return template?(i18n.dict[nameKey]?i18n.t(nameKey):template.name):(i18n.getLang()==='en'?'Fruit':'水果');
+    // 定制模板专用键优先（comp_fruit_*，六个模板齐全）；再退回通用 fruit_<id>。
+    const keys=['comp_fruit_'+config.templateId,'fruit_'+config.templateId];
+    for(let i=0;i<keys.length;i+=1){ if(i18n.dict[keys[i]]) return i18n.t(keys[i]); }
+    return template?template.name:(i18n.getLang()==='en'?'Fruit':'水果');
   },
   refreshTemplates:function(query){
     const unlocks=store.getFruitUnlocks(this._partition);
@@ -85,7 +90,7 @@ Page({
     if(locked){const name=event.currentTarget.dataset.name||'';wx.showToast({title:i18n.t('companion_lock_toast',{name}),icon:'none'});return;}
     if(id===this._editor.config.templateId)return;
     const use=()=>{if(!this._alive)return;this._editor=companion.createEditor(companion.defaultConfig(id));this._editor.baseline=companion.createEditor(store.getCompanion(this._partition)).baseline;this._stroke=null;this._sourceImage=null;this._imageVersion=(this._imageVersion||0)+1;this.setData({previewing:false,tool:'fill',canvasReady:!!this._ctx,canvasError:''});this.syncEditor();};
-    if(companion.isDirty(this._editor))wx.showModal({title:'更换水果模板？',content:i18n.t('companion_replace_body'),confirmText:i18n.t('companion_replace_ok'),success:result=>{if(result.confirm)use();}});else use();
+    if(companion.isDirty(this._editor))wx.showModal({title:i18n.t('companion_replace_title'),content:i18n.t('companion_replace_body'),confirmText:i18n.t('companion_replace_ok'),success:result=>{if(result.confirm)use();}});else use();
   },
   chooseColor:function(event){if(!this.data.saving)this.setData({color:event.currentTarget.dataset.color});},
   chooseTool:function(event){if(this.data.saving)return;const tool=event.currentTarget.dataset.tool;if(tool==='fill'&&this._editor.config.kind!=='template'){wx.showToast({title:i18n.t('companion_gen_note'),icon:'none'});return;}this.setData({tool},()=>this.setData({paintModeLabel:this.paintModeLabel()}));},
