@@ -13,7 +13,7 @@ page{background:#F5F5F7}
 .feature-image-bg{transform:scale(1.08)}
 .feature-image-main{z-index:1;transform:scale(1.045)}
 .activity-cover-copy{position:absolute;left:0;right:0;bottom:0;padding:64rpx 30rpx 32rpx;background:linear-gradient(transparent,rgba(19,60,49,.92));color:#FFF;font-size:calc(24rpx * var(--fs-scale, 1));line-height:1.7;overflow-wrap:anywhere}.activity-cover-title{font-size:calc(38rpx * var(--fs-scale, 1));font-weight:700;line-height:1.4;margin-bottom:16rpx}
-.home-brand{white-space:nowrap}.heading-actions{flex-shrink:0}
+.home-brand{white-space:nowrap}.heading-actions{flex-shrink:0;display:flex;align-items:center;gap:8rpx}
 .feature-dots{display:flex;justify-content:center;align-items:center;height:38rpx;flex-shrink:0}.feature-dot-hit{height:100%;min-width:30rpx;display:flex;align-items:center;justify-content:center}.feature-dot{width:8rpx;height:8rpx;border-radius:50%;background:#D4D4D8;transition:width .2s ease,background .2s ease}.feature-dot.active{background:#454548;width:20rpx;border-radius:5rpx}
 
 /* ===== 第 1 轮 · 发现页：全屏海报 + 58px 把手 + 上滑抽屉 =====
@@ -21,17 +21,18 @@ page{background:#F5F5F7}
    主色 #234B3C / 页底 #F5F5F7 / 米金 #F3E3C8 / 米白 #FFF9DF；
    抽屉段标签 10px、段标题 12.5px、段副标题 10.5px；抽屉顶部圆角 18px；
    把手 58px、抽屉展开约 384px。所有文字沿用 --fs-scale 机制。 */
-/* swiper 在小程序里不接受 flex:1 作为高度（会塌成 0），必须给确定高度。
-   用视口高度扣掉标题区、把手与底部 tab 安全区，让海报占满剩余空间。 */
-.poster-region{flex-shrink:0;display:flex;flex-direction:column;margin:8rpx -34rpx 0;height:calc(100vh - 400rpx - 58px - calc(132rpx + env(safe-area-inset-bottom)))}
-.poster-swiper{flex:1;width:100%;height:100%}
-.poster-card{height:100%;position:relative;background:#133C31;overflow:hidden}
+/* 海报区高度用视口高度扣掉标题区、把手与底部 tab 安全区，让海报占满剩余空间。
+   2026-10-07：三图轮播改为单张固定海报（不再用 swiper），直接给 .poster-card 高度。 */
+.poster-region{flex-shrink:0;margin:8rpx -34rpx 0;height:calc(100vh - 400rpx - 58px - calc(132rpx + env(safe-area-inset-bottom)))}
+.poster-card{position:relative;width:100%;height:100%;background:#133C31;overflow:hidden}
 .poster-image{position:absolute;width:100%;height:100%;top:0;left:0}
 /* 底层只用本地小图铺满防黑边（-bg 仅 7KB，糊，仅兜底），上层才是云存储清晰主图 */
 .poster-image-bg{transform:scale(1.08)}
 .poster-image-main{z-index:1}
-.poster-cover-copy{position:absolute;left:0;right:0;bottom:0;padding:64rpx 30rpx 32rpx;background:linear-gradient(transparent,rgba(19,60,49,.92));color:#FFF;font-size:calc(24rpx * var(--fs-scale, 1));line-height:1.7;overflow-wrap:anywhere}.poster-cover-title{font-size:calc(38rpx * var(--fs-scale, 1));font-weight:700;line-height:1.4;margin-bottom:16rpx}
-.poster-dots{position:absolute;left:0;right:0;bottom:calc(24rpx + env(safe-area-inset-bottom));z-index:2;display:flex;justify-content:center;align-items:center;gap:10rpx}.poster-dot{width:8rpx;height:8rpx;border-radius:50%;background:rgba(255,253,248,.45)}.poster-dot.active{width:24rpx;border-radius:5rpx;background:#FFFDF8}
+/* 压暗层 + 左下角主标题（数值取自 mockups/final-design-3pages.html 的 .veil / .copy） */
+.poster-veil{position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;background:linear-gradient(180deg,rgba(10,26,20,.30) 0%,rgba(10,26,20,.06) 20%,rgba(10,26,20,.12) 42%,rgba(10,26,20,.55) 68%,rgba(8,20,15,.86) 100%)}
+.poster-copy{position:absolute;left:48rpx;right:48rpx;bottom:56rpx;z-index:3}
+.poster-title{font-size:calc(52rpx * var(--fs-scale, 1));font-weight:750;color:#FFF9DF;line-height:1.34;letter-spacing:.4px;text-shadow:0 2rpx 12rpx rgba(0,0,0,.5);white-space:pre-line}
 /* 把手：收起时 58px，展开时贴抽屉下沿 */
 .poster-handle{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:center;gap:14rpx;background:#234B3C;color:#FFFDF8;border-radius:18px 18px 0 0;box-sizing:border-box;padding:0 17px}
 .poster-handle.is-open{border-radius:0}
@@ -80,6 +81,3 @@ page{background:#F5F5F7}
 .role-desc { font-size: calc(23rpx * var(--fs-scale, 1)); color: #6F7C70; line-height: 1.7; margin-top: 6rpx; }
 .role-note { font-size: calc(22rpx * var(--fs-scale, 1)); color: #788572; margin-top: 16rpx; }
 
-.heading-actions{display:flex;align-items:center;gap:8rpx}.booking-mask{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.3);display:flex;align-items:flex-end}.booking-sheet{width:100%;box-sizing:border-box;background:#fff;padding:44rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));border-radius:36rpx 36rpx 0 0;max-height:88vh;display:flex;flex-direction:column}.booking-head{display:flex;align-items:center;justify-content:space-between;gap:16rpx;margin-bottom:24rpx;flex-shrink:0}.booking-head .booking-title{margin-bottom:0}.booking-close{width:56rpx;height:56rpx;line-height:52rpx;padding:0;margin:0;border-radius:50%;background:#2E4A38;color:#FFFFFF;font-size:calc(30rpx * var(--fs-scale, 1));text-align:center;flex-shrink:0}.booking-close::after{border:0}.booking-title{font-size:calc(36rpx * var(--fs-scale, 1));font-weight:700;margin-bottom:24rpx;color:#1d1d1f}/* 10.2 / P01①：原固定 height 会在「暂无预约」这类短内容下留出大片空白，
-   改 max-height 后面板按内容收缩，底部不再空一大截；顶部留白加大让内容整体下移。 */
-.booking-scroll{flex:1;min-height:0;max-height:none;padding-bottom:calc(120rpx + env(safe-area-inset-bottom))}.booking-label{display:block;font-size:calc(25rpx * var(--fs-scale, 1));font-weight:600;margin:26rpx 0 14rpx}.booking-input{height:78rpx;line-height:78rpx;padding:0 20rpx;border-radius:16rpx;background:#F5F5F7;box-sizing:border-box;font-size:calc(28rpx * var(--fs-scale, 1))}.booking-note{color:#6e6e73;font-size:calc(25rpx * var(--fs-scale, 1));line-height:1.7;margin:10rpx 0}.booking-record{padding:20rpx 0;border-bottom:1rpx solid #eee;font-size:calc(29rpx * var(--fs-scale, 1))}.booking-error{font-size:calc(25rpx * var(--fs-scale, 1));color:#a43c35;margin-top:20rpx}.booking-cancel{font-size:calc(24rpx * var(--fs-scale, 1));line-height:2;background:#f5f5f7;color:#a43c35;margin:12rpx 0;width:fit-content;padding:8rpx 20rpx}.booking-sheet .button{margin-top:24rpx}.booking-sheet .text-button{flex-shrink:0}

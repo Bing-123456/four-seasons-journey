@@ -19,18 +19,14 @@
 <view class="home-screen {{fontClass}}">
   <view class="home-demo"><demo-notice id="demo-mode-notice"/></view>
   <view class="home-heading"><view class="heading-copy"><view class="home-brand">{{L.tab_discover}}</view></view><view class="heading-actions"><me-entry/></view></view>
-  <!-- 全屏海报：底层 bg（本地小图，只铺满防黑边）+ 上层清晰主图（云存储 fileID） -->
+  <!-- 全屏海报：底层 bg（本地小图，只铺满防黑边）+ 上层清晰主图（云存储 fileID）；不再轮播 -->
   <view id="farming-forecast" class="poster-region">
-    <swiper class="poster-swiper" current="{{featureIndex}}" bindchange="changeFeature" autoplay="{{true}}" interval="5000" circular="{{forecastPosters.length > 1}}" duration="320">
-      <swiper-item wx:for="{{forecastPosters}}" wx:key="id">
-        <view class="poster-card {{featureIndex === index ? 'is-current' : ''}}" data-id="{{item.id}}" bindtap="openBooking" role="button" aria-label="{{item.title}} · {{visualCopy.eventAction}}">
-          <image class="poster-image poster-image-bg" src="{{item.imageBg || item.image}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
-          <image class="poster-image poster-image-main" src="{{item.image}}" mode="aspectFit" lazy-load="true" binderror="onPosterError" data-idx="{{index}}" aria-label="{{item.title}}"/>
-          <view wx:if="{{item.bookable}}" class="poster-cover-copy"><view class="poster-cover-title">{{item.title}}</view><view>{{item.place}}</view><view>{{item.date}}</view></view>
-          <view wx:if="{{featureIndex === index}}" class="poster-dots"><view wx:for="{{forecastPosters}}" wx:key="id" wx:for-item="dot" wx:for-index="dotIdx" class="poster-dot {{dotIdx === index ? 'active' : ''}}"/></view>
-        </view>
-      </swiper-item>
-    </swiper>
+    <view class="poster-card">
+      <image class="poster-image poster-image-bg" src="{{poster.imageBg}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
+      <image class="poster-image poster-image-main" src="{{poster.image}}" mode="aspectFit" lazy-load="true" binderror="onPosterError" aria-label="{{L.home_poster_title}}"/>
+      <view class="poster-veil" aria-hidden="true"/>
+      <view class="poster-copy"><view class="poster-title">{{L.home_poster_title}}</view></view>
+    </view>
   </view>
 
   <!-- 底部把手 58px：点按或上滑展开抽屉 -->
@@ -91,5 +87,3 @@
   </view>
 
 </view>
-
-<view wx:if="{{bookingVisible}}" class="booking-mask" catchtouchmove="noop" bindtap="closeBooking"><view class="booking-sheet" catchtap="noop"><view class="booking-head"><view class="booking-title">{{bookingActivity ? bookingActivity.title : bookingCopy.mine}}</view><button class="booking-close" bindtap="closeBooking" disabled="{{bookingBusy}}" aria-label="✕">✕</button></view><scroll-view scroll-y class="booking-scroll"><block wx:if="{{bookingActivity}}"><view class="booking-note">{{bookingActivity.description}}</view><view class="booking-note">{{bookingActivity.place}} · {{bookingActivity.date}}</view><view wx:if="{{!bookingActivity.bookable}}" class="booking-note">{{bookingCopy.sample}}</view><block wx:else><label class="booking-label">{{bookingCopy.date}}</label><picker mode="date" start="{{bookingActivity.startDate}}" end="{{bookingActivity.endDate}}" value="{{bookingDate}}" data-field="bookingDate" bindchange="bookingInput"><view class="booking-input">{{bookingDate}} ⌄</view></picker><label class="booking-label">{{bookingCopy.people}}</label><input class="booking-input" type="number" value="{{bookingPeople}}" maxlength="2" data-field="bookingPeople" bindinput="bookingInput"/><button class="button" bindtap="confirmBooking" disabled="{{bookingBusy}}" loading="{{bookingBusy}}">{{bookingCopy.reserve}}</button></block></block><view wx:if="{{bookingError}}" class="booking-error" role="alert">{{bookingError}}</view><view class="booking-label">{{bookingCopy.mine}}</view><view wx:if="{{!myBookings.length}}" class="booking-note">{{bookingCopy.empty}}</view><view wx:for="{{myBookings}}" wx:key="id" class="booking-record"><view>{{item.activityTitle}}</view><view class="booking-note">{{item.date}} · {{item.people}} {{isEnglish ? 'people' : '人'}} · {{item.status === 'confirmed' ? bookingCopy.confirmed : bookingCopy.cancelled}}</view><view class="booking-note">{{item.location}}</view><button wx:if="{{item.status === 'confirmed'}}" class="booking-cancel" data-id="{{item.id}}" bindtap="cancelBooking" disabled="{{bookingBusy}}">{{bookingCopy.cancel}}</button></view></scroll-view><button class="text-button" bindtap="closeBooking" disabled="{{bookingBusy}}">{{bookingCopy.close}}</button></view></view>

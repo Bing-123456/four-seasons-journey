@@ -74,9 +74,9 @@ test('the harvest-event carousel is driven by the four seasons of picking activi
   assert.deepEqual(list.slice(0, 3).map(item => item.title), ['青梅采摘・青梅酒封坛', '枇杷采摘・枇杷膏熬制', '桑葚采摘・果酱手作']);
   assert.deepEqual(list.slice(-3).map(item => item.title), ['冬枣采摘・脆甜尝鲜', '瓯柑采摘・瓯柑酿制', '砂糖橘采摘・暖冬甜橘']);
   const indexJs = read('miniprogram/pages/index/index.js');
-  // 三个活动继续轮播；文案与插画分离，保持可读性和双语能力。
-  assert.match(indexJs, /forecastPosters/, 'the carousel shows the three campaign posters');
-  assert.doesNotMatch(indexJs, /farmActivities\.ACTIVITIES\.map/, 'activity slides are replaced by posters');
+  // 2026-10-07：发现页三图轮播与活动预约整套删除，只留设计稿那张柿子海报；活动插画仍在云存储登记备查。
+  assert.doesNotMatch(indexJs, /forecastPosters/, 'the three-poster carousel is gone from the discover page');
+  assert.doesNotMatch(indexJs, /farmActivities\.ACTIVITIES\.map/, 'activity slides are replaced by the single orchard poster');
   assert.doesNotMatch(indexJs, /solarTermNotes\.forecasts/, 'the solar-term slides are gone from the carousel');
   // 2026-10-06：这三张插画已移出主包改走云存储（lib/cloud-images.js），断言兼容两种形态。
   const cloudImages = require('../miniprogram/lib/cloud-images');

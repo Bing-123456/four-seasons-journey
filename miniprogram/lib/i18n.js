@@ -145,6 +145,8 @@ const dict = {
   ask_guoling: ['问果灵', 'Ask Guoling'],
 
   // 首页（发现）
+  // 2026-10-07：发现页换成设计稿那张柿子海报，海报上只叠一行主标题（不含节气/第N天）。
+  home_poster_title: ['柿子挂满枝头的时候，\n也是它最不经放的时候', 'When persimmons hang heavy on the branch,\nit is also at their least keepable'],
   home_tagline1: ['果物四时记', 'Seasons of Fruit'],
   home_brand_welcome: ['果物四时记', 'Fruit Seasons'],
   home_tagline2: ['看节气，识水果。', 'Fruits and farming by season.'],

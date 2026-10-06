@@ -179,51 +179,29 @@ test('slow map opening shows progress, blocks repeated taps and clears on cancel
 });
 
 
-test('campaign illustrations are packaged JPEGs and native titles remain bilingual', () => {
+test('the discover page uses the packaged orchard poster with a bilingual headline', () => {
   const home = loadPage('index'); home.onShow();
-  assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['枇杷熬膏', '青梅封坛', '桑葚果酱']);
-  for (const item of home.data.forecastPosters) {
-    assertImagePackaged(item.image, item.image);
-    assertImagePackaged(item.imageBg, item.imageBg);
-    assert.ok(item.description && item.date && item.place);
-  }
-  const ids = home.data.forecastPosters.map(item => item.id);
+  assert.ok(home.data.poster.image && home.data.poster.imageBg, 'poster takes a clear main image plus a background filler');
+  assertImagePackaged(home.data.poster.image, home.data.poster.image);
+  assertImagePackaged(home.data.poster.imageBg, home.data.poster.imageBg);
+  const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
+  assert.match(markup, /class="poster-image poster-image-bg"[^>]*mode="aspectFill"/, '底层铺满防黑边');
+  assert.match(markup, /class="poster-image poster-image-main"[^>]*mode="aspectFit"/, '主图完整显示');
   try {
     store.saveSettings({ language: 'en' }); require('../miniprogram/lib/i18n').invalidateLang(); home.refresh();
-    assert.deepEqual(home.data.forecastPosters.map(item => item.id), ids);
-    assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['Loquat syrup', 'Green plum preserves', 'Mulberry jam']);
-    assert.ok(home.data.forecastPosters.every(item => /Booking unavailable/.test(item.date) && item.bookable === false));
-    home.openBooking({ currentTarget: { dataset: { id: ids[0] } } }); assert.equal(home.data.bookingActivity.bookable, false); assert.equal(home.data.bookingVisible, true);
+    assert.match(home.data.L.home_poster_title, /persimmon/i, 'headline is bilingual');
     home.goRoutePlan(); assert.equal(calls.navigation.at(-1), '/pages/route/route');
   } finally { store.saveSettings({ language: 'zh' }); require('../miniprogram/lib/i18n').invalidateLang(); }
 });
 
-test('live activities never inherit the fruit or date printed on campaign posters', async () => {
-  const booking = require('../miniprogram/lib/booking-service');
-  const previous = booking.listActivities;
-  try {
-    booking.listActivities = async () => ({ activities: [{ id: 'live-pear', title: '秋梨采摘', location: '梨园', startDate: '2026-10-01', endDate: '2026-10-03' }] });
-    const home = loadPage('index'); home.refresh();
-    await home.loadActivities();
-    const activity = home.data.forecastPosters.find(item => item.id === 'live-pear');
-    // 2026-10-06 起横幅改走云存储，故比对文件名而非整串本地路径。
-    assert.equal(String(activity.image).split('/').pop(), 'orchard-garden-banner.jpg');
-    assertImagePackaged(activity.image, 'activity banner');
-    assert.equal(activity.title, '秋梨采摘');
-    assert.equal(activity.place, '梨园');
-    assert.equal(activity.date, '2026-10-01 — 2026-10-03');
-    assert.equal(home.data.forecastPosters.filter(item => !item.bookable).length, 3);
-    const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
-    assert.match(markup, /wx:if="\{\{item\.bookable\}\}" class="poster-cover-copy"/);
-    // 轮播防黑边：底层预烘焙模糊底图铺满（不依赖运行时 CSS filter），上层完整显示。
-    // 2026-10-06 第1 轮：类名 feature-image-* 改为 poster-image-*，取图与mode 规范不变。
-    assert.match(markup, /class="poster-image poster-image-bg"[^>]*src="\{\{item\.imageBg \|\| item\.image\}\}"[^>]*mode="aspectFill"/);
-    assert.match(markup, /class="poster-image poster-image-main"[^>]*mode="aspectFit"/);
-    for (const poster of home.data.forecastPosters.filter(item => !item.bookable)) {
-      assert.ok(poster.imageBg, poster.id + ' has pre-baked background');
-      assertImagePackaged(poster.imageBg, poster.imageBg);
-    }
-  } finally { booking.listActivities = previous; }
+test('the discover page no longer carries the campaign carousel or the activity booking sheet', () => {
+  const home = loadPage('index'); home.refresh();
+  assert.equal(home.data.forecastPosters, undefined, 'the three-poster carousel is gone');
+  assert.equal(typeof home.openBooking, 'undefined', 'tapping the poster no longer opens a booking sheet');
+  assert.equal(typeof home.loadActivities, 'undefined', 'live activities are no longer merged into the poster');
+  const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
+  ['<swiper', 'poster-dots', 'poster-cover-copy', 'booking-mask', 'confirmBooking', 'cancelBooking'].forEach(token =>
+    assert.doesNotMatch(markup, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), token + ' must be removed from the discover page'));
 });
 
 test('all pages identify the isolated demo account and the notice refreshes on every page show', () => {

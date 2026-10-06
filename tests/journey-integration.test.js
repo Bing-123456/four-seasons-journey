@@ -92,10 +92,10 @@ test('new classroom pages are importable native routes with page files', () => {
   }
 });
 
-test('home shows Guoling search, auto-rotating farm forecasts and rich news while place links follow their factual context', () => {
+test('home shows the single orchard poster while place links follow their factual context', () => {
   const home = loadPage('index/index');
   home.onShow();
-  assert.equal(home.data.forecastPosters.length, 3, 'three campaign posters rotate');
+  assert.ok(home.data.poster && home.data.poster.image && home.data.poster.imageBg, 'the discover page shows one fixed orchard poster');
   for (const place of catalog.places) {
     const culture = loadPage('culture/culture');
     culture.onLoad({ id: place.id });

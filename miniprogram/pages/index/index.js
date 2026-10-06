@@ -1,13 +1,7 @@
 const catalog = require('../../data/catalog');
 const fruitCulture = require('../../data/fruit-culture');
 const store = require('../../lib/store');
-const learning = require('../../data/learning');
-const content = require('../content-view');
-const farmActivities = require('../../data/farm-activities');
 const i18n = require('../../lib/i18n');
-const booking = require('../../lib/booking-service');
-const sellerCore = require('../../lib/seller-core');
-const { mergeActivities } = require('../../lib/home-carousel');
 const cloudImg = require('../../lib/cloud-images');
 
 // 第1 轮 · 抽屉四段的数据装配（依据 final-design-3pages.html「状态与边界」）。
@@ -82,10 +76,9 @@ function buildDrawer(page) {
 }
 
 Page({
-  data: { bookingVisible: false, bookingActivity: null, bookingDate: '', bookingPeople: '1', bookingBusy: false, bookingError: '', myBookings: [], featureIndex: 0, featureSideMargin: 28, season: 'summer', forecastPosters: [], drawerOpen: false, drawer: { season: { title: '', sub: '' }, game: { sub: '', slots: [] }, route: { title: '', sub: '' }, news: { title: '', sub: '' } } },
-  onReady: function () { this.layoutCarousel(); },
-  onResize: function () { this.layoutCarousel(); },
-  layoutCarousel: function () {},
+  // 2026-10-07：三图自动轮播与活动预约整套删除，发现页只留设计稿那张柿子海报（不再轮播）。
+  // 海报文案走 i18n 的 home_poster_title，图片走 cloud-images.js 的 orchard-garden-banner。
+  data: { poster: { image: '', imageBg: '' }, season: 'summer', drawerOpen: false, drawer: { season: { title: '', sub: '' }, game: { sub: '', slots: [] }, route: { title: '', sub: '' }, news: { title: '', sub: '' } } },
   onLoad: function () { i18n.applyNav('app_name');
     this.refresh();
     // 一打开先选身份（游客/果农）；游客必须先定制打招呼小水果，再进入后面内容。
@@ -125,36 +118,28 @@ Page({
     // 定制完打招呼小水果后才放行欢迎页；未完成定制则继续停留。
     this.setData({ identity, welcomeVisible: this.shouldWelcome(identity), welcomeCompanion: store.getCompanion() });
     this.refresh();
-    this.loadActivities();
   },
   refresh: function () {
     const profile = store.getProfile();
     const season = catalog.seasons.find(item => item.id === profile.season) || catalog.seasons[0];
-    const en = i18n.getLang() === 'en';
-    // 活动信息使用原生文字，插画只负责呈现果物，保证缩放与英文排版可读。
-    const L = i18n.labels(['home_news','news_term','news_story','note_verify','resume_text','resume_open','farmer_studio','farmer_studio_sub','home_tagline1','home_brand_welcome','home_tagline2','tab_discover','search_local_web','welcome_title','welcome_caption','welcome_customize','role_title','role_note','role_tourist','role_farmer','role_tourist_desc','role_farmer_desc','collapse_full','expand_full','id_glyph_traveler','id_glyph_farmer','id_search_aria','id_search_title','id_bag_aria','id_bag_title','id_bag_sub','id_bag_go','id_farmer_aria','drawer_handle','drawer_seg_season','drawer_seg_game','drawer_seg_route','drawer_seg_news','drawer_game_title','drawer_game_fresh','drawer_game_today_done','drawer_game_used_up','drawer_game_resume','drawer_season_none','drawer_route_empty','drawer_news_empty','drawer_news_none']);
-    const forecastPosters = [
-      { id: 'poster-loquat', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-loquat'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-loquat'), title: en ? 'Loquat syrup' : '枇杷熬膏', place: en ? 'Foothill loquat orchard' : '山脚枇杷园', description: en ? 'Freshly picked loquats, slowly simmered into syrup.' : '枇杷采摘，慢熬一盏润心膏。', date: en ? 'Apr 25 · Booking unavailable' : '4月25日 · 活动示例' },
-      { id: 'poster-plum', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-plum'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-plum'), title: en ? 'Green plum preserves' : '青梅封坛', place: en ? 'Hillside plum orchard' : '后山梅子园', description: en ? 'Gather green plums and preserve a little spring.' : '青梅采摘，封存一整个春天。', date: en ? 'May 5 · Booking unavailable' : '5月5日 · 活动示例' },
-      { id: 'poster-mulberry', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-mulberry'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-mulberry'), title: en ? 'Mulberry jam' : '桑葚果酱', place: en ? 'Orchard' : '果园', description: en ? 'Pick mulberries and jar their purple sweetness.' : '桑葚采摘，酿一罐紫红的甜。', date: en ? 'May 15 · Booking unavailable' : '5月15日 · 活动示例' }
-    ];
+    const L = i18n.labels(['home_news','news_term','news_story','note_verify','resume_text','resume_open','farmer_studio','farmer_studio_sub','home_tagline1','home_brand_welcome','home_tagline2','home_poster_title','tab_discover','search_local_web','welcome_title','welcome_caption','welcome_customize','role_title','role_note','role_tourist','role_farmer','role_tourist_desc','role_farmer_desc','collapse_full','expand_full','id_glyph_traveler','id_glyph_farmer','id_search_aria','id_search_title','id_bag_aria','id_bag_title','id_bag_sub','id_bag_go','id_farmer_aria','drawer_handle','drawer_seg_season','drawer_seg_game','drawer_seg_route','drawer_seg_news','drawer_game_title','drawer_game_fresh','drawer_game_today_done','drawer_game_used_up','drawer_game_resume','drawer_season_none','drawer_route_empty','drawer_news_empty','drawer_news_none']);
     this.setData({
-      L, season: season.id, isEnglish: en,
-      visualCopy: { eventAction: en ? 'View activity' : '查看活动' },
-      forecastPosters,
-      bookingCopy: en ? { mine: 'My bookings', title: 'Activity booking', date: 'Visit date', people: 'Party size', reserve: 'Confirm booking', cancel: 'Cancel booking', close: 'Done', sample: 'Activity inspiration. No verified organiser has opened booking.', empty: 'No bookings yet', confirmed: 'Confirmed', cancelled: 'Cancelled', unavailable: 'Demo mode does not place real bookings', loading: 'Loading…' } : { mine: '我的预约', title: '活动预约', date: '到访日期', people: '同行人数', reserve: '确认预约', cancel: '取消预约', close: '完成', sample: '活动灵感示例，暂无主办方开放真实预约。', empty: '暂无预约记录', confirmed: '已确认', cancelled: '已取消', unavailable: '演示账户不提交真实预约', loading: '加载中…' },
+      L, season: season.id,
+      poster: {
+        image: cloudImg.img('illustrations/orchard-garden-banner'),
+        imageBg: cloudImg.imgBg('illustrations/orchard-garden-banner-bg')
+      },
       savedRoute: store.getRoute(),
       identity: store.getIdentity(),
       companionMini: store.getCompanion(),
       drawer: buildDrawer(this),
       roleSelectVisible: this.data.roleSelectVisible === undefined ? !store.getIdentity().roleChosen : this.data.roleSelectVisible
-    }, () => this.layoutCarousel());
+    });
   },
   // 主图加载失败时回退到底层 bg（本地小图），避免整块留白。
-  onPosterError: function (event) {
-    const idx = Number(event.currentTarget.dataset.idx);
-    const item = this.data.forecastPosters[idx];
-    if (item && item.imageBg) this.setData({ ['forecastPosters[' + idx + '].image']: item.imageBg });
+  onPosterError: function () {
+    const poster = this.data.poster || {};
+    if (poster.imageBg) this.setData({ 'poster.image': poster.imageBg });
   },
   toggleDrawer: function () { this.setData({ drawerOpen: !this.data.drawerOpen }); },
   // 抽屉三段直达（快讯段本轮不跳转，待 pages/news 建成后接入）。
@@ -175,46 +160,10 @@ Page({
     const key = event.currentTarget.dataset.game;
     if (!key || GAMES[key]) wx.switchTab({ url: '/pages/learn/learn', success: () => { if (key) wx.navigateTo({ url: '/pages/playground/playground?game=' + key }); } });
   },
-  loadActivities: function () {
-    if (store.isDemoMode()) return Promise.resolve();
-    const partition = store.capturePartition(); const apiBase = store.getSettings().apiBase;
-    return booking.listActivities().then(result => { if (partition !== store.capturePartition() || apiBase !== store.getSettings().apiBase) return; const real = result.activities.map(item => ({ ...item, bookable: true, image: cloudImg.img('illustrations/orchard-garden-banner'), imageBg: cloudImg.imgBg('illustrations/orchard-garden-banner-bg'), place: item.location, date: item.startDate + ' — ' + item.endDate })); this.setData(mergeActivities(this.data.forecastPosters, this.data.featureIndex, real)); }).catch(() => {});
-  },
-  openBooking: function (event) {
-    const activity = this.data.forecastPosters.find(item => item.id === event.currentTarget.dataset.id);
-    if (!activity) return;
-    this._bookingRequestId = booking.requestId();
-    this.setData({ bookingVisible: true, bookingActivity: activity, bookingDate: activity.startDate && activity.startDate > sellerCore.today() ? activity.startDate : sellerCore.today(), bookingPeople: '1', bookingError: '', myBookings: [] });
-    this.loadMyBookings();
-  },
-  openMyBookings: function () { this.setData({ bookingVisible: true, bookingActivity: null, bookingError: '', myBookings: [] }); this.loadMyBookings(); },
-  loadMyBookings: function () {
-    if (store.isDemoMode()) { this.setData({ myBookings: [], bookingError: this.data.bookingCopy.unavailable }); return Promise.resolve(); }
-    const partition = store.capturePartition();
-    return booking.listBookings().then(result => { if (partition === store.capturePartition()) this.setData({ myBookings: result.bookings.slice().reverse() }); }).catch(error => { if (partition === store.capturePartition()) this.setData({ bookingError: error.message }); });
-  },
-  closeBooking: function () { if (!this.data.bookingBusy) this.setData({ bookingVisible: false }); },
-  bookingInput: function (event) { this.setData({ [event.currentTarget.dataset.field]: event.detail.value }); this._bookingRequestId = booking.requestId(); },
-  confirmBooking: function () {
-    if (this.data.bookingBusy || !this.data.bookingActivity || !this.data.bookingActivity.bookable) return;
-    const partition = store.capturePartition();
-    this.setData({ bookingBusy: true, bookingError: '' });
-    return booking.reserve({ requestId: this._bookingRequestId, activityId: this.data.bookingActivity.id, date: this.data.bookingDate, people: Number(this.data.bookingPeople) }).then(() => this.loadMyBookings()).catch(error => { if (partition === store.capturePartition()) this.setData({ bookingError: error.message }); }).finally(() => { if (partition === store.capturePartition()) this.setData({ bookingBusy: false }); });
-  },
-  cancelBooking: function (event) {
-    if (this.data.bookingBusy) return;
-    const partition = store.capturePartition(); this.setData({ bookingBusy: true, bookingError: '' });
-    return booking.cancel(event.currentTarget.dataset.id).then(() => this.loadMyBookings()).catch(error => { if (partition === store.capturePartition()) this.setData({ bookingError: error.message }); }).finally(() => { if (partition === store.capturePartition()) this.setData({ bookingBusy: false }); });
-  },
   onShareAppMessage: function (event) {
     return { title: i18n.t('home_share_title'), path: '/pages/index/index' };
   },
 
   openSearch: function () { wx.navigateTo({ url: '/packageMore/search/search' }); },
-  changeFeature: function (event) {
-    const current = Number(event.detail.current);
-    if (Number.isInteger(current) && current >= 0 && current < this.data.forecastPosters.length && current !== this.data.featureIndex) this.setData({ featureIndex: current });
-  },
-  selectFeature: function (event) { this.changeFeature({ detail: { current: event.currentTarget.dataset.index } }); },
   openRoute: function () { wx.switchTab({ url: '/pages/route/route' }); }
 });

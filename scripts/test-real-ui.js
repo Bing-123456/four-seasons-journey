@@ -94,14 +94,9 @@ async function run(scope = 'all') {
       });
       await shot('02-preview-map');
       page = await navigate('/pages/index/index');
-      await check('首页海报轮播为已打包实拍照片并可加载，保留农具课堂入口', async () => {
-        const posters = await page.data('forecastPosters');
-        assert.ok(Array.isArray(posters) && posters.length >= 3, '首页必须保留海报轮播');
-        for (const poster of posters) {
-          assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram', poster.image.replace(/^\//, ''))), '海报必须为已打包图片：' + poster.image);
-        }
-        const packaged = await evaluate(srcs => srcs.map(src => wx.getFileSystemManager().accessSync(src) === undefined || true), posters.map(poster => poster.image)).catch(() => null);
-        assert.notEqual(packaged, null, '海报图片可访问');
+      await check('首页海报为设计稿那张柿子图（云存储清晰主图 + 底图兜底），不再轮播', async () => {
+        const poster = await page.data('poster');
+        assert.ok(poster && poster.image && poster.imageBg, '首页必须显示固定海报');
         assert.equal((await page.query('#farming-forecast')).exists, true);
         await notice();
       });

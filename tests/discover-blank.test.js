@@ -48,19 +48,24 @@ test.beforeEach(() => {
 });
 test.after(() => { global.wx = original.wx; global.Page = original.Page; i18n.invalidateLang(); });
 
-test('the discover page keeps the carousel and adds the poster handle plus four-section drawer', () => {
+test('the discover page shows one fixed orchard poster plus the handle and the four-section drawer', () => {
   const markup = read('miniprogram/pages/index/index.wxml');
-  assert.match(markup, /id="farming-forecast"/, '三图自动轮播保留');
-  // 2026-10-06 第1 轮：轮播容器改名为 poster-swiper，自动轮播设置按用户要求原样保留。
-  assert.match(markup, /<swiper class="poster-swiper"[^>]*autoplay="\{\{true\}\}"[^>]*interval="5000"/, '轮播仍然自动连播且间隔不变');
+  assert.match(markup, /id="farming-forecast"/, '发现页海报区保留');
+  // 2026-10-07：三张活动轮播图与活动预约整套删除，海报换成设计稿那张柿子图（不轮播、无圆点）。
+  assert.doesNotMatch(markup, /<swiper/, '轮播已彻底删除');
+  assert.doesNotMatch(markup, /poster-dots|poster-cover-copy/, '轮播圆点与预约文案层已删除');
+  assert.doesNotMatch(markup, /booking-mask|confirmBooking|openBooking/, '活动预约弹层已删除');
+  assert.match(markup, /class="poster-title"/, '海报上叠了主标题');
+  assert.match(markup, /\{\{L\.home_poster_title\}\}/, '主标题文案走i18n');
+  const js = read('miniprogram/pages/index/index.js');
+  assert.doesNotMatch(js, /forecastPosters|mergeActivities|booking-service/, '轮播与预约逻辑已从index 删除');
   // 2026-10-06 用户决定下方留白、A+B 学习成果兑现设计撤销：这些板块不得存在。
   ['study-progress', 'action-loop', 'action-towns', 'action-tally'].forEach(id =>
     assert.doesNotMatch(markup, new RegExp('id="' + id + '"'), id + ' 板块不应存在（已被用户撤销）'));
-  const js = read('miniprogram/pages/index/index.js');
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/action-loop['"]\)/, 'index 不再引用 action-loop');
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/farmtown-service['"]\)/, 'index 不再引用 farmtown-service');
   assert.doesNotMatch(markup, /home-shortcuts/, '旧入口不应复活');
-  // 第1 轮新增：海报取图规范（底层 bg 铺满 + 上层清晰主图 + 主图兜底）与四段抽屉。
+  // 海报取图规范（底层 bg 铺满 + 上层清晰主图 + 主图兜底）与四段抽屉。
   assert.match(markup, /poster-image-bg[^>]*mode="aspectFill"/, '海报底层用 aspectFill 铺满防黑边');
   assert.match(markup, /poster-image-main[^>]*mode="aspectFit"/, '海报主图用 aspectFit');
   assert.match(markup, /binderror="onPosterError"/, '主图要有加载失败兜底');
