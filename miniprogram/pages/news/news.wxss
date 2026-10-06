@@ -1,0 +1,32 @@
+/* 第2 轮 · 今日快讯页（依据 mockups/final-design-3pages.html 视觉规格）
+   主色 #234B3C / 暖纸 #FFFDF8 / 页底 #F5F5F7 / 米金 #F3E3C8（深底）/ #8A6A2E（浅底）
+   正文 #1D1D1F / 次要 #6F7C70；名片卡与圆角 14px，按钮 9–11px；文字沿用 --fs-scale。 */
+page{background:#F5F5F7}
+.news-screen{min-height:100vh;padding:0 34rpx calc(132rpx + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column}
+.news-head{flex-shrink:0;padding:24rpx 0 18rpx}
+.news-title{font-size:calc(48rpx * var(--fs-scale, 1));font-weight:750;letter-spacing:-1.5rpx;color:#1D1D1F;line-height:1.25}
+.news-sub{font-size:calc(25rpx * var(--fs-scale, 1));color:#6F7C70;line-height:1.5;margin-top:8rpx}
+
+.news-scroll{flex:1;min-height:0}
+.news-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 34rpx;text-align:center}
+.news-empty-text{font-size:calc(28rpx * var(--fs-scale, 1));color:#1D1D1F;line-height:1.6}
+.news-empty-hint{font-size:calc(23rpx * var(--fs-scale, 1));color:#87917B;line-height:1.6;margin-top:10rpx}
+
+/* 名片卡：暖纸底、14px 圆角、细边 */
+.town-card{background:#FFFDF8;border:1rpx solid rgba(0,0,0,.08);border-radius:28rpx;padding:26rpx 26rpx 24rpx;margin-bottom:22rpx;box-sizing:border-box}
+.town-art{width:100%;height:320rpx;border-radius:20rpx;background:#EDE7DA;display:block}
+.town-title{font-size:calc(34rpx * var(--fs-scale, 1));font-weight:700;color:#1D1D1F;line-height:1.4;margin-top:20rpx;overflow-wrap:anywhere}
+.town-term{display:inline-block;margin-top:10rpx;padding:4rpx 14rpx;border-radius:20rpx;background:rgba(243,227,200,.55);color:#8A6A2E;font-size:calc(22rpx * var(--fs-scale, 1));line-height:1.5}
+/* 体验标签：最多 3 个 chip */
+.town-chips{display:flex;flex-wrap:wrap;gap:10rpx;margin-top:14rpx}
+.town-chip{padding:5rpx 16rpx;border-radius:20rpx;background:#F5F1E6;border:1rpx solid #E4DCC8;color:#6F5B2E;font-size:calc(22rpx * var(--fs-scale, 1));line-height:1.5}
+.town-line{font-size:calc(25rpx * var(--fs-scale, 1));color:#6F7C70;line-height:1.65;margin-top:12rpx;overflow-wrap:anywhere}
+.town-distance{color:#8A6A2E}
+.town-transport{color:#87917B}
+.town-intro{font-size:calc(27rpx * var(--fs-scale, 1));color:#1D1D1F;line-height:1.75;margin-top:16rpx;overflow-wrap:anywhere}
+.town-contact{color:#234B3C}
+/* 按钮：主色实心 + 次要描边；圆角 11px */
+.town-actions{display:flex;gap:14rpx;margin-top:24rpx}
+.town-btn{flex:1;margin:0;padding:0;border-radius:22rpx;background:#F5F5F7;color:#234B3C;font-size:calc(25rpx * var(--fs-scale, 1));line-height:88rpx;text-align:center;border:1rpx solid rgba(0,0,0,.08)}
+.town-btn::after{border:0}
+.town-btn-primary{background:#234B3C;color:#FFFDF8;border-color:#234B3C}

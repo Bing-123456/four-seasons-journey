@@ -1,0 +1,38 @@
+<view class="news-screen {{fontClass}}">
+<demo-notice id="demo-mode-notice"/>
+  <view class="news-head">
+    <view class="news-title serif">{{L.news_page_title}}</view>
+    <view class="news-sub">{{countLabel}}</view>
+  </view>
+
+  <!-- 空态：只有一句话 + 同步说明，无插画无按钮 -->
+  <view wx:if="{{loaded && empty}}" class="news-empty">
+    <view class="news-empty-text">{{L.news_empty}}</view>
+    <view class="news-empty-hint">{{L.news_empty_hint}}</view>
+  </view>
+
+  <scroll-view wx:else scroll-y class="news-scroll">
+    <view wx:for="{{cards}}" wx:key="id" class="town-card" id="town-{{item.id}}">
+      <image class="town-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
+
+      <view class="town-title">{{item.name}}</view>
+      <view wx:if="{{item.termLabel}}" class="town-term">{{item.termLabel}}</view>
+
+      <view wx:if="{{item.experiences.length}}" class="town-chips">
+        <view wx:for="{{item.experiences}}" wx:for-item="tag" wx:key="*this" class="town-chip">{{tag}}</view>
+      </view>
+
+      <view wx:if="{{item.region}}" class="town-line">{{item.region}}</view>
+      <view wx:if="{{item.distance}}" class="town-line town-distance">{{item.distance}}</view>
+      <view wx:if="{{item.intro}}" class="town-intro">{{item.intro}}</view>
+      <view wx:if="{{item.transport}}" class="town-line town-transport">{{item.transport}}</view>
+      <view wx:if="{{item.contact}}" class="town-line town-contact">{{item.contact}}</view>
+
+      <view class="town-actions">
+        <button wx:if="{{item.contact}}" class="town-btn town-btn-primary" data-contact="{{item.contact}}" bindtap="copyContact">{{L.news_copy_wechat}}</button>
+        <button wx:else class="town-btn town-btn-primary" data-id="{{item.id}}" bindtap="viewCard">{{L.news_view_card}}</button>
+        <button class="town-btn" data-id="{{item.id}}" bindtap="planTicket">{{L.news_plan_ticket}}</button>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -26,6 +26,16 @@ const dict = {
   drawer_route_empty: ['今天还没有行程 · 去排一张票', 'No trip yet · plan one now'],
   drawer_news_none: ['果农今天还没有发布', 'No grower post today'],
   drawer_news_empty: ['果农今天还没有发布', 'No grower post today'],
+
+  // 第2 轮 · 今日快讯页（2026-10-07，依据 mockups/final-design-3pages.html）
+  news_page_title: ['今日快讯', 'News'],
+  news_subtitle: ['今天新上架', 'New today'],
+  news_empty: ['果农今天还没有发布', 'No grower post today'],
+  news_empty_hint: ['与果园同步，稍后再来看看。', 'Synced with the orchards — check back later.'],
+  news_copy_wechat: ['复制微信', 'Copy WeChat'],
+  news_view_card: ['看名片', 'View card'],
+  news_plan_ticket: ['排一张票', 'Plan a ticket'],
+  news_copy_failed: ['复制失败，请手动记下联系方式', 'Copy failed — please note the contact manually'],
   tab_mine: ['我的', 'Me'],
 
   // 通用
