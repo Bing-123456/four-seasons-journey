@@ -241,6 +241,39 @@ function saveRoute(route) {
   if (!validation.valid) throw new Error('路线未通过校验：' + validation.errors.join('；'));
   state.route = clone(route); state.route.profileSnapshot = profileValue(profile); write(state); return clone(state.route);
 }
+// 票夹（第 3 轮，2026-10-07）：行程页改为车票制。
+// 票 = { id, destId, destName, destLat, destLng, dateTime, transport, status, stampedAt, note }
+// status: 'planned'（待用）| 'visited'（已盖章进存根）。距出发天数在页面实时算，不存字段。
+// 与旧行程 getRoute/saveRoute 完全并存、互不影响。
+function normalizeTickets(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter(function (t) { return t && typeof t === 'object' && t.id && t.destId; }).map(function (t) {
+    return {
+      id: String(t.id),
+      destId: String(t.destId),
+      destName: String(t.destName || ''),
+      destLat: Number.isFinite(Number(t.destLat)) ? Number(t.destLat) : null,
+      destLng: Number.isFinite(Number(t.destLng)) ? Number(t.destLng) : null,
+      dateTime: String(t.dateTime || ''),
+      transport: String(t.transport || ''),
+      status: t.status === 'visited' ? 'visited' : 'planned',
+      stampedAt: t.stampedAt ? String(t.stampedAt) : '',
+      note: String(t.note || '')
+    };
+  });
+}
+function getTickets(partition) {
+  return normalizeTickets(read(partition).tickets);
+}
+function saveTickets(list, partition) {
+  const target = partition || capturePartition();
+  const state = read(target);
+  const tickets = normalizeTickets(list);
+  state.tickets = tickets;
+  write(state, target);
+  return clone(tickets);
+}
+
 function getFavorites() { const value = read().favorites; return Array.isArray(value) ? Array.from(new Set(value.filter(id => { const place = placeById(id); return place && place.demo !== true; }))) : []; }
 function getKnowledgeFavorites(partition) {
   const value = read(partition).knowledgeFavorites;
@@ -426,4 +459,4 @@ function getDemoSummary() {
   return Object.assign({ active: true, favoritesCount: getFavorites().length, routeStops: (getRoute() || { stops: [] }).stops.length, completedLessons: events.filter(event => ['workshop_complete', 'heritage_lesson_complete'].includes(event.type) && event.details.ok).length, recent: events.slice(-6).reverse().map(event => ({ type: event.type, title: titles[event.type] || '体验记录', simulated: true, label: '模拟行为' })) }, DEMO_INFO);
 }
 
-module.exports = { capturePartition, readPartitionField, writePartitionField, getIdentity, saveIdentity, getCompanion, saveCompanion, getCloudConnection, getAvatar, saveAvatar, clearAvatar, getFontScale, saveFontScale, getFruitUnlocks, unlockFruit, getQuizProgress, saveQuizProgress, getProfile, saveProfile, getRoute, saveRoute, getFavorites, toggleFavorite, getKnowledgeFavorites, toggleKnowledgeFavorite, getIntents, addIntent, cancelIntent, getSettings, saveSettings, getSessionToken, saveSession, clearSession, clearAll, logEvent, getEvents, isDemoMode, enterDemo, exitDemo, resetDemo, getDemoSummary };
+module.exports = { capturePartition, readPartitionField, writePartitionField, getIdentity, saveIdentity, getCompanion, saveCompanion, getCloudConnection, getAvatar, saveAvatar, clearAvatar, getFontScale, saveFontScale, getFruitUnlocks, unlockFruit, getQuizProgress, saveQuizProgress, getProfile, saveProfile, getRoute, saveRoute, getTickets, saveTickets, getFavorites, toggleFavorite, getKnowledgeFavorites, toggleKnowledgeFavorite, getIntents, addIntent, cancelIntent, getSettings, saveSettings, getSessionToken, saveSession, clearSession, clearAll, logEvent, getEvents, isDemoMode, enterDemo, exitDemo, resetDemo, getDemoSummary };

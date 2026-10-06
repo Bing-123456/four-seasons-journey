@@ -1,56 +1,124 @@
 <view class="route-screen {{fontClass}}">
   <demo-notice id="demo-mode-notice"/>
-  <view class="rt-header">
-    <view class="rt-title">{{routeTitle}}</view>
-    <me-entry/>
-  </view>
+  <view class="route-head"><view class="route-title serif">{{L.rt_title}}</view></view>
 
-  <scroll-view class="rt-terms" scroll-x>
-    <view wx:for="{{terms}}" wx:key="*this"
-      class="rt-term {{item === currentTerm ? 'active' : ''}}"
-      data-term="{{item}}" bindtap="selectTerm">{{item}}</view>
+  <scroll-view scroll-y class="route-scroll">
+    <!-- ① 下一张票 -->
+    <view class="seg-label">{{L.rt_next_ticket}}</view>
+    <view wx:if="{{next}}" class="ticket ticket-next" id="ticket-{{next.id}}">
+      <view class="ticket-head" data-id="{{next.id}}" bindtap="toggleTicket">
+        <view class="ticket-dest">{{next.destName}}</view>
+        <view class="ticket-caret {{expandedId === next.id ? 'is-open' : ''}}">⌄</view>
+      </view>
+      <view class="ticket-meta">
+        <view class="ticket-row">{{next.countdown}}</view>
+        <view class="ticket-row">{{next.dateTime}}</view>
+        <view class="ticket-row">{{next.transportText}}</view>
+      </view>
+      <view wx:if="{{expandedId === next.id}}" class="ticket-more">
+        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_find_who}}</view><input class="ticket-input" placeholder="{{L.rt_find_who}}" value="{{next.note}}" data-field="note" bindinput="updateNote"/></view>
+        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_where_is}}</view><view class="ticket-field-text">{{next.destName}}</view></view>
+        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_my_note}}</view><input class="ticket-input" placeholder="{{L.rt_my_note}}" value="{{next.note}}" data-field="note" bindinput="updateNote"/></view>
+      </view>
+      <view class="ticket-actions">
+        <button class="ticket-btn ticket-btn-primary" data-id="{{next.id}}" bindtap="navigateTicket">{{L.rt_navigate}}</button>
+        <button class="ticket-btn" data-id="{{next.id}}" bindtap="stampTicket">{{L.rt_stamp}}</button>
+      </view>
+    </view>
+    <view wx:else class="ticket-empty">{{L.rt_no_ticket}}</view>
+
+    <!-- ② 待用的票 -->
+    <view class="seg-label">{{L.rt_pending_tickets}}</view>
+    <view wx:if="{{pending.length}}">
+      <view wx:for="{{pending}}" wx:key="id" class="ticket ticket-row-card" id="ticket-{{item.id}}">
+        <view class="ticket-head" data-id="{{item.id}}" bindtap="toggleTicket">
+          <view class="ticket-dest ticket-dest-sm">{{item.destName}}</view>
+          <view class="ticket-caret {{expandedId === item.id ? 'is-open' : ''}}">⌄</view>
+        </view>
+        <view class="ticket-meta">
+          <view class="ticket-row">{{item.countdown}}</view>
+          <view class="ticket-row">{{item.dateTime}}</view>
+          <view class="ticket-row">{{item.transportText}}</view>
+        </view>
+        <view wx:if="{{expandedId === item.id}}" class="ticket-more">
+          <view class="ticket-field"><view class="ticket-field-label">{{L.rt_where_is}}</view><view class="ticket-field-text">{{item.destName}}</view></view>
+          <view class="ticket-field"><view class="ticket-field-label">{{L.rt_my_note}}</view><input class="ticket-input" placeholder="{{L.rt_my_note}}" value="{{item.note}}" data-field="note" bindinput="updateNote"/></view>
+        </view>
+        <view class="ticket-actions">
+          <button class="ticket-btn ticket-btn-primary" data-id="{{item.id}}" bindtap="navigateTicket">{{L.rt_navigate}}</button>
+          <button class="ticket-btn" data-id="{{item.id}}" bindtap="stampTicket">{{L.rt_stamp}}</button>
+          <button class="ticket-btn ticket-btn-quiet" data-id="{{item.id}}" bindtap="removeTicket">✕</button>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="ticket-empty">{{L.rt_no_pending}}</view>
+
+    <!-- ③ ＋ 排一张票 -->
+    <view class="add-ticket" bindtap="openDrawer" role="button">
+      <view class="add-sign">＋</view>
+      <view class="add-text">{{L.rt_add_ticket}}</view>
+    </view>
+
+    <!-- ④ 存根 -->
+    <view class="seg-label">{{L.rt_stubs}}</view>
+    <view wx:if="{{stubs.length}}">
+      <view wx:for="{{stubs}}" wx:key="id" class="ticket ticket-stub" id="stub-{{item.id}}">
+        <view class="stub-head">
+          <view class="ticket-dest ticket-dest-sm">{{item.destName}}</view>
+          <view class="stamp">{{item.stampedAt}}</view>
+        </view>
+        <view class="ticket-meta">
+          <view class="ticket-row">{{item.dateTime}}</view>
+          <view class="ticket-row">{{item.transportText}}</view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="ticket-empty">{{L.rt_no_stub}}</view>
+
+    <view wx:if="{{error}}" class="route-error">{{error}}</view>
   </scroll-view>
 
-  <view class="rt-map-wrap">
-    <map class="rt-map" latitude="{{mapCenter.latitude}}" longitude="{{mapCenter.longitude}}" scale="{{mapScale}}"
-      markers="{{markers}}" bindmarkertap="onMarkerTap" show-location="{{false}}"></map>
-    <view class="rt-map-cap">{{currentTerm}} · 全国果乡（{{fruitTowns.length}} 个）</view>
-  </view>
-
-  <view wx:if="{{error}}" class="rt-error">{{error}}</view>
-
-  <view class="rt-list">
-    <view wx:for="{{fruitTowns}}" wx:key="id"
-      class="rt-card {{item.id === highlightId ? 'highlight' : ''}}"
-      data-id="{{item.id}}" bindtap="openTown">
-      <view class="rt-card-head">
-        <view class="rt-card-name">{{item.name}}</view>
-        <view class="rt-fav {{favorited[item.id] ? 'on' : ''}}" data-id="{{item.id}}" catchtap="toggleFavorite">{{favorited[item.id] ? '♥ 已收藏' : '♡ 收藏'}}</view>
+  <!-- 排票抽屉：不跳页，背后仍是票夹原样；只问去哪 / 什么时候去 / 怎么去 -->
+  <view wx:if="{{drawerOpen}}" class="plan-mask" catchtouchmove="noop" bindtap="closeDrawer">
+    <view class="plan-sheet" catchtap="noop">
+      <view class="plan-head">
+        <view class="plan-title serif">{{L.rt_add_ticket}}</view>
+        <view class="plan-close" bindtap="closeDrawer">✕</view>
       </view>
-      <view class="rt-card-tag">【{{item.term}} · {{item.fruit}}】</view>
-      <view class="rt-card-foot">
-        <view class="rt-card-exps">
-          <text wx:for="{{item.experiences}}" wx:for-item="exp" wx:key="*this" class="rt-exp">{{exp}}</text>
+      <scroll-view scroll-y class="plan-scroll">
+        <view class="plan-note">{{L.rt_pool_note}}</view>
+
+        <view class="plan-label">{{L.rt_drawer_where}}</view>
+        <view wx:if="{{pool.length}}">
+          <view wx:for="{{pool}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
+            <view class="pool-main">
+              <view class="pool-name">{{item.name}}</view>
+              <view wx:if="{{item.termLabel}}" class="pool-term">{{item.termLabel}}</view>
+            </view>
+            <view class="pool-check">{{draft.destId === item.id ? '✓' : ''}}</view>
+          </view>
         </view>
-        <view class="rt-dist">{{item.distanceText}}</view>
-      </view>
-    </view>
-    <view wx:if="{{!loading && fruitTowns.length === 0}}" class="rt-empty">{{L.rt_empty}}</view>
-  </view>
+        <view wx:else class="pool-empty">{{L.rt_pool_empty}}</view>
+        <view class="pool-all" bindtap="viewAllTowns" role="button">{{L.rt_pool_all}} ›</view>
 
-  <view wx:if="{{selectedTown}}" class="rt-popup-mask" bindtap="closePopup"></view>
-  <view wx:if="{{selectedTown}}" class="rt-popup">
-    <view class="rt-popup-head">
-      <view class="rt-card-name">{{selectedTown.name}}</view>
-      <view class="rt-popup-close" bindtap="closePopup" aria-label="关闭">×</view>
-    </view>
-    <view class="rt-card-tag">【{{selectedTown.term}} · {{selectedTown.fruit}}】</view>
-    <view class="rt-card-foot">
-      <view class="rt-card-exps">
-        <text wx:for="{{selectedTown.experiences}}" wx:for-item="exp" wx:key="*this" class="rt-exp">{{exp}}</text>
+        <view class="plan-label">{{L.rt_drawer_when}}</view>
+        <view class="plan-when">
+          <picker mode="date" value="{{draft.date}}" bindchange="onDateChange"><view class="plan-input">{{draft.date || L.rt_calendar}}</view></picker>
+          <picker mode="time" value="{{draft.time}}" bindchange="onTimeChange"><view class="plan-input">{{draft.time || L.rt_clock}}</view></picker>
+        </view>
+
+        <view class="plan-label">{{L.rt_drawer_how}}</view>
+        <view class="plan-transports">
+          <view class="transport {{draft.transport === 'self' ? 'is-on' : ''}}" data-value="self" bindtap="pickTransport">{{L.rt_transport_self}}</view>
+          <view class="transport {{draft.transport === 'share' ? 'is-on' : ''}}" data-value="share" bindtap="pickTransport">{{L.rt_transport_share}}</view>
+          <view class="transport {{draft.transport === 'public' ? 'is-on' : ''}}" data-value="public" bindtap="pickTransport">{{L.rt_transport_public}}</view>
+        </view>
+      </scroll-view>
+
+      <view class="plan-actions">
+        <button class="ticket-btn" bindtap="closeDrawer">{{L.rt_cancel}}</button>
+        <button class="ticket-btn ticket-btn-primary" bindtap="confirmTicket">{{L.rt_confirm}}</button>
       </view>
-      <view class="rt-dist">{{selectedTown.distanceText}}</view>
     </view>
-    <view class="rt-popup-open" data-id="{{selectedTown.id}}" bindtap="openTown">{{L.rt_view_detail}} →</view>
   </view>
 </view>

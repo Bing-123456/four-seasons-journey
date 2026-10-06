@@ -1,186 +1,75 @@
-.route-screen {
-  min-height: 100vh;
-  background: #F5F5F7;
-  padding-bottom: 40rpx;
-}
-.rt-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 28rpx 12rpx;
-}
-.rt-title {
-  font-size: calc(48rpx * var(--fs-scale, 1));
-  font-weight: 700;
-  color: #1D1D1F;
-}
-.rt-journal-btn {
-  font-size: calc(26rpx * var(--fs-scale, 1));
-  color: #3C9D6E;
-  padding: 8rpx 18rpx;
-  border: 1rpx solid #3C9D6E;
-  border-radius: 999rpx;
-}
-.rt-terms {
-  white-space: nowrap;
-  padding: 8rpx 16rpx 16rpx;
-}
-.rt-term {
-  display: inline-block;
-  font-size: calc(26rpx * var(--fs-scale, 1));
-  color: #5b6b5f;
-  padding: 10rpx 22rpx;
-  margin: 0 8rpx;
-  border-radius: 999rpx;
-  background: #FFFFFF;
-}
-.rt-term.active {
-  background: #3C9D6E;
-  color: #FFFFFF;
-}
-.rt-map-wrap {
-  margin: 8rpx 24rpx 0;
-  border-radius: 20rpx;
-  overflow: hidden;
-  background: #FFFFFF;
-  box-shadow: 0 6rpx 18rpx rgba(35, 75, 60, 0.06);
-}
-.rt-map {
-  width: 100%;
-  height: 480rpx;
-}
-.rt-map-cap {
-  font-size: calc(24rpx * var(--fs-scale, 1));
-  color: #798479;
-  padding: 12rpx 20rpx;
-  border-top: 1rpx solid #EEF1EE;
-}
-.rt-error {
-  margin: 16rpx 24rpx 0;
-  font-size: calc(24rpx * var(--fs-scale, 1));
-  color: #b06a3a;
-  background: #fdf3e7;
-  padding: 14rpx 18rpx;
-  border-radius: 12rpx;
-}
-.rt-list {
-  padding: 20rpx 24rpx 0;
-}
-.rt-card {
-  background: #FFFFFF;
-  border-radius: 18rpx;
-  padding: 22rpx 24rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 6rpx 18rpx rgba(35, 75, 60, 0.05);
-}
-.rt-card.highlight {
-  outline: 2rpx solid #3C9D6E;
-}
-.rt-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.rt-card-name {
-  font-size: calc(32rpx * var(--fs-scale, 1));
-  font-weight: 600;
-  color: #234B3C;
-}
-.rt-fav {
-  font-size: calc(24rpx * var(--fs-scale, 1));
-  color: #b03a4a;
-  padding: 6rpx 14rpx;
-  border: 1rpx solid #e7c4c4;
-  border-radius: 999rpx;
-}
-.rt-fav.on {
-  background: #b03a4a;
-  color: #FFFFFF;
-  border-color: #b03a4a;
-}
-.rt-card-tag {
-  font-size: calc(24rpx * var(--fs-scale, 1));
-  color: #3C9D6E;
-  margin-top: 8rpx;
-}
-.rt-card-desc {
-  font-size: calc(26rpx * var(--fs-scale, 1));
-  color: #4a554c;
-  margin-top: 10rpx;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.rt-card-exps {
-  margin-top: 12rpx;
-}
-.rt-exp {
-  display: inline-block;
-  font-size: calc(22rpx * var(--fs-scale, 1));
-  color: #5b6b5f;
-  background: #eef3ee;
-  border-radius: 999rpx;
-  padding: 4rpx 16rpx;
-  margin: 0 10rpx 0 0;
-}
-.rt-empty {
-  text-align: center;
-  color: #9aa39e;
-  font-size: calc(26rpx * var(--fs-scale, 1));
-  padding: 60rpx 0;
-}
-.rt-card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12rpx;
-}
-.rt-card-foot .rt-card-exps {
-  margin-top: 0;
-}
-.rt-dist {
-  font-size: calc(22rpx * var(--fs-scale, 1));
-  color: #9aa39e;
-  flex-shrink: 0;
-  margin-left: 16rpx;
-}
-.rt-popup-mask {
-  position: fixed;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.32);
-  z-index: 90;
-}
-.rt-popup {
-  position: fixed;
-  left: 24rpx;
-  right: 24rpx;
-  bottom: calc(120rpx + env(safe-area-inset-bottom));
-  background: #FFFFFF;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 10rpx 40rpx rgba(35, 75, 60, 0.16);
-  z-index: 100;
-}
-.rt-popup-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.rt-popup-close {
-  font-size: calc(40rpx * var(--fs-scale, 1));
-  color: #9aa39e;
-  line-height: 1;
-  padding: 0 8rpx;
-}
-.rt-popup-open {
-  margin-top: 16rpx;
-  text-align: center;
-  color: #3C9D6E;
-  font-size: calc(26rpx * var(--fs-scale, 1));
-  font-weight: 600;
-}
+/* 行程页 · 票夹（第 3 轮，依据 mockups/final-design-3pages.html 第⑤⑥⑦屏与「视觉规格」）
+   数值只用设计图写过的：主色 #234B3C / 暖纸 #FFFDF8 / 页底 #F5F5F7 / 米金 #F3E3C8·#8A6A2E /
+   正文 #1D1D1F / 次要 #6F7C70 / 红章 #B03A4A；票目的地 21px、票信息行 11.5px；
+   票与卡片圆角 14px、行卡 12px、按钮 9–11px、抽屉顶部 18px。文字沿用 --fs-scale。 */
+page{background:#F5F5F7}
+.route-screen{min-height:100vh;padding:0 34rpx calc(132rpx + env(safe-area-inset-bottom));box-sizing:border-box;display:flex;flex-direction:column}
+.route-head{flex-shrink:0;padding:24rpx 0 12rpx}
+.route-title{font-size:calc(48rpx * var(--fs-scale, 1));font-weight:750;letter-spacing:-1.5rpx;color:#1D1D1F;line-height:1.25}
+.route-scroll{flex:1;min-height:0;padding-bottom:20rpx}
+.route-error{font-size:calc(24rpx * var(--fs-scale, 1));color:#B03A4A;line-height:1.6;margin-top:20rpx}
+
+/* 四个板块的小标题 */
+.seg-label{font-size:calc(22rpx * var(--fs-scale, 1));color:#87917B;letter-spacing:.5px;margin:26rpx 0 12rpx}
+
+/* 票：暖纸底 + 14px 圆角（票与卡片同一规格） */
+.ticket{background:#FFFDF8;border:1rpx solid rgba(0,0,0,.08);border-radius:28rpx;padding:26rpx 26rpx 22rpx;margin-bottom:18rpx;box-sizing:border-box}
+.ticket-next{border:1rpx solid #E4DCC8}
+.ticket-row-card{border-radius:24rpx}
+.ticket-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16rpx}
+/* 票目的地 21px；行卡内用同一规格的较小字号 */
+.ticket-dest{font-size:calc(42rpx * var(--fs-scale, 1));font-weight:700;color:#1D1D1F;line-height:1.3;overflow-wrap:anywhere}
+.ticket-dest-sm{font-size:calc(34rpx * var(--fs-scale, 1))}
+.ticket-caret{flex-shrink:0;font-size:calc(30rpx * var(--fs-scale, 1));line-height:1.3;color:#87917B;transform:rotate(0deg);transition:transform .2s ease-out}
+.ticket-caret.is-open{transform:rotate(180deg)}
+/* 票信息行 11.5px */
+.ticket-meta{margin-top:14rpx}
+.ticket-row{font-size:calc(23rpx * var(--fs-scale, 1));color:#6F7C70;line-height:1.6}
+/* 展开后长出的三行 */
+.ticket-more{margin-top:18rpx;padding-top:18rpx;border-top:1rpx dashed rgba(0,0,0,.12)}
+.ticket-field{margin-bottom:16rpx}
+.ticket-field-label{font-size:calc(21rpx * var(--fs-scale, 1));color:#8A6A2E;line-height:1.4;margin-bottom:8rpx}
+.ticket-field-text{font-size:calc(23rpx * var(--fs-scale, 1));color:#6F7C70;line-height:1.6}
+.ticket-input{width:100%;box-sizing:border-box;background:#F5F5F7;border-radius:12rpx;padding:16rpx 18rpx;font-size:calc(23rpx * var(--fs-scale, 1));color:#1D1D1F;line-height:1.5}
+/* 两个动作：按钮 9–11px 圆角 */
+.ticket-actions{display:flex;gap:12rpx;margin-top:20rpx}
+.ticket-btn{flex:1;margin:0;padding:0;border-radius:20rpx;background:#F5F5F7;color:#234B3C;font-size:calc(23rpx * var(--fs-scale, 1));line-height:80rpx;text-align:center;border:1rpx solid rgba(0,0,0,.08)}
+.ticket-btn::after{border:0}
+.ticket-btn-primary{background:#234B3C;color:#FFFDF8;border-color:#234B3C}
+.ticket-btn-quiet{flex:0 0 88rpx;color:#B03A4A}
+.ticket-empty{font-size:calc(23rpx * var(--fs-scale, 1));color:#87917B;line-height:1.6;padding:6rpx 0 4rpx}
+
+/* ＋ 排一张票 */
+.add-ticket{display:flex;align-items:center;justify-content:center;gap:12rpx;margin:20rpx 0 4rpx;padding:26rpx;border-radius:28rpx;background:#FFFDF8;border:1rpx dashed #E4DCC8}
+.add-sign{font-size:calc(34rpx * var(--fs-scale, 1));color:#234B3C;line-height:1}
+.add-text{font-size:calc(25rpx * var(--fs-scale, 1));color:#234B3C;line-height:1.4}
+
+/* 存根：票 + 红章 */
+.ticket-stub{position:relative;background:#FBFAF6}
+.stub-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16rpx}
+.stamp{flex-shrink:0;border:2rpx solid #B03A4A;color:#B03A4A;border-radius:8rpx;padding:6rpx 12rpx;font-size:calc(21rpx * var(--fs-scale, 1));line-height:1.3;transform:rotate(-8deg);opacity:.85}
+
+/* 排票抽屉：顶部 18px 圆角，背后是票夹原样 */
+.plan-mask{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.3);display:flex;align-items:flex-end}
+.plan-sheet{width:100%;box-sizing:border-box;background:#FFFDF8;border-radius:36rpx 36rpx 0 0;padding:32rpx 34rpx calc(20rpx + env(safe-area-inset-bottom));display:flex;flex-direction:column;max-height:82vh}
+.plan-head{display:flex;align-items:center;justify-content:space-between;gap:16rpx;flex-shrink:0}
+.plan-title{font-size:calc(34rpx * var(--fs-scale, 1));font-weight:700;color:#1D1D1F;line-height:1.4}
+.plan-close{width:56rpx;height:56rpx;line-height:52rpx;text-align:center;border-radius:50%;background:#F5F5F7;color:#6F7C70;font-size:calc(28rpx * var(--fs-scale, 1));flex-shrink:0}
+.plan-scroll{flex:1;min-height:0;margin-top:12rpx}
+.plan-note{font-size:calc(21rpx * var(--fs-scale, 1));color:#87917B;line-height:1.6;margin-bottom:8rpx}
+.plan-label{display:block;font-size:calc(23rpx * var(--fs-scale, 1));color:#8A6A2E;line-height:1.5;margin:22rpx 0 12rpx}
+/* 候选池：行卡 12px 圆角 */
+.pool-row{display:flex;align-items:center;justify-content:space-between;gap:14rpx;background:#F5F5F7;border:1rpx solid rgba(0,0,0,.06);border-radius:24rpx;padding:18rpx 20rpx;margin-bottom:12rpx}
+.pool-row.is-on{background:#EAF0E0;border-color:#8FAE7A}
+.pool-main{flex:1;min-width:0}
+.pool-name{font-size:calc(25rpx * var(--fs-scale, 1));color:#1D1D1F;line-height:1.45;overflow-wrap:anywhere}
+.pool-term{font-size:calc(20rpx * var(--fs-scale, 1));color:#8A6A2E;line-height:1.4;margin-top:4rpx}
+.pool-check{flex-shrink:0;font-size:calc(26rpx * var(--fs-scale, 1));color:#234B3C;line-height:1}
+.pool-empty{font-size:calc(23rpx * var(--fs-scale, 1));color:#87917B;line-height:1.6;padding:14rpx 0}
+.pool-all{font-size:calc(23rpx * var(--fs-scale, 1));color:#234B3C;line-height:1.5;padding:8rpx 0 4rpx}
+.plan-when{display:flex;gap:12rpx}
+.plan-input{flex:1;background:#F5F5F7;border-radius:24rpx;padding:20rpx;font-size:calc(25rpx * var(--fs-scale, 1));color:#1D1D1F;line-height:1.4;text-align:center}
+.plan-transports{display:flex;gap:12rpx}
+.transport{flex:1;text-align:center;padding:18rpx 0;border-radius:20rpx;background:#F5F5F7;border:1rpx solid rgba(0,0,0,.06);font-size:calc(23rpx * var(--fs-scale, 1));color:#6F7C70;line-height:1.4}
+.transport.is-on{background:#234B3C;color:#FFFDF8;border-color:#234B3C}
+.plan-actions{display:flex;gap:12rpx;margin-top:26rpx;flex-shrink:0}

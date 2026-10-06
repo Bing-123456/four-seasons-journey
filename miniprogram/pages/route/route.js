@@ -1,173 +1,204 @@
 'use strict';
-// 行程页重构（P13）：四时果乡漫游。
-// 节气横向滚动 + 原生地图 + 果乡卡片列表；点击卡片进果乡详情，收藏进「我的节气手账」。
-// 卡片字段：果园名称、【节气·水果】、距离你多少公里、标签【采摘/观光】。
-const solar = require('../../data/solar-term-notes');
+// 行程页 · 票夹（第 3 轮，2026-10-07，依据 mockups/final-design-3pages.html 第⑤⑥⑦屏）。
+//
+// 一屏内顺序固定：下一张票 → 待用的票 → ＋排一张票 → 存根。
+// 一张票 = 一个目的地 + 4 项信息（目的地 / 距出发 / 目标日期时间 / 交通工具），
+// 只有两个动作：导航出发（wx.openLocation）与「去过了 · 撕票盖章」。
+// 旧版行程页的五个旧动作已从界面彻底移除（出行前复习、班次时刻、门票确认、出发前包、同步到社群）。
 const store = require('../../lib/store');
 const farmtown = require('../../lib/farmtown-service');
 const i18n = require('../../lib/i18n');
 
-const TERMS = solar.TERMS.map(t => t.name);
+const LABEL_KEYS = [
+  'rt_title', 'rt_next_ticket', 'rt_pending_tickets', 'rt_add_ticket', 'rt_stubs',
+  'rt_navigate', 'rt_stamp', 'rt_no_ticket', 'rt_no_pending', 'rt_no_stub',
+  'rt_pool_note', 'rt_pool_all', 'rt_pool_empty', 'rt_drawer_where', 'rt_drawer_when',
+  'rt_drawer_how', 'rt_where_placeholder', 'rt_confirm', 'rt_cancel', 'rt_remove_ticket',
+  'rt_remove_confirm', 'rt_visit_hint', 'rt_find_who', 'rt_where_is', 'rt_my_note',
+  'rt_note_placeholder', 'rt_days_left', 'rt_depart_today', 'rt_expired',
+  'rt_transport_self', 'rt_transport_share', 'rt_transport_public', 'rt_calendar', 'rt_clock'
+];
+const TRANSPORT_KEYS = { self: 'rt_transport_self', share: 'rt_transport_share', public: 'rt_transport_public' };
 
 function fontClass() {
   if (typeof getApp === 'function' && getApp() && typeof getApp().getFontClass === 'function') return getApp().getFontClass();
   return 'fs-normal';
 }
-function favSet() {
-  const favs = store.getKnowledgeFavorites(store.capturePartition());
-  const set = {};
-  (this.data.fruitTowns || []).forEach(t => { set[t.id] = favs.indexOf(t.favId) !== -1; });
-  return set;
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
-// 两坐标点的大圆距离（公里），用于展示「距你多少公里」。
-function haversineKm(a, b) {
-  const R = 6371;
-  const rad = d => d * Math.PI / 180;
-  const dLat = rad(b.latitude - a.latitude);
-  const dLng = rad(b.longitude - a.longitude);
-  const s = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-    + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  return 2 * R * Math.asin(Math.sqrt(s));
+// 距出发天数：目标日期时间 − 今天，实时算，不存字段。跨天显示「距出发 N 天」，当天显示「今天出发」。
+function countdownLabel(dateTime) {
+  const target = String(dateTime || '').replace(/\//g, '-');
+  const m = target.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if (!m) return '';
+  const targetDay = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if (Number.isNaN(targetDay)) return '';
+  const days = Math.round((targetDay - today) / 86400000);
+  if (days < 0) return i18n.t('rt_expired');
+  if (days === 0) return i18n.t('rt_depart_today');
+  // i18n 不支持插值：「距出发 N 天」在页内拼（i18n 只放纯文案）。
+  return i18n.getLang() === 'en' ? 'In ' + days + ' ' + i18n.t('rt_days_left') : '距出发 ' + days + ' ' + i18n.t('rt_days_left');
 }
-function distanceLabel(km) {
-  if (km == null || !Number.isFinite(km)) return '距离未知';
-  if (km < 1) return '距你 <1 公里';
-  if (km < 100) return '距你 ' + km.toFixed(1) + ' 公里';
-  return '距你 ' + Math.round(km) + ' 公里';
-}
+function transportLabel(value) { return i18n.t(TRANSPORT_KEYS[value] || 'rt_transport_self'); }
 
 Page({
   data: {
     fontClass: 'fs-normal',
-    terms: TERMS,
-    currentTerm: '',
-    fruitTowns: [],
-    markers: [],
-    mapCenter: { latitude: 34, longitude: 108 },
-    mapScale: 4,
-    highlightId: '',
-    selectedTown: null,
-    routeTitle: '',
     loading: false,
-    error: ''
+    error: '',
+    next: null,
+    pending: [],
+    stubs: [],
+    pool: [],
+    drawerOpen: false,
+    draft: { destId: '', date: '', time: '', transport: 'self' },
+    expandedId: ''
   },
-  onLoad: function () {
-    const term = solar.currentTerm(new Date()).name;
-    this.setData({ currentTerm: term });
-    this.applyNav();
-    this.loadTowns(term);
-  },
+  onLoad: function () { this.applyNav(); this.load(); },
   onShow: function () {
     this.setData({ fontClass: fontClass() });
     this.applyNav();
     const bar = this.getTabBar && this.getTabBar();
     if (bar) { bar.setData({ selected: 3 }); if (bar.applyLang) bar.applyLang(); }
-    if (this.data.currentTerm) this.loadTowns(this.data.currentTerm);
+    // 果农名片或票据变化后回到本页时同步刷新（今日快讯页「排一张票」会切到这里）。
+    this.load();
   },
-  // 导航栏统一显示 App 名，页面内大标题显示「行程」，中英切换时同步更新。
   applyNav: function () {
-    this.setData({ routeTitle: i18n.t('tab_route'), L: i18n.labels(['rt_journal', 'rt_empty', 'rt_view_detail', 'loading']) });
+    const L = i18n.labels(LABEL_KEYS);
+    this.setData({ L: L });
     if (typeof wx !== 'undefined' && wx.setNavigationBarTitle) wx.setNavigationBarTitle({ title: i18n.t('app_name') });
   },
-  // 读取一次手机位置并缓存，用于计算「距你多少公里」；失败/拒绝缓存为 null，不再重复弹授权。
-  getUserLocation: function () {
-    const self = this;
-    if (self._userLocation) return Promise.resolve(self._userLocation);
-    if (self._userLocation === false) return Promise.resolve(null);
-    return new Promise(function (resolve) {
-      if (typeof wx === 'undefined' || !wx.getLocation) { self._userLocation = false; resolve(null); return; }
-      // 首次定位前先说明用途，用户确认后才真正请求；取消/失败统一按「距离未知」兜底。
-      wx.showModal({
-        title: i18n.t('loc_perm_title'),
-        content: i18n.t('loc_perm_desc'),
-        confirmText: i18n.t('loc_perm_allow'),
-        cancelText: i18n.t('loc_perm_later'),
-        success: function (modal) {
-          if (!modal.confirm) { self._userLocation = false; resolve(null); return; }
-          wx.getLocation({
-            type: 'gcj02',
-            success: function (res) {
-              if (Number.isFinite(res.latitude) && Number.isFinite(res.longitude)) {
-                self._userLocation = { latitude: res.latitude, longitude: res.longitude };
-              } else {
-                self._userLocation = false;
-              }
-              resolve(self._userLocation === false ? null : self._userLocation);
-            },
-            fail: function () { self._userLocation = false; resolve(null); }
-          });
-        },
-        fail: function () { self._userLocation = false; resolve(null); }
-      });
-    });
-  },
-  loadTowns: function (term, done) {
+  load: function () {
     const self = this;
     this.setData({ loading: true, error: '' });
-    Promise.all([farmtown.listTowns(term), self.getUserLocation()]).then(function (results) {
-      const towns = results[0];
-      const userLoc = results[1];
-      const favs = store.getKnowledgeFavorites(store.capturePartition());
-      const favorited = {};
-      const annotated = towns.map(function (t) {
-        favorited[t.id] = favs.indexOf(t.favId) !== -1;
-        const dist = userLoc && farmtown.validTownLocation(t.location) ? haversineKm(userLoc, t.location) : null;
-        return Object.assign({}, t, { distanceText: distanceLabel(dist) });
-      });
-      // 只给有有效坐标的果乡打点；后端缺失坐标时默认写死 (0,0)，validTownLocation 已一并排除。
-      const mappable = annotated.filter(function (t) { return farmtown.validTownLocation(t.location); });
-      const markers = mappable.map(function (t, i) {
-        return {
-          id: i + 1, townId: t.id,
-          latitude: t.location.latitude, longitude: t.location.longitude,
-          width: 20, height: 20
-        };
-      });
-      const patch = { fruitTowns: annotated, favorited: favorited, markers: markers, loading: false };
-      // 地图居中：取有效坐标质心，避免一直停在写死的 (34,108) 看不到点位。
-      if (mappable.length) {
-        const sumLat = mappable.reduce(function (s, t) { return s + t.location.latitude; }, 0);
-        const sumLng = mappable.reduce(function (s, t) { return s + t.location.longitude; }, 0);
-        patch.mapCenter = { latitude: sumLat / mappable.length, longitude: sumLng / mappable.length };
-      }
-      self.setData(patch);
-      if (done) done();
+    return Promise.all([farmtown.listTowns(), Promise.resolve(store.getTickets())]).then(function (results) {
+      const towns = results[0] || [];
+      const tickets = results[1] || [];
+      self.setData(decorate(tickets, towns));
+      self.setData({ loading: false });
     }).catch(function () {
-      self.setData({ loading: false, error: '果乡数据加载失败，请在「我的」检查云端连接' });
-      if (done) done();
+      self.setData({ loading: false, error: i18n.t('rt_load_failed') });
     });
   },
-  selectTerm: function (e) {
-    const term = e.currentTarget.dataset.term;
-    if (term === this.data.currentTerm) return;
-    this.setData({ currentTerm: term, highlightId: '', selectedTown: null });
-    this.loadTowns(term);
-  },
-  onMarkerTap: function (e) {
-    const id = e.detail.markerId;
-    const marker = this.data.markers.find(function (m) { return m.id === id; });
-    if (!marker) return;
-    const town = this.data.fruitTowns.find(function (t) { return t.id === marker.townId; });
-    this.setData({ highlightId: marker.townId, selectedTown: town || null });
-  },
-  closePopup: function () { this.setData({ selectedTown: null }); },
-  openTown: function (e) {
+  // 点一张票 = 在原页展开（下面板块被推下去），不跳新页。
+  toggleTicket: function (e) {
     const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/packageFruit/pages/fruit-town/fruit-town?id=' + id });
+    this.setData({ expandedId: this.data.expandedId === id ? '' : id });
   },
-  toggleFavorite: function (e) {
+  // 两个动作之一：导航出发。
+  navigateTicket: function (e) {
+    const t = this.findTicket(e.currentTarget.dataset.id);
+    if (!t) return;
+    if (!farmtown.validTownLocation({ latitude: t.destLat, longitude: t.destLng })) {
+      wx.showToast({ title: i18n.t('rt_no_location'), icon: 'none' });
+      return;
+    }
+    wx.openLocation({ latitude: t.destLat, longitude: t.destLng, name: t.destName, address: t.destName, fail: function () {} });
+  },
+  // 两个动作之二：去过了 · 撕票盖章 → 移入存根并盖日期章。
+  stampTicket: function (e) {
+    const self = this;
     const id = e.currentTarget.dataset.id;
-    const town = this.data.fruitTowns.find(function (t) { return t.id === id; });
+    const tickets = this.data.allTickets.slice();
+    const hit = tickets.filter(function (t) { return t.id === id; })[0];
+    if (!hit) return;
+    wx.showModal({
+      title: i18n.t('rt_stamp_confirm_title'),
+      content: i18n.t('rt_stamp_confirm_body'),
+      confirmText: i18n.t('rt_stamp'),
+      cancelText: i18n.t('rt_cancel'),
+      success: function (r) {
+        if (!r.confirm) return;
+        hit.status = 'visited';
+        hit.stampedAt = todayKey();
+        self.persist(tickets);
+      }
+    });
+  },
+  updateNote: function (e) {
+    const field = e.currentTarget.dataset.field;
+    this.setData({ ['draft.' + field]: e.detail.value });
+    const tickets = this.data.allTickets.slice();
+    const hit = tickets.filter(t => t.id === this.data.expandedId)[0];
+    if (hit) { hit.note = e.detail.value; store.saveTickets(tickets); }
+  },
+  // ＋排一张票：底部抽屉（不跳页），抽屉背后仍是票夹原样。
+  openDrawer: function () { this.setData({ drawerOpen: true }); },
+  closeDrawer: function () { this.setData({ drawerOpen: false }); },
+  noop: function () {},
+  pickDest: function (e) { this.setData({ 'draft.destId': e.currentTarget.dataset.id }); },
+  pickTransport: function (e) { this.setData({ 'draft.transport': e.currentTarget.dataset.value }); },
+  onDateChange: function (e) { this.setData({ 'draft.date': e.detail.value }); },
+  onTimeChange: function (e) { this.setData({ 'draft.time': e.detail.value }); },
+  viewAllTowns: function () { this.setData({ drawerOpen: false }); wx.switchTab({ url: '/pages/index/index' }); },
+  confirmTicket: function () {
+    const self = this;
+    const d = this.data.draft;
+    if (!d.destId) { wx.showToast({ title: i18n.t('rt_pick_where'), icon: 'none' }); return; }
+    if (!d.date) { wx.showToast({ title: i18n.t('rt_pick_when'), icon: 'none' }); return; }
+    const town = this.data.allTowns.filter(function (t) { return t.id === d.destId; })[0];
     if (!town) return;
-    try {
-      const favs = store.getKnowledgeFavorites(store.capturePartition());
-      const isFav = favs.indexOf(town.favId) !== -1;
-      store.toggleKnowledgeFavorite(town.favId, store.capturePartition());
-      const favorited = Object.assign({}, this.data.favorited);
-      favorited[id] = !isFav;
-      this.setData({ favorited: favorited });
-      wx.showToast({ title: isFav ? '已取消收藏' : '已收藏到手账', icon: 'none' });
-    } catch (err) { wx.showToast({ title: '收藏失败', icon: 'none' }); }
+    const ticket = {
+      id: 't' + Date.now(),
+      destId: town.id,
+      destName: town.name,
+      destLat: farmtown.validTownLocation(town.location) ? town.location.latitude : null,
+      destLng: farmtown.validTownLocation(town.location) ? town.location.longitude : null,
+      dateTime: d.date + ' ' + (d.time || '09:00'),
+      transport: d.transport,
+      status: 'planned',
+      stampedAt: '',
+      note: ''
+    };
+    const tickets = this.data.allTickets.concat([ticket]);
+    this.setData({ drawerOpen: false, draft: { destId: '', date: '', time: '', transport: 'self' } });
+    this.persist(tickets);
+    void self;
   },
-  openJournal: function () { wx.navigateTo({ url: '/packageMore/season-journal/season-journal' }); }
+  // 删掉一张待用票 → 该园子自动回到候选池（persist 后由decorate 重算）。
+  removeTicket: function (e) {
+    const self = this;
+    const id = e.currentTarget.dataset.id;
+    wx.showModal({
+      title: i18n.t('rt_remove_confirm'),
+      content: i18n.t('rt_remove_confirm_body'),
+      confirmText: i18n.t('rt_remove_ticket'),
+      cancelText: i18n.t('rt_cancel'),
+      success: function (r) {
+        if (!r.confirm) return;
+        self.persist(self.data.allTickets.filter(function (t) { return t.id !== id; }));
+      }
+    });
+  },
+  persist: function (tickets) {
+    store.saveTickets(tickets);
+    this.setData(decorate(tickets, this.data.allTowns));
+  },
+  findTicket: function (id) { return this.data.allTickets.filter(function (t) { return t.id === id; })[0]; }
 });
+
+// 组装票夹视图数据：下一张票 / 待用 / 存根 / 候选池。
+// 候选池 = 全部果农名片 −（待用的票 + 存根里的园子），三个板块地点互不重复。
+function decorate(tickets, towns) {
+  const planned = tickets.filter(function (t) { return t.status !== 'visited'; });
+  const visited = tickets.filter(function (t) { return t.status === 'visited'; });
+  const used = {};
+  planned.concat(visited).forEach(function (t) { used[t.destId] = true; });
+  const pool = towns.filter(function (t) { return !used[t.id]; });
+  const pack = function (t) {
+    return Object.assign({}, t, { countdown: countdownLabel(t.dateTime), transportText: transportLabel(t.transport) });
+  };
+  const sortedPending = planned.slice().sort(function (a, b) { return String(a.dateTime).localeCompare(String(b.dateTime)); });
+  return {
+    allTickets: tickets,
+    allTowns: towns,
+    next: sortedPending.length ? pack(sortedPending[0]) : null,
+    pending: sortedPending.slice(1).map(pack),
+    stubs: visited.map(pack),
+    pool: pool.map(function (t) { return Object.assign({}, t, { termLabel: t.term && t.fruit ? t.term + ' · ' + t.fruit : (t.fruit || t.term || '') }); })
+  };
+}
