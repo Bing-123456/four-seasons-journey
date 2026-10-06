@@ -503,3 +503,21 @@ Object.keys(PROFILES).forEach(name => {
   }));
 });
 module.exports = WORLD;
+
+// 英文模式（2026-10-06）：按「果名 + cat」从 fruit-culture-en.js 覆盖 text / detail。
+// 下游 fruit-detail.js / fruit-note.js / search.js 照旧只读 category.text / .detail，无需改动；
+// 英文对照缺失的果或分类保留中文，不会出现空白。sourceNote / sources 属出处标注，
+// 按用户决定保留中文不译（出处多为中文政府/大学网站）。
+try {
+  if (require('../lib/i18n').getLang() === 'en') {
+    const EN_CULTURE = require('./fruit-culture-en');
+    Object.keys(WORLD).forEach(name => {
+      const dict = EN_CULTURE[name];
+      if (!dict) return;
+      WORLD[name] = WORLD[name].map(item => {
+        const t = dict[item.cat];
+        return t ? Object.assign({}, item, { text: t.text, detail: t.detail }) : item;
+      });
+    });
+  }
+} catch (e) { /* 英文对照缺失或 i18n 不可用时保持中文 */ }
