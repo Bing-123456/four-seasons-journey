@@ -40,9 +40,6 @@
           <view class="elf-name serif">{{L.guoling}}</view>
           <view class="bubble bubble-elf">
             <text user-select>{{item.text}}</text>
-            <view class="bubble-actions">
-              <text class="read-btn" data-id="{{item.id}}" bindtap="readAnswer" role="button" aria-label="{{reading && readingId === item.id ? '停止朗读' : '朗读这条回答'}}">{{reading && readingId === item.id ? '⏹ 停止朗读' : '🔊 朗读'}}</text>
-            </view>
             <view wx:if="{{item.evidence.length}}" class="msg-meta">
               <text class="meta-label">{{L.chat_evidence}}</text>
               <text wx:for="{{item.evidence}}" wx:for-item="ev" wx:key="*this" class="evidence-chip">{{ev}}</text>

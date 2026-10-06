@@ -1,48 +1,56 @@
 <view class="route-screen {{fontClass}}">
   <demo-notice id="demo-mode-notice"/>
-  <view class="route-body">
-    <view class="route-header">
-      <view class="route-title">{{L.rt_title}}</view>
-      <button id="edit-profile" class="route-adjust" bindtap="editProfile" aria-label="{{L.rt_adjust_aria}}">{{L.rt_adjust}}</button>
-    </view>
-    <view class="route-brief" wx:if="{{route && route.ok}}">
-      <text class="brief-date">{{dateLabel}}</text><text class="brief-time">{{route.startTime}}—{{route.endTime}}</text>
-    </view>
-    <view wx:else class="route-intro">{{route ? L.rt_no_solution_title : L.rt_empty_desc}}</view>
-    <view class="route-map-card">
-      <view class="map-stage">
-        <map wx:if="{{route && route.ok && routeMap.markers.length}}" id="route-map" class="route-map" aria-label="{{L.rt_trip_map}}"
-          latitude="{{routeMap.center.latitude}}" longitude="{{routeMap.center.longitude}}" scale="{{routeMap.scale}}"
-          markers="{{routeMap.markers}}" polyline="{{routeMap.polyline}}" include-points="{{routeMap.includePoints}}"
-          enable-poi="{{true}}" enable-building="{{true}}" enable-rotate="{{false}}" enable-scroll="{{true}}"
-          bindmarkertap="onMarkerTap" bindcallouttap="onMarkerTap"></map>
-        <map wx:elif="{{!route && routeMap.markers.length}}" id="preview-map" class="route-map" aria-label="{{L.rt_map_sites}}{{L.rt_map_preview}}"
-          latitude="{{routeMap.center.latitude}}" longitude="{{routeMap.center.longitude}}" scale="{{routeMap.scale}}"
-          markers="{{routeMap.markers}}" include-points="{{routeMap.includePoints}}"
-          enable-poi="{{true}}" enable-building="{{true}}" enable-rotate="{{false}}" enable-scroll="{{true}}"
-          bindmarkertap="onPreviewMarkerTap" bindcallouttap="onPreviewMarkerTap"></map>
-        <view wx:else class="map-empty"><text class="map-empty-mark">⌖</text><text>{{L.rt_no_solution_hint}}</text></view>
+  <view class="rt-header">
+    <view class="rt-title">{{routeTitle}}</view>
+    <me-entry/>
+  </view>
+
+  <scroll-view class="rt-terms" scroll-x>
+    <view wx:for="{{terms}}" wx:key="*this"
+      class="rt-term {{item === currentTerm ? 'active' : ''}}"
+      data-term="{{item}}" bindtap="selectTerm">{{item}}</view>
+  </scroll-view>
+
+  <view class="rt-map-wrap">
+    <map class="rt-map" latitude="{{mapCenter.latitude}}" longitude="{{mapCenter.longitude}}" scale="{{mapScale}}"
+      markers="{{markers}}" bindmarkertap="onMarkerTap" show-location="{{false}}"></map>
+    <view class="rt-map-cap">{{currentTerm}} · 全国果乡（{{fruitTowns.length}} 个）</view>
+  </view>
+
+  <view wx:if="{{error}}" class="rt-error">{{error}}</view>
+
+  <view class="rt-list">
+    <view wx:for="{{fruitTowns}}" wx:key="id"
+      class="rt-card {{item.id === highlightId ? 'highlight' : ''}}"
+      data-id="{{item.id}}" bindtap="openTown">
+      <view class="rt-card-head">
+        <view class="rt-card-name">{{item.name}}</view>
+        <view class="rt-fav {{favorited[item.id] ? 'on' : ''}}" data-id="{{item.id}}" catchtap="toggleFavorite">{{favorited[item.id] ? '♥ 已收藏' : '♡ 收藏'}}</view>
       </view>
-      <view class="map-caption">{{route && route.ok ? L.rt_map_cap_venue : L.rt_map_sites}}</view>
-    </view>
-    <block wx:if="{{route && route.ok && currentStop}}">
-      <view class="current-stop" id="stop-{{currentStop.placeId}}">
-        <view class="current-number">{{currentStop.number}}</view>
-        <view class="current-copy"><view class="current-name">{{currentStop.displayName}}</view><view class="current-meta">{{currentStop.arrival}} · {{L.rt_dwell}}{{currentStop.duration}}{{L.rt_min}}</view></view>
-        <button id="nav-{{currentStop.placeId}}" class="current-nav" data-id="{{currentStop.placeId}}" bindtap="navigateToStop" aria-label="{{L.rt_map_view}}{{currentStop.displayName}}">{{L.rt_navigate}} ↗</button>
+      <view class="rt-card-tag">【{{item.term}} · {{item.fruit}}】</view>
+      <view class="rt-card-foot">
+        <view class="rt-card-exps">
+          <text wx:for="{{item.experiences}}" wx:for-item="exp" wx:key="*this" class="rt-exp">{{exp}}</text>
+        </view>
+        <view class="rt-dist">{{item.distanceText}}</view>
       </view>
-      <button id="view-full-route" class="route-primary" bindtap="openFullRoute">{{en ? 'View full itinerary' : '查看完整行程'}}<text>→</text></button>
-      <view class="route-footnote">{{stops.length}}{{L.rt_stops_unit}} · {{durationLabel}} · {{L.rt_cost_tbd}}</view>
-    </block>
-    <view wx:elif="{{route && !route.ok}}" class="route-empty-actions">
-      <view class="route-empty-copy">{{route.reason || L.rt_no_solution_hint}}</view>
-      <button id="start-route" class="route-primary" bindtap="editProfile">{{L.rt_modify_conditions}}<text>→</text></button>
-      <button wx:if="{{excludedIds.length}}" id="reset-stops" class="route-secondary" bindtap="resetStops">{{L.rt_restore_stops}}</button>
     </view>
-    <view wx:else class="route-empty-actions">
-      <view class="empty-title">{{L.rt_empty_title}}</view>
-      <button id="start-route" class="route-primary" bindtap="editProfile">{{L.rt_start_planning}}</button>
+    <view wx:if="{{!loading && fruitTowns.length === 0}}" class="rt-empty">{{L.rt_empty}}</view>
+  </view>
+
+  <view wx:if="{{selectedTown}}" class="rt-popup-mask" bindtap="closePopup"></view>
+  <view wx:if="{{selectedTown}}" class="rt-popup">
+    <view class="rt-popup-head">
+      <view class="rt-card-name">{{selectedTown.name}}</view>
+      <view class="rt-popup-close" bindtap="closePopup" aria-label="关闭">×</view>
     </view>
-    <view wx:if="{{error}}" class="route-error">{{error}}</view>
+    <view class="rt-card-tag">【{{selectedTown.term}} · {{selectedTown.fruit}}】</view>
+    <view class="rt-card-foot">
+      <view class="rt-card-exps">
+        <text wx:for="{{selectedTown.experiences}}" wx:for-item="exp" wx:key="*this" class="rt-exp">{{exp}}</text>
+      </view>
+      <view class="rt-dist">{{selectedTown.distanceText}}</view>
+    </view>
+    <view class="rt-popup-open" data-id="{{selectedTown.id}}" bindtap="openTown">{{L.rt_view_detail}} →</view>
   </view>
 </view>

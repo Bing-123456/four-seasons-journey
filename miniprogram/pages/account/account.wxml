@@ -4,7 +4,6 @@
   <view class="account-avatar-block" bindtap="changeAvatar" role="button" aria-label="{{L.acc_avatar_aria}}">
     <image class="account-avatar-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
     <view class="account-avatar-edit">{{L.avatar_edit}}</view>
-    <view class="muted account-avatar-hint">{{L.avatar_set_hint}}</view>
   </view>
 
   <view class="account-field">
@@ -13,8 +12,30 @@
       <input class="account-input" value="{{nicknameInput}}" bindinput="nicknameChange" maxlength="24" placeholder="{{L.nickname_ph}}" aria-label="{{L.acc_nick_aria}}"/>
       <button class="account-save" size="mini" bindtap="saveNickname" loading="{{saving}}">{{L.save}}</button>
     </view>
-    <view class="muted account-hint">{{L.account_nickname_hint}}</view>
   </view>
+</view>
 
-  <button class="leave-link" bindtap="back">{{L.account_back}}</button>
+<!-- 头像裁剪（10.5 改版·微信式）：照片铺在舞台上不动，白框可拖、四角/边中点可拉伸 -->
+<view wx:if="{{cropping}}" class="crop-mask" catchtouchmove="noop">
+  <view class="crop-topbar">
+    <view class="crop-hint">{{L.crop_hint}}</view>
+  </view>
+  <view class="crop-stage" bindtouchstart="cropTouchStart" bindtouchmove="cropTouchMove" bindtouchend="cropTouchEnd">
+    <image class="crop-photo" src="{{cropImage}}" mode="scaleToFill"
+           style="left:{{disp.offsetX}}px;top:{{disp.offsetY}}px;width:{{disp.dispW}}px;height:{{disp.dispH}}px;"/>
+    <view class="crop-frame" style="left:{{frame.x}}px;top:{{frame.y}}px;width:{{frame.size}}px;height:{{frame.size}}px;">
+      <view class="crop-handle ch-nw"></view>
+      <view class="crop-handle ch-ne"></view>
+      <view class="crop-handle ch-sw"></view>
+      <view class="crop-handle ch-se"></view>
+      <view class="crop-dot dot-n"></view>
+      <view class="crop-dot dot-s"></view>
+      <view class="crop-dot dot-w"></view>
+      <view class="crop-dot dot-e"></view>
+    </view>
+  </view>
+  <view class="crop-actions">
+    <button class="crop-cancel" bindtap="cancelCrop">{{L.cancel}}</button>
+    <button class="crop-confirm" bindtap="confirmCrop">{{L.crop_confirm}}</button>
+  </view>
 </view>

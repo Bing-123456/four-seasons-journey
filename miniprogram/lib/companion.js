@@ -75,10 +75,15 @@ function applyAction(editor, action) {
     // 一步一步返回上一笔：只撤销最后一笔描画，填色与方向等其他操作保留。
     if (!next.strokes.length) return editor;
     next.strokes.pop();
-  } else if (action.type === 'clear-strokes') {
+  }   else if (action.type === 'clear-strokes') {
     // 撤销（清空画笔）：一次撤销全部描画笔迹。
     if (!next.strokes.length) return editor;
     next.strokes = [];
+  } else if (action.type === 'clear-fills') {
+    // 10.2 / P23④：填色模式下「清空画笔」把配色整体恢复为模板默认，填错了可以整块重来。
+    const clearTemplate = templateById(next.templateId);
+    if (next.kind !== 'template' || !clearTemplate) return editor;
+    next.colors = Object.fromEntries(clearTemplate.regions.map(r => [r.id, r.color]));
   } else if (action.type === 'reset') {
     const restored = next.kind === 'template' ? defaultConfig(next.templateId) : Object.assign({},next,{strokes:[],rotation:0,flipped:false});
     restored.name = next.name; return changed(editor,restored);

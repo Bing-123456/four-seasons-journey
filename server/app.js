@@ -14,11 +14,13 @@ const { createBookingService } = require('./bookings');
 const { createSpeechService } = require('./speech');
 const { createAsrService } = require('./asr');
 const { createChatService } = require('./chat');
+const { createFarmtownService } = require('./farmtown');
+const { createCommunityService } = require('./community');
 const nodeOs = require('node:os');
 const nodePath = require('node:path');
 const { request: validateRequest, InputError } = require('./validation');
 
-const ROUTES = { '/api/profile': 'profile', '/api/ask': 'ask', '/api/seller-insight': 'sellerInsight', '/api/identify-fruit': 'identifyFruit', '/api/fruit-story': 'fruitStory', '/api/translate': 'translate' };
+const ROUTES = { '/api/profile': 'profile', '/api/ask': 'ask', '/api/seller-insight': 'sellerInsight', '/api/translate': 'translate' };
 
 function readBody(request, maxBytes) {
   return new Promise((resolve, reject) => {
@@ -66,6 +68,8 @@ function createServer(options = {}) {
   speech.purge();
   const asr = createAsrService(options.asrAdapter, { now: options.now });
   const chat = createChatService(config, options.chatFetch || globalThis.fetch);
+  const farmtown = createFarmtownService({ file: options.farmtownFile || process.env.FARMTWON_DATA_FILE || nodePath.join(nodeOs.tmpdir(), 'guayouji-farmtown.json'), now: options.now, chat });
+  const community = createCommunityService({ envId: (config.cloudbase && config.cloudbase.envId) || '', accessKey: (config.cloudbase && config.cloudbase.accessKey) || '' });
   const auth = createAuth(config, { now: options.now, onPairingCode: options.onPairingCode });
   const rateWindows = new Map();
   let inFlight = 0;
@@ -123,6 +127,30 @@ function createServer(options = {}) {
         if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some(key => key !== 'code')) throw new InputError('配对请求格式无效');
         send(200, auth.pair(body.code, request.socket.remoteAddress || 'unknown')); return;
       }
+      // 果乡社群：体验版公开功能，不要求开发会话配对，仅全局限流。
+      // x-wx-openid 由微信云托管自动注入（callContainer 调用必带），用于点赞去重与「我已赞」打标。
+      const communityOpenid = () => String(request.headers['x-wx-openid'] || '').trim();
+      if (path === '/api/community/list' && request.method === 'GET') {
+        if (!rateAllowed(request, true)) throw new InputError('请求过于频繁', 'rate_limited', 429);
+        send(200, await community.list(communityOpenid())); return;
+      }
+      if (path === '/api/community/detail' && request.method === 'GET') {
+        if (!rateAllowed(request, true)) throw new InputError('请求过于频繁', 'rate_limited', 429);
+        const query = Object.fromEntries(new URL(request.url, 'http://localhost').searchParams);
+        send(200, await community.detail(typeof query.id === 'string' ? query.id : '', communityOpenid())); return;
+      }
+      if (path === '/api/community/publish' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('发布过于频繁，请稍后再试', 'rate_limited', 429);
+        send(200, await community.publish(await readBody(request, 4096), communityOpenid())); return;
+      }
+      if (path === '/api/community/like' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
+        send(200, await community.like(await readBody(request, 1024), communityOpenid())); return;
+      }
+      if (path === '/api/community/comment' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
+        send(200, await community.comment(await readBody(request, 4096))); return;
+      }
       if (/^\/api\/(booking-clients|booking-activities|booking-summary|bookings)(\/|$)/.test(path)) {
         if (!auth.inspect(request).authenticated) throw new InputError('服务连接已过期', 'unauthorized', 401);
         if (!rateAllowed(request, request.method === 'GET')) throw new InputError('请求过于频繁', 'rate_limited', 429);
@@ -162,7 +190,21 @@ function createServer(options = {}) {
       if (path === '/api/chat' && request.method === 'POST') {
         if (!auth.inspect(request).authenticated) throw new InputError('服务连接已过期', 'unauthorized', 401);
         if (!rateAllowed(request)) throw new InputError('请求过于频繁', 'rate_limited', 429);
-        send(200, await chat.answer(await readBody(request, 24576))); return;
+        const chatBody = await readBody(request, 24576);
+        if (chatBody && chatBody.taskType === 'challenge') { send(200, await chat.challenge(chatBody)); return; }
+        if (chatBody && chatBody.taskType === 'match') { send(200, await chat.match(chatBody)); return; }
+        send(200, await chat.answer(chatBody)); return;
+      }
+      if (path.startsWith('/api/farmtown')) {
+        if (!auth.inspect(request).authenticated) { request.resume(); throw new InputError('开发会话未配对或已过期', 'unauthorized', 401); }
+        if (!rateAllowed(request)) throw new InputError('请求过于频繁', 'rate_limited', 429);
+        const owner = (request.headers.authorization || '').startsWith('Bearer ') ? request.headers.authorization.slice(7) : 'anonymous';
+        if (path === '/api/farmtown-polish' && request.method === 'POST') {
+          const result = await farmtown.polish(await readBody(request, 2048));
+          send(result.status, result.body); return;
+        }
+        const result = farmtown.dispatch({ method: request.method, path, query: Object.fromEntries(new URL(request.url, 'http://localhost').searchParams), body: request.method === 'POST' ? await readBody(request, 8192) : undefined, owner });
+        send(result.status, result.body); return;
       }
       const audioFile = path.match(/^\/speech\/([a-f0-9]{64}\.(?:mp3|wav))$/);
       if (audioFile && request.method === 'GET') {
@@ -229,10 +271,7 @@ function createServer(options = {}) {
         input.tourism = request.headers['x-booking-client'] && input.batch.id ? bookings.summary(request.headers['x-booking-client'], input.batch.id) : { available: false, source: 'no-booking-identity', totalTrips: 0, totalParties: 0, top: [] };
       }
       const result = await tasks.run(ROUTES[path], input);
-      if (ROUTES[path] === 'identifyFruit') {
-        if (result.mode === 'openai-compatible') visionStatus = { ...visionStatus, availability: 'last-call-succeeded', lastCheckedAt: Date.now() };
-        else if (visionConfigured && result.fallbackReason) visionStatus = { ...visionStatus, availability: 'last-call-failed', lastCheckedAt: Date.now() };
-      } else if (result.mode === 'openai-compatible') modelStatus = { configured: true, availability: 'last-call-succeeded', lastCheckedAt: Date.now() };
+      if (result.mode === 'openai-compatible') modelStatus = { configured: true, availability: 'last-call-succeeded', lastCheckedAt: Date.now() };
       else if (config.provider !== 'disabled' && result.fallbackReason) modelStatus = { configured: true, availability: 'last-call-failed', lastCheckedAt: Date.now() };
       send(200, result);
     } catch (error) {

@@ -26,11 +26,16 @@ function providerUrl(value) {
 
 function readConfig(env = process.env) {
   const requestedProvider = env.MODEL_PROVIDER || 'disabled';
-  if (!['openai-compatible', 'disabled'].includes(requestedProvider)) {
-    throw new Error('MODEL_PROVIDER 仅支持 openai-compatible、disabled');
+  if (!['openai-compatible', 'cloudbase', 'disabled'].includes(requestedProvider)) {
+    throw new Error('MODEL_PROVIDER 仅支持 openai-compatible、cloudbase、disabled');
   }
+  // openai-compatible：HTTP 直调（DeepSeek 等）；
+  // cloudbase：腾讯云开发 SDK 通道（小程序成长计划仅允许 SDK 调用，API Key 走 SDK 即可，
+  // 无需腾讯云 SecretId/SecretKey——后者实测无 tcb 权限会报 EXCEED_AUTHORITY）。
   const provider = requestedProvider === 'openai-compatible' && env.MODEL_NAME && env.OPENAI_API_KEY
-    ? 'openai-compatible' : 'disabled';
+    ? 'openai-compatible'
+    : requestedProvider === 'cloudbase' && env.MODEL_NAME && env.TCB_ENV_ID && env.TCB_ACCESS_KEY
+      ? 'cloudbase' : 'disabled';
   const host = env.HOST || '127.0.0.1';
   const token = env.API_TOKEN || '';
   if (!isLoopback(host) && token.length < 24) {
@@ -44,6 +49,10 @@ function readConfig(env = process.env) {
     model: env.MODEL_NAME || '',
     providerBase: providerUrl(env.OPENAI_BASE_URL),
     providerKey: env.OPENAI_API_KEY || '',
+    cloudbase: {
+      envId: env.TCB_ENV_ID || '',
+      accessKey: env.TCB_ACCESS_KEY || ''
+    },
     timeoutMs: positiveInteger(env.MODEL_TIMEOUT_MS, 30000, 100, 120000),
     vision: {
       baseUrl: providerUrl(env.VISION_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1'),
@@ -52,9 +61,17 @@ function readConfig(env = process.env) {
       timeoutMs: positiveInteger(env.VISION_TIMEOUT_MS, 30000, 100, 120000)
     },
     image: {
-      provider: env.IMAGE_PROVIDER === 'dashscope' && env.DASHSCOPE_API_KEY ? 'dashscope' : 'disabled',
+      // cloudbase：腾讯 CloudBase 混元生图（Node SDK + API Key，仅 SDK 渠道可调）；
+      // dashscope：阿里云百炼（HTTP 直调）。两者的生图能力对等，按环境变量切换。
+      provider: env.IMAGE_PROVIDER === 'cloudbase' && env.TCB_ENV_ID && env.TCB_ACCESS_KEY
+        ? 'cloudbase'
+        : env.IMAGE_PROVIDER === 'dashscope' && env.DASHSCOPE_API_KEY ? 'dashscope' : 'disabled',
       apiKey: env.DASHSCOPE_API_KEY || '',
-      baseUrl: providerUrl(env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com')
+      baseUrl: providerUrl(env.DASHSCOPE_BASE_URL || 'https://dashscope.aliyuncs.com'),
+      cloudbase: {
+        envId: env.TCB_ENV_ID || '',
+        accessKey: env.TCB_ACCESS_KEY || ''
+      }
     },
     speech: {
       apiKey: env.SPEECH_API_KEY || env.DASHSCOPE_API_KEY || '',

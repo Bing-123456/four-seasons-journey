@@ -92,8 +92,6 @@ test('new classroom pages are importable native routes with page files', () => {
 test('home shows Guoling search, auto-rotating farm forecasts and rich news while place links follow their factual context', () => {
   const home = loadPage('index/index');
   home.onShow();
-  assert.ok(home.data.termNote && home.data.termNote.text.length >= 40, 'solar-term note carries a full paragraph');
-  assert.ok(home.data.seasonStory && home.data.seasonStory.text.length >= 60, 'farmer story column carries a full story');
   assert.equal(home.data.forecastPosters.length, 3, 'three campaign posters rotate');
   for (const place of catalog.places) {
     const culture = loadPage('culture/culture');

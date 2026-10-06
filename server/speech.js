@@ -8,14 +8,16 @@ const WebSocket = require('ws');
 const { InputError } = require('./validation');
 
 // Provider-documented system voices; dialects are synthesized, never relabeled Mandarin.
+// 2026-10-02：qwen3-tts-flash 免费额度耗尽，全部方言统一切换 cosyvoice-v3-flash（同一把 DashScope key）。
+// 方言指令必须用固定格式「请用X话表达。」，X ∈ 官方支持列表（河南话/东北话/上海话/四川话/广东话…）。
 const VOICES = Object.freeze({
-  mandarin: { model: 'qwen3-tts-flash', voice: 'Cherry', language_type: 'Chinese' },
+  mandarin: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3' },
   henan: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', instruction: '请用河南话表达。' },
   dongbei: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', instruction: '请用东北话表达。' },
-  shanghai: { model: 'qwen3-tts-flash', voice: 'Jada', language_type: 'Chinese' },
-  sichuan: { model: 'qwen3-tts-flash', voice: 'Sunny', language_type: 'Chinese' },
-  cantonese: { model: 'qwen3-tts-flash', voice: 'Kiki', language_type: 'Chinese' },
-  english: { model: 'qwen3-tts-flash', voice: 'Jennifer', language_type: 'English' }
+  shanghai: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', instruction: '请用上海话表达。' },
+  sichuan: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', instruction: '请用四川话表达。' },
+  cantonese: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', instruction: '请用广东话表达。' },
+  english: { model: 'cosyvoice-v3-flash', voice: 'longanhuan_v3', language_hints: ['en'] }
 });
 const LIMIT = 12 * 1024 * 1024;
 const MAX_AGE = 7 * 86400000;
@@ -54,7 +56,7 @@ function finalizeWavHeader(bytes) {
 // 在云托管容器里用 ffmpeg 转码成 MP3；如果 ffmpeg 不可用（测试环境）则回退 WAV。
 async function wavToMp3(wavBytes) {
   return new Promise((resolve, reject) => {
-    const ffmpeg = spawn('ffmpeg', ['-i', 'pipe:0', '-f', 'mp3', '-acodec', 'libmp3lame', '-q:a', '4', '-ar', '24000', '-ac', '1', 'pipe:1']);
+    const ffmpeg = spawn('ffmpeg', ['-i', 'pipe:0', '-f', 'mp3', '-acodec', 'libmp3lame', '-b:a', '128k', '-ar', '24000', '-ac', '1', 'pipe:1']);
     const chunks = [];
     ffmpeg.stdout.on('data', chunk => chunks.push(chunk));
     ffmpeg.stderr.on('data', () => {});
@@ -74,6 +76,7 @@ function createSpeechAdapter(config, options = {}) {
   if (!config || !config.apiKey) return null;
   const fetcher = options.fetch || fetch;
   const Socket = options.WebSocket || WebSocket;
+  const voices = options.voices || VOICES;
   async function qwen(text, voice) {
     const signal = AbortSignal.timeout(config.timeoutMs || 40000);
     const response = await fetcher(config.baseUrl + '/api/v1/services/aigc/multimodal-generation/generation', {
@@ -104,7 +107,7 @@ function createSpeechAdapter(config, options = {}) {
       const timer = setTimeout(() => finish(new Error('speech_timeout')), config.timeoutMs || 40000);
       const send = (action, payload) => socket.send(JSON.stringify({ header: { action, task_id: id, streaming: 'duplex' }, payload }));
       socket.on('open', () => send('run-task', { task_group: 'audio', task: 'tts', function: 'SpeechSynthesizer', model: voice.model,
-        parameters: { text_type: 'PlainText', voice: voice.voice, format: 'mp3', sample_rate: 24000, ...(voice.instruction ? { instruction: voice.instruction } : {}) }, input: {} }));
+        parameters: { text_type: 'PlainText', voice: voice.voice, format: 'mp3', sample_rate: 24000, bit_rate: 128, ...(voice.instruction ? { instruction: voice.instruction } : {}), ...(voice.language_hints ? { language_hints: voice.language_hints } : {}) }, input: {} }));
       socket.on('message', (data, binary) => {
         if (done) return;
         if (binary) { total += data.length; if (total > LIMIT) return finish(new Error('speech_size')); chunks.push(Buffer.from(data)); return; }
@@ -119,7 +122,14 @@ function createSpeechAdapter(config, options = {}) {
       socket.on('close', () => { if (!done) finish(new Error('speech_incomplete')); });
     });
   }
-  return { synthesize: (text, dialect) => VOICES[dialect].model.startsWith('cosy') ? cosy(text, VOICES[dialect]) : qwen(text, VOICES[dialect]) };
+  // websocket 偶发 task-failed/超时：cosyvoice 合成失败自动重试一次，避免用户端直接报「生成未完成」。
+  return { synthesize: async (text, dialect) => {
+    const voice = voices[dialect];
+    if (!voice.model.startsWith('cosy')) return qwen(text, voice);
+    try { return await cosy(text, voice); } catch (first) {
+      try { return await cosy(text, voice); } catch { throw first; }
+    }
+  } };
 }
 
 function createSpeechService(adapter, { dir, now = Date.now } = {}) {

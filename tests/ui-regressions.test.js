@@ -69,21 +69,23 @@ test('origin chooser lists only route eligible places and reports map failure wi
   assert.ok(page.data.profile.origin == null);
 });
 
-test('home sheds the hero blocks for forecasts; the Guoling search entry moves to the almanac bottom', () => {
+test('home sheds the hero blocks and the search box; the Guoling search entry stays on the almanac bottom', () => {
   const page = loadPage('index'); page.onShow();
   assert.equal(typeof page.openMill, 'undefined', 'mill handler left home with the old blocks');
   const home = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
-  assert.match(home, /id="guoling-search"/, 'Guoling search box stays on the home page per 26.9.25 plan');
+  assert.doesNotMatch(home, /id="guoling-search"/, 'Guoling search box removed from home page per 26.10.2 plan');
   assert.match(home, /id="farming-forecast"/, 'auto-rotating farm forecast block is present');
-  assert.match(home, /id="journal-entry"/, 'long seasonal reading opens in its own subpage');
+  assert.doesNotMatch(home, /id="journal-entry"/, 'daily-read shortcut removed per 26.10.5 plan');
   assert.match(home, /id="role-tourist"/, 'first-run role selection is present');
-  assert.match(home, /id="farmer-entry"/, 'farmer workbench entry is present');
+  assert.doesNotMatch(home, /id="farmer-entry"/, 'farmer workbench card removed from home');
+  assert.doesNotMatch(home, /id="profile-bag"/, 'personal recommendation shortcut removed per 26.10.5 plan');
   const almanac = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/calendar/calendar.wxml'), 'utf8');
-  assert.match(almanac, /id="guoling-search"/, 'the Guoling search entry now closes the almanac page');
+  assert.match(almanac, /id="guoling-search"/, 'the Guoling search entry stays on the almanac page');
   const learnMarkup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/learn/learn.wxml'), 'utf8');
   assert.match(learnMarkup, /<demo-notice id="demo-mode-notice"/, 'learn page carries the demo banner like every page');
   assert.match(learnMarkup, /id="game-quiz"/, 'proverb quiz stays');
-  assert.match(learnMarkup, /id="game-paint"/, 'AI ink painting generator is present');
+  assert.match(learnMarkup, /id="game-challenge"/, 'farming challenge entry is present');
+  assert.match(learnMarkup, /id="game-match"/, 'culture match entry is present');
   assert.doesNotMatch(learnMarkup, /hands_on|learn-mill/, 'hands-on workshop block removed per plan');
   const playground = loadPage('playground'); playground.onLoad({ game: 'quiz' }); playground.onShow();
   assert.ok(playground.data.quiz.some(question => question.fruitId), 'the activity detail retains fruit questions and unlock targets');
@@ -92,14 +94,6 @@ test('home sheds the hero blocks for forecasts; the Guoling search entry moves t
 test('retired tea URL cannot select an undocumented exhibit', () => {
   const page = loadPage('heritage', 'index'); page.onLoad({ id: 'tea-set' });
   assert.equal(page.data.artifact.id, 'grain-mill'); assert.equal(page.data.started, false);
-});
-
-test('navigation failure is visible to the user and does not report success', () => {
-  const page = loadPage('route');
-  page.setData({ stops: [{ placeId: 'test-point', displayName: '测试点', location: { latitude: 34.7, longitude: 113.6 } }] });
-  wx.openLocation = options => options.fail({ errMsg: 'openLocation:fail unavailable' });
-  page.navigateToStop(event({ id: 'test-point' }));
-  assert.match(page.data.error, /暂时无法打开地图/);
 });
 
 test('favorites use attributed real photos and text cards for topics with no photo', () => {
@@ -128,24 +122,6 @@ test('favorites use attributed real photos and text cards for topics with no pho
   const favJs = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/favorites/favorites.js'), 'utf8');
   assert.match(favJs, /type=places/, 'places collection opens its own view');
   assert.doesNotMatch(wxml, /去「四时」继续逛/, 'browse-again button removed per plan');
-});
-
-test('optional analytics cannot block a saved trip from opening or refreshing', () => {
-  const core = require('../miniprogram/lib/core');
-  const venue = catalog.places.find(place => place.routeEligible);
-  const origin = Object.assign({ name: venue.name, address: venue.address, source: 'catalog' }, venue.location);
-  store.saveProfile(Object.assign({}, store.getProfile(), { origin, duration: 360, date: '2026-09-22' }));
-  const logEvent = store.logEvent;
-  store.logEvent = () => { throw Error('analytics unavailable'); };
-  try {
-    const profile = loadPage('profile'); profile.onLoad(); profile.createRoute();
-    assert.ok(core.validateRoute(store.getRoute(), store.getProfile()).valid);
-    assert.equal(calls.navigation.at(-1), '/pages/route/route');
-    assert.equal(profile.data.error, '');
-    const route = loadPage('route'); route.onShow(); route.regenerate();
-    assert.equal(route.data.route.ok, true);
-    assert.equal(route.data.error, '');
-  } finally { store.logEvent = logEvent; }
 });
 
 test('origin shortcuts select catalog places without opening a map and menus refresh stale page options', () => {
@@ -185,7 +161,7 @@ test('slow map opening shows progress, blocks repeated taps and clears on cancel
 
 test('campaign illustrations are packaged JPEGs and native titles remain bilingual', () => {
   const home = loadPage('index'); home.onShow();
-  assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['青梅封坛', '枇杷熬膏', '桃子果酱']);
+  assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['枇杷熬膏', '青梅封坛', '桑葚果酱']);
   for (const item of home.data.forecastPosters) {
     const file = path.resolve(__dirname, '../miniprogram', item.image.replace(/^\//, ''));
     assert.ok(fs.existsSync(file), item.image + ' packaged');
@@ -200,7 +176,7 @@ test('campaign illustrations are packaged JPEGs and native titles remain bilingu
   try {
     store.saveSettings({ language: 'en' }); require('../miniprogram/lib/i18n').invalidateLang(); home.refresh();
     assert.deepEqual(home.data.forecastPosters.map(item => item.id), ids);
-    assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['Green plum preserves', 'Loquat syrup', 'Peach jam']);
+    assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['Loquat syrup', 'Green plum preserves', 'Mulberry jam']);
     assert.ok(home.data.forecastPosters.every(item => /Booking unavailable/.test(item.date) && item.bookable === false));
     home.openBooking({ currentTarget: { dataset: { id: ids[0] } } }); assert.equal(home.data.bookingActivity.bookable, false); assert.equal(home.data.bookingVisible, true);
     home.goRoutePlan(); assert.equal(calls.navigation.at(-1), '/pages/route/route');

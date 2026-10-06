@@ -1,0 +1,38 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page detail-page {{fontClass}}">
+  <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+  <view wx:elif="{{post}}" class="detail-body">
+    <view class="feed-head">
+      <image class="feed-avatar" src="{{avatar || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
+      <view class="feed-head-copy">
+        <view class="feed-name">{{post.nickname}}</view>
+        <view wx:if="{{post.timeText}}" class="feed-time">{{post.timeText}}</view>
+      </view>
+    </view>
+    <image wx:if="{{image}}" class="detail-image" src="{{image}}" mode="aspectFit" bindtap="previewImage" aria-label="查看大图"/>
+    <view wx:if="{{post.text}}" class="detail-text">{{post.text}}</view>
+    <view class="detail-actions">
+      <view class="feed-action {{liked ? 'on' : ''}}" bindtap="toggleLike" role="button" aria-label="{{liked ? '已赞' : '点赞'}}">{{liked ? '♥' : '♡'}} {{likes}}</view>
+    </view>
+    <view wx:if="{{comments.length}}" class="feed-comments">
+      <view wx:for="{{comments}}" wx:for-item="c" wx:key="index" class="feed-comment" data-nickname="{{c.nickname}}" bindtap="tapReply">
+        <text class="fc-name">{{c.nickname}}</text><text wx:if="{{c.replyTo}}" class="fc-reply-text"> 回复 <text class="fc-name">{{c.replyTo}}</text></text><text class="fc-text">：{{c.text}}</text>
+      </view>
+    </view>
+    <view wx:if="{{!comments.length}}" class="detail-no-comment">还没有评论，来说点什么吧</view>
+  </view>
+  <!-- 底部评论输入栏（朋友圈式）：回复某人时显示「回复 XXX」可一键取消 -->
+  <view class="comment-bar">
+    <view wx:if="{{replyTo}}" class="replying-tip">
+      <text>{{L.community_reply_prefix}} {{replyTo}}</text>
+      <text class="replying-cancel" bindtap="cancelReply" role="button" aria-label="取消回复">×</text>
+    </view>
+    <view class="comment-bar-row">
+      <input class="comment-input" value="{{commentValue}}" placeholder="{{L.community_text_ph}}"
+        placeholder-class="comment-input-ph"
+        bindinput="onCommentInput" bindconfirm="sendComment" confirm-type="send" />
+      <view class="comment-send {{commentValue ? 'ready' : ''}}" bindtap="sendComment" role="button" aria-label="{{L.community_send}}">{{L.community_send}}</view>
+    </view>
+  </view>
+</view>

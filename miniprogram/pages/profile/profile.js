@@ -9,9 +9,10 @@ Page({
   noop: function () {},
   data: {
     profile: {}, text: '', parsing: false, building: false, status: '', error: '', cloudEnabled: false, originBusy: false, originStatus: '', locating: false, locationDenied: false,
-    seasons: [], interestOptions: [], originOptions: [], durationOptions: [120, 180, 240, 360, 480], missingNotice: '',
+    seasons: [], interestOptions: [], originOptions: [], durationOptions: [120, 180, 240, 360, 480], missingNotice: '', fontClass: 'fs-normal',
     examples: [i18n.t('pf_example_text_1'), i18n.t('pf_example_text_2')]
   },
+  onShow: function () { this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' }); },
   onLoad: function () { i18n.applyNav('nav_profile');
     const cropName = value => value.split(' · ').map(part => {
       const key = Object.keys(i18n.dict).find(k => k.indexOf('fruit_') === 0 && i18n.dict[k][0] === part);

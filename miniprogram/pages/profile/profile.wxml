@@ -1,5 +1,5 @@
 <demo-notice id="demo-mode-notice"/>
-<view class="page profile-page">
+<view class="page profile-page {{fontClass}}">
   <view class="profile-heading">
     <view class="page-title serif"><view>{{L.pf_title1}}</view><view class="title-accent">{{L.pf_title2}}</view></view>
     <view class="muted intro">{{L.pf_intro}}</view>

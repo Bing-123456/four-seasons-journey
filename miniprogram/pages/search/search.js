@@ -16,7 +16,6 @@ const i18n = require('../../lib/i18n');
 const media = require('../../lib/media-service');
 const { createSpeechInput } = require('../../lib/speech-input');
 const chatHistory = require('../../lib/chat-history');
-const speechReader = require('../../lib/speech-reader');
 
 const RECENT_KEY = 'guoling.search.recent.v1';
 const CAT_LABEL = { folk: 'ans_cat_folk', history: 'ans_cat_history', craft: 'ans_cat_craft', story: 'ans_cat_story', tools: 'ans_cat_tools', health: 'ans_cat_health' };
@@ -543,18 +542,6 @@ Page({
   onKeyboardHeight: function (event) {
     this.setData({ keyboardHeight: (event && event.detail && event.detail.height) || 0 });
   },
-  // 果灵回答朗读（银发闭环出口）：复用 fruit-detail 的朗读链路，点一句读一句。
-  readAnswer: function (event) {
-    const id = event.currentTarget.dataset.id;
-    if (this.data.reading) {
-      speechReader.stop(this);
-      if (this.data.readingId === id) { this.setData({ readingId: '' }); return; }
-    }
-    const message = (this.data.messages || []).find(item => item.id === id);
-    if (!message || !message.text) return;
-    this.setData({ readingId: id });
-    speechReader.start(this, message.text);
-  },
   clearChat: function () {
     wx.showModal({
       title: i18n.t('chat_clear'),
@@ -656,7 +643,7 @@ Page({
       }, 600);
     } });
   },
-  onUnload: function () { clearTimeout(this._timer); clearTimeout(this._stepTimer); try { this._voice && this._voice.stop(); } catch (error) {} try { speechReader.stop(this); } catch (error) {} },
+  onUnload: function () { clearTimeout(this._timer); clearTimeout(this._stepTimer); try { this._voice && this._voice.stop(); } catch (error) {} },
   noop: function () {}
 });
 

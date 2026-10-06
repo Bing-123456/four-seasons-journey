@@ -41,3 +41,9 @@ __pycache__/
 docs/AIC往届参赛者联系清单-2026-09-27.csv
 docs/AIC往届参赛者GitHub联系清单-2026-09-27.md
 docs/AIC往届参赛者邮件草稿-2026-09-27.md
+
+# 部署产物（可从源码 server/+miniprogram/ 重建，体积大，不进版本库）
+cloudrun-deploy-v*/
+guayouji-miniprogram-deploy-*.zip
+/guayouji-miniprogram-deploy-20261005/
+/game-art-upload/

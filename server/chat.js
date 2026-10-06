@@ -5,6 +5,10 @@
 // 但约束不变：只允许依据客户端检索出的资料回答，明确标注引用，资料不足时如实说
 // 不足，禁止编造农谚、民俗、果农故事。历史轮次由客户端传入，服务端不存会话。
 const { InputError } = require('./validation');
+const { createCloudbaseModel } = require('./provider');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 // 2026-09-29 假拒答修复（9.28 版机制反噬的教训）：
 // 9.28 版把回答框成两分支——「能回答→直答」/「不能回答→拒答+补充最相关内容+免责声明」。
@@ -381,9 +385,33 @@ function parseAnswer(raw) {
   throw new InputError('回答为空', 'model_invalid_output', 502);
 }
 
-function createChatService(config, fetchImpl = globalThis.fetch) {
+function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
+  // CloudBase SDK 通道模型（懒初始化）：小程序成长计划仅允许「云开发 SDK」调用 AI，
+  // HTTP 直连网关会被拒（AI_CHANNEL_NOT_ALLOWED）。与 provider.js 共用同一工厂。
+  let cloudbaseModel = null;
   // 单次模型调用：组包、请求、取正文。守卫重答复用同一路径，错误类型不变。
   async function callModelOnce(messages, timeoutMs) {
+    if (config.provider === 'cloudbase') {
+      // SDK 调用不走 AbortController（SDK 内部按 init timeout 控制），超时语义由 callModel 重试兜底。
+      if (!cloudbaseModel) cloudbaseModel = createCloudbaseModel(config, sdk);
+      let result;
+      try {
+        result = await cloudbaseModel.generateText({
+          model: config.model,
+          messages,
+          temperature: 0.3,
+          max_tokens: 900,
+          // hy3 是思考型模型：不关思考 token 全烧在 reasoning_content 上，content 为空。
+          thinking: { type: 'disabled' }
+        });
+      } catch (error) {
+        throw new InputError('对话服务暂不可用', 'model_unavailable', 502);
+      }
+      if (result && result.error) throw new InputError('对话服务响应异常', 'model_http_error', 502);
+      const content = result && result.text;
+      if (typeof content !== 'string' || !content.trim()) throw new InputError('回答为空', 'model_empty_response', 502);
+      return content;
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let response;
@@ -499,7 +527,89 @@ function createChatService(config, fetchImpl = globalThis.fetch) {
     return { answer: refusalFallback(input.question, input.contexts), usedEvidence: [], followUps: guide, mode: 'chat-evidence', guarded: true };
   }
 
-  return { answer, capabilities: { chat: config.provider !== 'disabled', model: config.provider !== 'disabled' ? config.model : '' } };
+  // 果乡名片 AI 润色（P13 果农工作台）：复用同一模型通道，把果农写的介绍润色成温暖短文。
+  async function polish({ description, term, fruit }) {
+    if (config.provider === 'disabled' || !config.providerBase) {
+      throw new InputError('对话服务未配置', 'model_disabled', 503);
+    }
+    const system = '你是「果物四时记」小程序里的果乡文案助手。任务：把果农写的一段果乡介绍，润色成温暖、有乡土气息、适合游客阅读的短文，100字以内。保留原文的真实信息（地名、人物、果树、节气），不编造、不夸大功效、不出现具体数字。只输出润色后的文字，不要解释、不要引号、不要 JSON 外壳。';
+    const user = '节气：' + (term || '当季') + '\n水果：' + (fruit || '当地水果') + '\n原文：' + (description || '');
+    const raw = await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]);
+    let polished = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const brace = polished.match(/\{[\s\S]*\}/);
+    if (brace) { try { const obj = JSON.parse(brace[0]); const val = obj.polishedText || obj.text || obj.answer; if (typeof val === 'string' && val.trim()) polished = val.trim(); } catch (_) {} }
+    return { polishedText: cleanText(polished, 300) || description };
+  }
+
+  // 解析 challenge/match 的结构化输出，失败时返回 null，由客户端本地数据兜底。
+  function parseStructured(raw) {
+    const text = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    let parsed = null;
+    try { parsed = JSON.parse(text); }
+    catch (error) { const brace = text.match(/\{[\s\S]*\}/); if (brace) { try { parsed = JSON.parse(brace[0]); } catch (error2) {} } }
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    return null;
+  }
+
+  // —— 知识库写回：服务端本地文件持久化每题「由来」讲解，下次同题优先读取，缺失才现场生成。
+  const KB_FILE = path.join(os.tmpdir(), 'guayouji-challenge-knowledge.json');
+  function kbLoad() {
+    try { const raw = fs.readFileSync(KB_FILE, 'utf8'); const o = JSON.parse(raw); return o && typeof o === 'object' ? o : {}; }
+    catch (e) { return {}; }
+  }
+  function kbSave(obj) { try { fs.writeFileSync(KB_FILE, JSON.stringify(obj, null, 2)); } catch (e) {} }
+  function kbKey(fruit, term, category) { return fruit + '|' + term + '|' + category; }
+  function kbGet(fruit, term, category) {
+    const all = kbLoad();
+    const v = all[kbKey(fruit, term, category)];
+    return typeof v === 'string' && v ? v : null;
+  }
+  function kbSet(fruit, term, category, knowledge) {
+    if (!knowledge) return;
+    const all = kbLoad();
+    all[kbKey(fruit, term, category)] = knowledge;
+    kbSave(all);
+  }
+
+  // 农事挑战：针对一道「水果 × 困境」题，输出「由来」单段讲解（约60字，4-5行）、果灵寄语。
+  // 优先读知识库（已积累的讲解）；缺失才调 AI 生成并写回。correct 用输入 isCorrect 原样回显。
+  async function challenge(input) {
+    if (config.provider === 'disabled' || !config.providerBase) throw new InputError('对话服务未配置', 'model_disabled', 503);
+    const cached = kbGet(input.fruit, input.term, input.category);
+    if (cached) {
+      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: [cached], elfMessage: '' };
+    }
+    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「农事挑战」游戏。用户刚回答了一道关于水果在特定节气下农事、民俗、储存、食用、礼节或灾害方面的情境选择题。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的知识库相关段落作答，不编造农事或民俗事实；若知识库段落为空，也需基于公开可靠常识给出有由来的讲解，禁止空泛口号。只输出 JSON：{"correct":true/false,"knowledgePoints":["由来讲解（约60字，可在卡片内自然分成4-5行）"],"elfMessage":"果灵寄语（20-40字）"}。\n要求：\n1. correct 用输入里的 isCorrect 原样回显。\n2. knowledgePoints 只含 1 条，内容为「由来」：讲清这个水果在该节气 / 困境下的历史由来、民俗背景或实际农事起源，约60字，语言连贯、可在卡片内自然分成4-5行展示。绝不复述选项原文，不写空泛口号。\n3. 若知识库段落为空，也请基于公开常识给出有由来的讲解。\n4. elfMessage 保持温暖鼓励，不重复 knowledgePoints 内容。';
+    const user = '节气：' + (input.term || '') + '\n水果：' + (input.fruit || '') + '\n困境类型：' + (input.category || '') + '\n情境：' + (input.situation || '') + '\n用户选择：' + (input.userChoice || '') + '\n是否正确：' + (input.isCorrect ? '是' : '否') + '\n知识库相关段落：\n' + (input.context || '');
+    const parsed = parseStructured(await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]));
+    if (!parsed) throw new InputError('对话服务返回异常', 'model_invalid_output', 502);
+    const points = Array.isArray(parsed.knowledgePoints) ? parsed.knowledgePoints.map(item => cleanText(item, 90)).filter(Boolean).slice(0, 1) : [];
+    const text = points[0] || '';
+    if (text) kbSet(input.fruit, input.term, input.category, text);
+    return {
+      correct: parsed.correct === true,
+      explanation: cleanText(parsed.explanation, 120),
+      knowledgePoints: points,
+      elfMessage: cleanText(parsed.elfMessage, 60)
+    };
+  }
+
+  // 文化连连看：针对一对「水果 × 文化标签」，输出点评与文化讲解。
+  // 只依据文化库原文作答，不编造诗词、典故、产地或用途。
+  async function match(input) {
+    if (config.provider === 'disabled' || !config.providerBase) throw new InputError('对话服务未配置', 'model_disabled', 503);
+    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「文化连连看」游戏。用户刚把一种水果和一个文化标签配成一对。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的文化库原文作答，不编造诗词、典故、产地或用途。只输出 JSON：{"correct":true/false,"comment":"点评正文（150字以内）","knowledge":"文化讲解正文（150字以内）"}。correct 用输入里的 isCorrect 原样回显。';
+    const user = '水果：' + (input.fruit || '') + '\n标签类别：' + (input.category || '') + '\n标签内容：' + (input.label || '') + '\n配对是否正确：' + (input.isCorrect ? '是' : '否') + '\n该条依据的文化库原文：\n' + (input.context || '');
+    const parsed = parseStructured(await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]));
+    if (!parsed) throw new InputError('对话服务返回异常', 'model_invalid_output', 502);
+    return {
+      correct: parsed.correct === true,
+      comment: cleanText(parsed.comment, 160),
+      knowledge: cleanText(parsed.knowledge, 160)
+    };
+  }
+
+  return { answer, polish, challenge, match, capabilities: { chat: config.provider !== 'disabled', model: config.provider !== 'disabled' ? config.model : '' } };
 }
 
 module.exports = { createChatService, SYSTEM, validateBody, buildMessages, parseAnswer, focusTermsOf, answerAddresses, isHonestRefusal, refusalFallback, aliasHintOf };

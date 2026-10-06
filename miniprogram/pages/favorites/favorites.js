@@ -12,7 +12,8 @@ const knowledgeName = id => {
   if (!match) return id;
   const fruit = fruitCulture.findFruit(match[1] + '-' + match[2]);
   const cat = fruitCulture.CATEGORIES.find(item => item.id === match[3]);
-  return (fruit ? fruit.name : match[2]) + ' · ' + (cat ? i18n.t('cat_' + cat.id) : match[3]);
+  const labelKey = fruit && fruit.world ? ('cat_' + cat.id + '_world') : ('cat_' + cat.id);
+  return (fruit ? fruit.name : match[2]) + ' · ' + (cat ? i18n.t(labelKey) : match[3]);
 };
 
 Page({

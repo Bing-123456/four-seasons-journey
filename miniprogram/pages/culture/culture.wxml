@@ -7,8 +7,6 @@
     <view class="hero-description">{{place.description}}</view>
   </view>
   <view class="page culture-body {{fontClass}}">
-    <view class="demo-note">{{L.note_verify_short}}</view>
-
     <view id="guoling-read" class="read-card">
       <view class="read-head">
         <view class="read-face"><companion-view config="{{companion}}" size="64"/></view>

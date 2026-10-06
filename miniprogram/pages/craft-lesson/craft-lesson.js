@@ -29,7 +29,7 @@ Page({
     this.setData({
       fruit: fruitView, learn, learnView,
       favorite: this.isFav(fruit),
-      L: i18n.labels(['craft_step_ingredients', 'craft_step_craft', 'craft_step_done', 'craft_choose_two', 'craft_next_craft', 'craft_next_done', 'craft_save', 'craft_saved', 'craft_back', 'craft_restart', 'craft_finish_title', 'craft_empty_title', 'craft_steps_title', 'craft_done_note','cl_kicker','cl_title_a'])
+      L: i18n.labels(['craft_step_ingredients', 'craft_step_craft', 'craft_step_done', 'craft_choose_two', 'craft_next_craft', 'craft_next_done', 'craft_save', 'craft_saved', 'craft_back', 'craft_restart', 'craft_finish_title', 'craft_empty_title', 'craft_steps_title', 'craft_done_note','cl_kicker','cl_title_a','craft_share_community'])
     });
   },
   isFav: function (fruit) {
@@ -50,5 +50,6 @@ Page({
     } catch (error) { wx.showToast({ title: error.message || i18n.t('fav_fail'), icon: 'none' }); }
   },
   back: function () { wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/calendar/calendar' }) }); },
+  shareToCommunity: function () { wx.navigateTo({ url: '/pages/community/community' }); },
   noop: function () {}
 });

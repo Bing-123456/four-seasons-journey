@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "游戏",
+  "navigationBarTitleText": "果物四时记",
   "usingComponents": {
     "companion-view": "/components/companion-view/companion-view"
   },

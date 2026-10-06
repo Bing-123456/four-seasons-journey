@@ -1,4 +1,3 @@
-const speechReader = require('../../lib/speech-reader');
 'use strict';
 
 // 水果文化内容页：四时链图点某一分类进入；含详解正文、果灵朗读、收藏爱心。
@@ -6,16 +5,12 @@ const speechReader = require('../../lib/speech-reader');
 const fruitCulture = require('../../data/fruit-culture');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
-const NOTE_LABELS = ['fn_sources', 'read_aloud', 'read_aloud_hint', 'read_play', 'read_stop', 'read_unavailable', 'avatar_fallback', 'fruit_note_back', 'note_verify_short', 'fn_invalid_title', 'fn_back', 'fn_learn_a', 'fn_fav_on', 'fn_fav_off', 'fn_fav_aria'];
-
-
-
-function dialectList() { return speechReader.dialects(); }
+const NOTE_LABELS = ['fn_sources', 'avatar_fallback', 'fruit_note_back', 'note_verify_short', 'fn_invalid_title', 'fn_back', 'fn_learn_a', 'fn_fav_on', 'fn_fav_off', 'fn_fav_aria'];
 
 Page({
-  data: { fruit: null, cat: '', catLabel: '', fav: false, companion: null, dialects: [], dialect: 'mandarin', reading: false, readBusy: false, L: {} },
+  data: { fruit: null, cat: '', catLabel: '', fav: false, companion: null, L: {} },
   onLoad: function (options) { i18n.applyNav('nav_fruit_note');
-    this.setData({ dialects: dialectList(), L: i18n.labels(NOTE_LABELS) });
+    this.setData({ L: i18n.labels(NOTE_LABELS) });
     const fruit = fruitCulture.findFruit(options && options.fruit ? decodeURIComponent(options.fruit) : '');
     const cat = options && options.cat ? options.cat : '';
     if (!fruit || !cat) { this.setData({ invalid: true }); return; }
@@ -32,7 +27,7 @@ Page({
     this.setData({
       fruit: fruitView, cat, category,
       favId,
-      catLabel: i18n.t('cat_' + cat),
+      catLabel: i18n.t(fruit.world ? ('cat_' + cat + '_world') : ('cat_' + cat)),
       fav: store.getKnowledgeFavorites().indexOf(favId) !== -1,
       companion: store.getCompanion()
     });
@@ -40,9 +35,15 @@ Page({
   },
   onShow: function () {
     this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
- this.setData({ companion: store.getCompanion() }); },
-  onHide: function () { this.stopRead(); },
-  onUnload: function () { this._disposed = true; this.stopRead(); },
+    // 10.2 / P17②：从别处（如「记收获」）收藏或取消后返回本页，收藏态要立刻跟着变，
+    // 不能等到重新进入分类页才刷新。
+    const favId = this.data.favId;
+    this.setData({
+      companion: store.getCompanion(),
+      fav: favId ? store.getKnowledgeFavorites().indexOf(favId) !== -1 : false
+    });
+  },
+  onUnload: function () { this._disposed = true; },
   // ---- 收藏：点击变红实心，取消恢复空心 ----
   toggleFavorite: function () {
     try {
@@ -51,22 +52,6 @@ Page({
       wx.showToast({ title: added ? '已收藏，可在「我的 → 文化收藏」回看' : '已取消收藏', icon: 'none' });
     } catch (error) { wx.showToast({ title: error.message || '收藏失败', icon: 'none' }); }
   },
-  // ---- 果灵朗读 ----
-  chooseDialect: function (event) {
-    const active = this.data.reading || this.data.readBusy;
-    this.stopRead();
-    this.setData({ dialect: event.currentTarget.dataset.code });
-    if (active) this.startRead();
-  },
-  buildScript: function () {
-    const fruit = this.data.fruit, category = this.data.category;
-    const text = category.text;
-    const detail = category.detail || '';
-    return fruit.name + '。' + this.data.catLabel + '。' + text + '。' + detail;
-  },
-  toggleRead: function () { if (this.data.reading || this.data.readBusy) this.stopRead(); else this.startRead(); },
-  startRead: function () { return speechReader.start(this, this.buildScript()); },
-  stopRead: function () { speechReader.stop(this); },
   copySource: function (event) { const source = (this.data.category.sources || [])[Number(event.currentTarget.dataset.index)]; if (source) wx.setClipboardData({ data: source.url }); },
   goCraftLesson: function () {
     const full = this.data.fruit.seasonId + '-' + this.data.fruit.id;

@@ -169,6 +169,39 @@ function unlockFruit(fruitId, partition) {
   write(state, target);
   return { added, unlocks: clone(state.fruitUnlocks) };
 }
+// 农谚问答进度（10.5 游戏③）：按「本机日期」记录当天已答完的轮数；
+// 出题记录跨天保留，保证出过的题不再重复，全部出完后再洗牌重来。
+function localDayKey() {
+  const now = new Date();
+  const pad = value => String(value).length < 2 ? '0' + value : String(value);
+  return now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+}
+// today 可注入（默认取本机日期），便于单元测试把「跨天」判定变成纯函数。
+function normalizeQuizProgress(value, today) {
+  const refDay = today || localDayKey();
+  const source = value && typeof value === 'object' ? value : {};
+  const fresh = !value || source.day !== refDay;
+  return {
+    day: refDay,
+    // 跨天：当天轮数清零（第二天能重新玩）；出题记录继续保留
+    roundsDone: fresh ? 0 : (Number(source.roundsDone) || 0),
+    askedIds: Array.isArray(source.askedIds) ? source.askedIds.filter(id => typeof id === 'string').slice(-200) : [],
+    askedProverbs: Array.isArray(source.askedProverbs) ? source.askedProverbs.filter(id => typeof id === 'string').slice(-200) : []
+  };
+}
+function getQuizProgress(partition, today) {
+  return normalizeQuizProgress(read(partition).quizProgress, today);
+}
+function saveQuizProgress(patch, partition) {
+  const target = partition || capturePartition();
+  const state = read(target);
+  // 允许调用方显式注入 day（仅测试用它模拟「第二天」）；正常调用不传则按本机日期。
+  const dayOverride = patch && typeof patch.day === 'string' && patch.day ? patch.day : localDayKey();
+  const merged = Object.assign(normalizeQuizProgress(state.quizProgress), patch && typeof patch === 'object' ? patch : {}, { day: dayOverride });
+  state.quizProgress = merged;
+  write(state, target);
+  return clone(merged);
+}
 function readPartitionField(field, partition) {
   if (!['seller', 'paintSessions', 'chatMessages'].includes(field)) throw new Error('不支持的本机数据区域');
   return clone(read(partition || capturePartition())[field] || null);
@@ -393,4 +426,4 @@ function getDemoSummary() {
   return Object.assign({ active: true, favoritesCount: getFavorites().length, routeStops: (getRoute() || { stops: [] }).stops.length, completedLessons: events.filter(event => ['workshop_complete', 'heritage_lesson_complete'].includes(event.type) && event.details.ok).length, recent: events.slice(-6).reverse().map(event => ({ type: event.type, title: titles[event.type] || '体验记录', simulated: true, label: '模拟行为' })) }, DEMO_INFO);
 }
 
-module.exports = { capturePartition, readPartitionField, writePartitionField, getIdentity, saveIdentity, getCompanion, saveCompanion, getCloudConnection, getAvatar, saveAvatar, clearAvatar, getFontScale, saveFontScale, getFruitUnlocks, unlockFruit, getProfile, saveProfile, getRoute, saveRoute, getFavorites, toggleFavorite, getKnowledgeFavorites, toggleKnowledgeFavorite, getIntents, addIntent, cancelIntent, getSettings, saveSettings, getSessionToken, saveSession, clearSession, clearAll, logEvent, getEvents, isDemoMode, enterDemo, exitDemo, resetDemo, getDemoSummary };
+module.exports = { capturePartition, readPartitionField, writePartitionField, getIdentity, saveIdentity, getCompanion, saveCompanion, getCloudConnection, getAvatar, saveAvatar, clearAvatar, getFontScale, saveFontScale, getFruitUnlocks, unlockFruit, getQuizProgress, saveQuizProgress, getProfile, saveProfile, getRoute, saveRoute, getFavorites, toggleFavorite, getKnowledgeFavorites, toggleKnowledgeFavorite, getIntents, addIntent, cancelIntent, getSettings, saveSettings, getSessionToken, saveSession, clearSession, clearAll, logEvent, getEvents, isDemoMode, enterDemo, exitDemo, resetDemo, getDemoSummary };

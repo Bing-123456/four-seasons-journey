@@ -1,6 +1,6 @@
 <demo-notice id="demo-mode-notice"/>
-<view wx:if="{{!validLesson}}" class="page empty"><view class="page-title serif">{{L.ws_invalid}}</view><view>{{error}}</view><button id="workshop-home" class="button" bindtap="backHome">{{L.ws_back_home}}</button></view>
-<view wx:else class="workshop-page">
+<view wx:if="{{!validLesson}}" class="page empty {{fontClass}}"><view class="page-title serif">{{L.ws_invalid}}</view><view>{{error}}</view><button id="workshop-home" class="button" bindtap="backHome">{{L.ws_back_home}}</button></view>
+<view wx:else class="workshop-page {{fontClass}}">
   <view class="masthead"><text class="eyebrow">{{L.ws_eyebrow}}</text><button class="text-button" id="workshop-skip" bindtap="skipToReading">{{L.ws_skip_reading}}</button></view>
   <view class="lesson-intro"><view class="location">{{lessonView.location}}</view><view class="lesson-title serif">{{lessonView.title}}<text class="title-stop">。</text></view><view class="lesson-subtitle">{{lessonView.subtitle}} · {{L.ws_minute}}</view></view>
   <view class="lesson-progress" wx:if="{{step < 3}}"><view class="progress-segment {{step >= 0 ? 'active' : ''}}"><text>01</text> {{L.ws_step1}}</view><view class="progress-segment {{step >= 1 ? 'active' : ''}}"><text>02</text> {{L.ws_step2}}</view><view class="progress-segment {{step >= 2 ? 'active' : ''}}"><text>03</text> {{L.ws_step3}}</view></view>

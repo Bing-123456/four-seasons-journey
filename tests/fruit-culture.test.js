@@ -18,7 +18,7 @@ test('the mini program is renamed to 果物四时记 everywhere it is shown', ()
   assert.equal(i18n.t('home_tagline1'), '果物四时记');
   assert.equal(i18n.t('footer_note').startsWith('果物四时记'), true);
   assert.match(i18n.t('welcome_title'), /果物四时记/);
-  assert.equal(JSON.parse(read('miniprogram/pages/learn/learn.json')).navigationBarTitleText, '游戏', '26.9.25 plan: single clean title, no brand prefix');
+  assert.equal(JSON.parse(read('miniprogram/pages/learn/learn.json')).navigationBarTitleText, '果物四时记', 'nav title shows the app name');
 });
 
 test('every fruit on the link graph carries six complete categories', () => {
@@ -77,21 +77,21 @@ test('the harvest-event carousel is driven by the four seasons of picking activi
   assert.match(indexJs, /forecastPosters/, 'the carousel shows the three campaign posters');
   assert.doesNotMatch(indexJs, /farmActivities\.ACTIVITIES\.map/, 'activity slides are replaced by posters');
   assert.doesNotMatch(indexJs, /solarTermNotes\.forecasts/, 'the solar-term slides are gone from the carousel');
-  for (const illustration of ['cover-plum.jpg', 'cover-loquat.jpg', 'cover-peach.jpg']) {
-    assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/assets/illustrations', illustration)), illustration + ' packaged');
+  for (const illustration of ['activity-loquat.jpg', 'activity-mulberry.jpg', 'activity-plum.jpg']) {
+    assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/assets/illustrations/home-carousel', illustration)), illustration + ' packaged');
   }
 });
 
 test('the almanac keeps one screen while its fruit directory explains the favourite heart', () => {
   const markup = read('miniprogram/pages/calendar/calendar.wxml');
   const page = read('miniprogram/pages/calendar/calendar.js');
-  const detail = read('miniprogram/pages/fruit-detail/fruit-detail.wxml');
+  const detail = read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxml');
   assert.match(detail, /openCategory/, 'directory rows navigate to the dedicated note page');
   assert.equal(JSON.parse(read('miniprogram/pages/calendar/calendar.json')).disableScroll, true);
   assert.doesNotMatch(markup, /selectedFruit|fruit-cat/, 'details stay in their own page');
-  assert.match(read('miniprogram/pages/fruit-note/fruit-note.wxml'), /read-card/, 'the note page carries the Guoling reader');
+  assert.doesNotMatch(read('miniprogram/pages/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
   assert.match(detail, /'♥' : '♡'/, 'the heart fills in once a note is favourited');
-  assert.match(read('miniprogram/pages/fruit-detail/fruit-detail.wxss'), /\.fruit-fav\.is-fav\{color:#D0342C\}/, 'the filled heart is red');
+  assert.match(read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxss'), /\.fruit-fav\.is-fav\{color:#D0342C\}/, 'the filled heart is red');
   assert.match(i18n.t('fruit_note_short'), /右上角爱心/, 'the footer note points at the row heart');
   assert.match(markup, /id="guoling-search"/, 'the search entry closes the almanac');
   assert.match(markup, /L\.guoling_search_title/, 'the entry is titled 果灵搜索');
@@ -101,14 +101,31 @@ test('the almanac keeps one screen while its fruit directory explains the favour
 });
 
 test('fruit directory rows use precomputed favourites and open the dedicated note page', () => {
-  const markup = read('miniprogram/pages/fruit-detail/fruit-detail.wxml');
+  const markup = read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxml');
   assert.doesNotMatch(markup, /indexOf\(/, 'views do not execute unsupported array methods');
   assert.match(markup, /class="fruit-fav \{\{item\.fav \? 'is-fav' : ''\}\}"/, 'the filled heart uses a precomputed flag');
-  assert.match(markup, /fruit-toggle">›</);
+  // 10.2 / P22：目录改横向手风琴——一条展开、其余收窄，详情延迟淡入。
+  assert.match(markup, /class="fruit-cat \{\{activeCat === item\.cat \? 'is-open' : ''\}\}"/, 'each row reflects the accordion state');
+  assert.match(markup, /bindtap="toggleAccordion"/, 'tapping a row expands it');
+  assert.match(markup, /aria-expanded="\{\{activeCat === item\.cat\}\}"/, 'the expanded row is announced');
+  assert.match(markup, /class="fruit-cat-body"/, 'the expanded row reveals its detail');
   assert.match(markup, /\{\{item\.label\}\}/);
-  const controller = read('miniprogram/pages/fruit-detail/fruit-detail.js');
+  const controller = read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.js');
   assert.match(controller, /fav: favorites\.includes\(favId\)/);
   assert.match(controller, /toggleFavorite:[\s\S]*?this\.render\(\)/);
+  assert.match(controller, /activeCat: this\.data\.activeCat === cat \? '' : cat/, 're-tapping the open row collapses it');
+});
+
+test('the season chain places every fruit name on the inner ring beside its own fruit', () => {
+  // 10.2 / P02①：名字原先固定挂在节点正下方，夏季 16 果时互相压住、还会压到别的水果。
+  // 现在按角度朝圆心偏移，每个名字只贴自己那颗果。
+  const controller = read('miniprogram/pages/calendar/calendar.js');
+  assert.match(controller, /-Math\.cos\(angle\) \* inward/, 'the label is offset towards the centre');
+  assert.match(controller, /-Math\.sin\(angle\) \* inward/, 'the label is offset towards the centre');
+  assert.match(read('miniprogram/pages/calendar/calendar.wxml'), /class="graph-fruit-name" style="\{\{item\.nameStyle\}\}"/);
+  const wxss = read('miniprogram/pages/calendar/calendar.wxss');
+  assert.match(wxss, /\.graph-fruit-name\{[^}]*white-space:nowrap/, 'names stay on one line so the ring cannot wrap into a neighbour');
+  assert.doesNotMatch(wxss, /\.graph-fruit-name\{[^}]*top:calc\(100%/, 'the old fixed below-the-node placement is gone');
 });
 
 test('the almanac keeps the console clean', () => {

@@ -1,0 +1,6 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page smart-card-page">
+  <view class="smart-card-head"><view class="smart-card-title">知识卡</view><view class="smart-card-back" bindtap="back" role="button">← 返回</view></view>
+  <canvas type="2d" id="cardCanvas" class="card-canvas"></canvas>
+  <button class="button smart-save" bindtap="save" disabled="{{!ready}}">保存到相册</button>
+</view>

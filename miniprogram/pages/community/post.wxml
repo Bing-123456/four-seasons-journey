@@ -1,0 +1,9 @@
+<demo-notice id="demo-mode-notice"/>
+<view class="page post-page {{fontClass}}">
+  <view class="post-photo" bindtap="choosePhoto" role="button" aria-label="{{L.community_choose_photo}}">
+    <image wx:if="{{imagePath}}" class="post-photo-img" src="{{imagePath}}" mode="aspectFill" aria-hidden="true"/>
+    <view wx:else class="post-photo-empty">{{L.community_choose_photo}}</view>
+  </view>
+  <textarea class="post-text" value="{{text}}" bindinput="textInput" maxlength="200" placeholder="{{L.community_text_ph}}"/>
+  <button class="post-publish" bindtap="publish" loading="{{publishing}}" disabled="{{publishing || !imagePath}}">{{L.community_publish}}</button>
+</view>

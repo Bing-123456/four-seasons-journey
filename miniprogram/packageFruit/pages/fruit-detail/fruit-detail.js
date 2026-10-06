@@ -1,8 +1,8 @@
-const fruitCulture = require('../../data/fruit-culture');
-const store = require('../../lib/store');
-const i18n = require('../../lib/i18n');
+const fruitCulture = require('../../../data/fruit-culture');
+const store = require('../../../lib/store');
+const i18n = require('../../../lib/i18n');
 Page({
-  data: { fruit: null, invalid: false, knowledgeFavorites: [], L: {} },
+  data: { fruit: null, invalid: false, knowledgeFavorites: [], activeCat: '', L: {} },
   onLoad: function (options) {
     this._fruitId = options && options.fruit || '';
     this.render();
@@ -11,7 +11,7 @@ Page({
     this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
  if (this._fruitId) this.render(); },
   render: function () {
-    const labels = i18n.labels(['fn_invalid_title','fn_back','fruit_note_short','cal_fav_aria']);
+    const labels = i18n.labels(['fn_invalid_title','fn_back','fruit_note_short','cal_fav_aria','fn_read']);
     const fruit = fruitCulture.findFruit(this._fruitId);
     if (!fruit) { this.setData({ invalid: true, L: labels }); return; }
     const favorites = store.getKnowledgeFavorites();
@@ -25,9 +25,15 @@ Page({
         // 目录页预览：摘要句之外的正文开头，让 01-06 每节内容与重写后的正文同步、对应小标题。
         const body = item.detail && item.detail.startsWith(item.text) ? item.detail.slice(item.text.length).trim() : (item.detail || '');
         const preview = (body || item.text).slice(0, 96) + (body.length > 96 ? '…' : '');
-        return Object.assign({}, item, { label: i18n.t('cat_' + item.cat), favId, fav: favorites.includes(favId), preview });
+        const labelKey = fruit.world ? ('cat_' + item.cat + '_world') : ('cat_' + item.cat);
+        return Object.assign({}, item, { label: i18n.t(labelKey), favId, fav: favorites.includes(favId), preview });
       }) })
     });
+  },
+  // 10.2 / P22：手风琴——点一条展开变宽、其余同步收窄；再点已展开的那条则收起。
+  toggleAccordion: function (event) {
+    const cat = event.currentTarget.dataset.cat;
+    this.setData({ activeCat: this.data.activeCat === cat ? '' : cat });
   },
   openCategory: function (event) {
     const cat = event.currentTarget.dataset.cat;

@@ -4,14 +4,14 @@
     <view class="graph-center {{en ? 'en' : ''}}">{{seasonMeta.centerName}}</view>
     <view wx:for="{{graphNodes}}" wx:key="id" id="fruit-node-{{item.id}}" class="graph-fruit {{en ? 'en' : ''}} {{item.locked ? 'is-locked' : ''}}" style="{{item.style}}" data-id="{{item.id}}" data-locked="{{item.locked ? '1' : ''}}" bindtap="selectFruit" role="button" aria-label="{{item.locked ? item.name + L.fruit_locked : item.name}}">
       <view class="graph-fruit-art {{item.originClass}}"><view class="graph-fruit-crop"><image src="{{item.art.src}}" mode="scaleToFill" aria-hidden="true"/></view></view>
-      <text class="graph-fruit-name">{{item.name}}</text>
+      <text class="graph-fruit-name" style="{{item.nameStyle}}">{{item.name}}</text>
     </view>
   </view>
 </template>
 <view class="calendar-screen {{fontClass}}">
   <demo-notice id="demo-mode-notice"/>
   <view class="calendar-content">
-    <view class="calendar-heading"><view><view class="screen-title">{{L.cal_title1}}</view><view class="screen-subtitle">{{L.graph_hint}}</view></view><me-entry/></view>
+    <view class="calendar-heading"><view><view class="screen-title">{{L.cal_title1}}</view></view><me-entry/></view>
     <view class="calendar-tabs" role="tablist">
       <view wx:for="{{seasons}}" wx:key="id" id="season-{{item.id}}" data-id="{{item.id}}" bindtap="choose" class="calendar-tab {{season === item.id ? 'selected' : ''}}" role="tab" aria-selected="{{season === item.id}}"><text>{{item.shortName}}</text></view>
     </view>

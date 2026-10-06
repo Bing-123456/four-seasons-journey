@@ -1,0 +1,7 @@
+page { background: #F5F5F7; }
+.post-page { padding: 24rpx 32rpx calc(60rpx + env(safe-area-inset-bottom)); }
+.post-photo { width: 100%; height: 420rpx; border-radius: 18rpx; background: #EEEADF; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 20rpx; }
+.post-photo-img { width: 100%; height: 100%; }
+.post-photo-empty { color: #8B948C; font-size: calc(26rpx * var(--fs-scale, 1)); }
+.post-text { width: 100%; min-height: 160rpx; box-sizing: border-box; background: #FFFFFF; border-radius: 16rpx; padding: 20rpx 22rpx; font-size: calc(27rpx * var(--fs-scale, 1)); line-height: 1.7; color: #344B36; }
+.post-publish { width: 100%; margin-top: 24rpx; background: #234B3C; color: #FFFCF3; font-size: calc(26rpx * var(--fs-scale, 1)); border-radius: 16rpx; padding: 21rpx; }

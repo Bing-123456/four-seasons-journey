@@ -106,46 +106,53 @@ function requestId() { return 'finder-' + Date.now().toString(36) + '-' + Math.r
 
 // 本地兜底素材池：云端未就绪/生成失败时的确定性虚拟灵感地（结果仍为虚构，结果区横幅已注明）。
 // 9.27 反馈：演示或离线场景下点「一键生成推荐地」不再死路，直接给出可看的本地结果。
+// G22：每个灵感地标注支持的玩法（pick 自采 / photo 观光 / taste 品尝），
+// 让三种玩法筛出不同的适配地点；观景园类不标 pick，采摘园类弱化 photo，结果更贴近玩法。
 const LOCAL_PLACES = [
-  { name: '云溪梅岭农庄', fruits: ['青梅'], harvestMonths: [3, 4], intro: '丘陵梅园连片，青梅露、腌梅手作台常年开放。' },
-  { name: '金沙湾枇杷园', fruits: ['枇杷'], harvestMonths: [5, 6], intro: '沿河枇杷长廊，白沙枇杷现摘现称。' },
-  { name: '桑干河畔桑葚园', fruits: ['桑葚'], harvestMonths: [5, 6], intro: '老桑树采撷区，紫白两色桑葚分垄而栽。' },
-  { name: '沙窝西瓜大棚基地', fruits: ['西瓜'], harvestMonths: [6, 7, 8], intro: '沙地吊蔓西瓜，现场开瓜试吃。' },
-  { name: '伏牛山李子坡果园', fruits: ['李子'], harvestMonths: [7, 8], intro: '坡地李园步道完善，脆李分批成熟。' },
-  { name: '桃园溪谷农场', fruits: ['桃子'], harvestMonths: [6, 7, 8], intro: '水蜜桃与蟠桃分区，林下有野餐桌。' },
-  { name: '柿柿如意观光园', fruits: ['柿子'], harvestMonths: [9, 10], intro: '百年柿林挂果如灯，摘柿与晒柿饼体验都有。' },
-  { name: '红石峡石榴庄园', fruits: ['石榴'], harvestMonths: [9, 10], intro: '软籽石榴庄园，开果品籽台面对着山谷。' },
-  { name: '秋梨小镇采摘园', fruits: ['秋梨'], harvestMonths: [9, 10, 11], intro: '老梨树群配仓储窖，梨膏现熬。' },
-  { name: '枣乡人家农场', fruits: ['冬枣'], harvestMonths: [10, 11], intro: '大棚冬枣脆甜，垄间可以边摘边尝。' },
-  { name: '瓯江柑橘观景园', fruits: ['瓯柑', '砂糖橘'], harvestMonths: [11, 12, 1], intro: '山坡柑橘梯田，观景台可俯瞰江景。' }
+  { name: '云溪梅岭农庄', fruits: ['青梅'], harvestMonths: [3, 4], activities: ['pick', 'photo', 'taste'], intro: '丘陵梅园连片，青梅露、腌梅手作台常年开放。' },
+  { name: '金沙湾枇杷园', fruits: ['枇杷'], harvestMonths: [5, 6], activities: ['pick', 'photo', 'taste'], intro: '沿河枇杷长廊，白沙枇杷现摘现称。' },
+  { name: '桑干河畔桑葚园', fruits: ['桑葚'], harvestMonths: [5, 6], activities: ['pick', 'photo', 'taste'], intro: '老桑树采撷区，紫白两色桑葚分垄而栽。' },
+  { name: '沙窝西瓜大棚基地', fruits: ['西瓜'], harvestMonths: [6, 7, 8], activities: ['pick', 'photo', 'taste'], intro: '沙地吊蔓西瓜，现场开瓜试吃。' },
+  { name: '伏牛山李子坡果园', fruits: ['李子'], harvestMonths: [7, 8], activities: ['pick', 'photo', 'taste'], intro: '坡地李园步道完善，脆李分批成熟。' },
+  { name: '桃园溪谷农场', fruits: ['桃子'], harvestMonths: [6, 7, 8], activities: ['pick', 'photo', 'taste'], intro: '水蜜桃与蟠桃分区，林下有野餐桌。' },
+  { name: '柿柿如意观光园', fruits: ['柿子'], harvestMonths: [9, 10], activities: ['pick', 'photo', 'taste'], intro: '百年柿林挂果如灯，摘柿与晒柿饼体验都有。' },
+  { name: '红石峡石榴庄园', fruits: ['石榴'], harvestMonths: [9, 10], activities: ['pick', 'photo', 'taste'], intro: '软籽石榴庄园，开果品籽台面对着山谷。' },
+  { name: '秋梨小镇采摘园', fruits: ['秋梨'], harvestMonths: [9, 10, 11], activities: ['pick', 'taste'], intro: '老梨树群配仓储窖，梨膏现熬。' },
+  { name: '枣乡人家农场', fruits: ['冬枣'], harvestMonths: [10, 11], activities: ['pick', 'taste'], intro: '大棚冬枣脆甜，垄间可以边摘边尝。' },
+  { name: '瓯江柑橘观景园', fruits: ['瓯柑', '砂糖橘'], harvestMonths: [11, 12, 1], activities: ['photo', 'taste'], intro: '山坡柑橘梯田，观景台可俯瞰江景。' }
 ];
 const ACTIVITY_LINES = {
-  pick: '支持预约下园自采，工具由园方提供。',
-  photo: '园区设有拍照点，花期果季都适合取景。',
-  taste: '现场品尝为主，果汁与深加工小食现做。'
+  pick: '园区支持预约下园自采，采果篮与修枝剪由园方提供，现摘现装。',
+  photo: '园内设有多处取景点与观景台，花期与果季都适合拍照，光线柔和。',
+  taste: '以现场品尝为主，果汁、果酱与果干等深加工小食现做现尝。'
 };
+const PLAY_METHODS = Object.keys(ACTIVITY_LINES);
 function localPlaces(answers) {
   const wanted = answers.fruits || [];
   const activity = (answers.activity || [])[0] || 'pick';
   // 评审 9.28①：推荐地必须与所选水果一致——只返回经营所选水果的灵感地，不再用无关地点凑满三个。
-  return LOCAL_PLACES
-    .filter(place => (place.fruits || []).some(fruit => wanted.indexOf(fruit) !== -1))
-    .map(place => {
-      const fruit = (place.fruits || []).find(name => wanted.indexOf(name) !== -1) || place.fruits[0];
-      const item = {
-        id: 'local-' + LOCAL_PLACES.indexOf(place),
-        name: place.name,
-        intro: place.intro + ACTIVITY_LINES[activity],
-        image: ART_BY_NAME[fruit] || '',
-        local: true,
-        month: null,
-        year: new Date().getFullYear(),
-        harvestMonths: place.harvestMonths
-      };
-      item.seasonText = copy('noDate');
-      item.monthsText = monthsTextOf(place.harvestMonths);
-      return item;
-    });
+  // G22：在水果匹配之上再按所选玩法筛选真正适配的地点，使三种玩法给出不同的结果；
+  // 若某水果没有适配该玩法的地点，回退到水果匹配集合，保证结果不为空。
+  const fruitMatched = LOCAL_PLACES.filter(place => (place.fruits || []).some(fruit => wanted.indexOf(fruit) !== -1));
+  const activityMatched = fruitMatched.filter(place => (place.activities || PLAY_METHODS).indexOf(activity) !== -1);
+  const pool = activityMatched.length ? activityMatched : fruitMatched;
+  return pool.map(place => {
+    const fruit = (place.fruits || []).find(name => wanted.indexOf(name) !== -1) || place.fruits[0];
+    const item = {
+      id: 'local-' + LOCAL_PLACES.indexOf(place),
+      name: place.name,
+      intro: place.intro + ACTIVITY_LINES[activity],
+      image: ART_BY_NAME[fruit] || '',
+      local: true,
+      month: null,
+      year: new Date().getFullYear(),
+      harvestMonths: place.harvestMonths,
+      activities: place.activities || PLAY_METHODS
+    };
+    item.seasonText = copy('noDate');
+    item.monthsText = monthsTextOf(place.harvestMonths);
+    return item;
+  });
 }
 // A non-secret identity hint for local restoration. Server ownership is always
 // checked using the complete, server-issued capability, never this hint.
@@ -157,7 +164,7 @@ function identityHint(value) {
 }
 
 Page({
-  data: { questions: [], answers: {}, busy: false, note: '', places: [], companion: null, taskId: '', taskStatus: '', canResume: false, L: {} },
+  data: { questions: [], answers: {}, busy: false, note: '', places: [], companion: null, taskId: '', taskStatus: '', canResume: false, L: {}, fontClass: 'fs-normal' },
   onLoad: function () {
     i18n.applyNav('nav_finder');
     this._key = storageKey(); this._visible = true; this._epoch = (this._epoch || 0) + 1; this._cloud = store.getCloudConnection();
@@ -170,7 +177,7 @@ Page({
   onShow: function () {
     if (this._key !== storageKey() || !sameCloud(this._cloud, store.getCloudConnection())) { this.stopPolling(); this.onLoad(); this.setData({ places: [], busy: false, note: '', canResume: false }); }
     this._visible = true;
-    this.setData({ companion: store.getCompanion(), L: labels(), questions: localizedQuestions(this.data.answers) });
+    this.setData({ companion: store.getCompanion(), L: labels(), questions: localizedQuestions(this.data.answers), fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
     if (this.data.taskId && !this._requesting) this.resume();
   },
   onHide: function () { this.stopPolling(); },

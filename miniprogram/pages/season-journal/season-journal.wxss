@@ -1,0 +1,22 @@
+.page { padding: 24rpx 28rpx 60rpx; background: #FFFDF8; min-height: 100vh; box-sizing: border-box; }
+.back-bar { margin-bottom: 4rpx; }
+.back-btn { display: inline-block; font-size: calc(30rpx * var(--fs-scale, 1)); color: #234B3C; padding: 8rpx 0; }
+.page-title { font-size: calc(44rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin-bottom: 20rpx; }
+.map-card { width: 100%; height: 500rpx; background: #F4F8EF; border-radius: 18rpx; overflow: hidden; margin-bottom: 16rpx; }
+.map-canvas { width: 100%; height: 500rpx; }
+.count { font-size: calc(28rpx * var(--fs-scale, 1)); color: #3C9D6E; font-weight: 700; margin-bottom: 14rpx; }
+.list { background: #fff; border-radius: 18rpx; padding: 8rpx 24rpx; margin-bottom: 24rpx; box-shadow: 0 2rpx 10rpx rgba(35,75,60,0.05); }
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 22rpx 0; border-bottom: 1rpx solid #EEF2E9; }
+.list-item:last-child { border-bottom: none; }
+.li-name { font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; }
+.li-term { font-size: calc(24rpx * var(--fs-scale, 1)); color: #9aa89e; }
+.empty { font-size: calc(26rpx * var(--fs-scale, 1)); color: #9aa89e; padding: 30rpx 0; text-align: center; }
+.action-btn { width: 100%; border-radius: 44rpx; background: #3C9D6E; color: #fff; font-size: calc(30rpx * var(--fs-scale, 1)); }
+.poster-mask { position: fixed; inset: 0; background: rgba(20,30,24,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+.poster-card { width: 560rpx; background: #fff; border-radius: 20rpx; padding: 24rpx; text-align: center; }
+.poster-img { width: 100%; border-radius: 12rpx; }
+.action-btn.save { margin-top: 16rpx; }
+.poster-close { font-size: calc(26rpx * var(--fs-scale, 1)); color: #9aa89e; margin-top: 16rpx; }
+.poster-canvas { position: fixed; left: -9999px; top: 0; width: 600px; height: 900px; }
+.state-tip { text-align: center; color: #9aa89e; font-size: calc(28rpx * var(--fs-scale, 1)); padding: 80rpx 0; }
+.state-tip.error { color: #C0392B; }

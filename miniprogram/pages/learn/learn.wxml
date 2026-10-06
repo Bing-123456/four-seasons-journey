@@ -6,22 +6,22 @@
       <me-entry/>
     </view>
     <view class="learn-choices">
-      <view id="game-paint" class="game-entry" data-game="paint" bindtap="openGame" role="button" aria-label="{{L.game_paint}}">
-        <image class="featured-art" src="/assets/illustrations/game-paint-wide.jpg" mode="aspectFill" aria-hidden="true"/>
-        <view class="featured-shade"></view>
-        <view class="featured-copy"><view class="featured-title">{{copy.paint}}</view><view class="featured-subtitle">{{copy.paintHint}}</view></view>
-        <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
-      </view>
       <view id="game-quiz" class="game-entry" data-game="quiz" bindtap="openGame" role="button" aria-label="{{L.game_quiz}}">
-        <image class="featured-art" src="/assets/illustrations/game-plum-wide.jpg" mode="aspectFill" aria-hidden="true"/>
+        <image wx:if="{{gameArt.quiz && !gameArtError.quiz}}" class="featured-art" src="{{gameArt.quiz}}" mode="aspectFill" binderror="onGameArtError" data-game="quiz"/>
         <view class="featured-shade"></view>
-        <view class="featured-copy"><view class="featured-title">{{copy.quiz}}</view><view class="featured-subtitle">{{copy.quizHint}}</view></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.quiz}}</view></view>
         <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
       </view>
-      <view id="game-identify" class="game-entry" data-game="identify" bindtap="openGame" role="button" aria-label="{{L.game_identify}}">
-        <image class="featured-art" src="/assets/illustrations/game-loquat-wide.jpg" mode="aspectFill" aria-hidden="true"/>
+      <view id="game-challenge" class="game-entry" data-game="challenge" bindtap="openGame" role="button" aria-label="{{L.game_challenge}}">
+        <image wx:if="{{gameArt.challenge && !gameArtError.challenge}}" class="featured-art" src="{{gameArt.challenge}}" mode="aspectFill" binderror="onGameArtError" data-game="challenge"/>
         <view class="featured-shade"></view>
-        <view class="featured-copy"><view class="featured-title">{{copy.identify}}</view><view class="featured-subtitle">{{copy.identifyHint}}</view></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.challenge}}</view></view>
+        <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
+      </view>
+      <view id="game-match" class="game-entry" data-game="match" bindtap="openGame" role="button" aria-label="{{L.game_match}}">
+        <image wx:if="{{gameArt.match && !gameArtError.match}}" class="featured-art" src="{{gameArt.match}}" mode="aspectFill" binderror="onGameArtError" data-game="match"/>
+        <view class="featured-shade"></view>
+        <view class="featured-copy"><view class="featured-title">{{copy.match}}</view></view>
         <view class="entry-arrow featured-arrow" aria-hidden="true">↗</view>
       </view>
     </view>

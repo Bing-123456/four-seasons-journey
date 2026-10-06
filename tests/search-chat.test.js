@@ -192,20 +192,12 @@ test('clearChat wipes local history after confirmation', async () => {
   assert.equal(fresh.data.messages.length, 0, 'cleared history does not come back on next load');
 });
 
-test('elf answers expose read-aloud controls wired to the reader', () => {
+test('elf answers no longer expose read-aloud controls', () => {
   const fs = require('node:fs');
   const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/search/search.wxml'), 'utf8');
-  assert.match(wxml, /read-btn" data-id="\{\{item.id\}\}" bindtap="readAnswer"/, '每条果灵回答挂朗读按钮');
+  assert.doesNotMatch(wxml, /read-btn|readAnswer/, '果灵回答的朗读按钮已删除');
   const page = buildPage();
-  page.setData({ messages: [{ id: 'mx', role: 'elf', text: '西瓜七月最甜。' }] });
-  let toasted = null;
-  global.wx.showToast = options => { toasted = options.title; };
-  page.readAnswer({ currentTarget: { dataset: { id: 'mx' } } });
-  assert.equal(page.data.readingId, 'mx', '点按后锁定该条为朗读目标');
-  page.readAnswer({ currentTarget: { dataset: { id: 'mx' } } });
-  assert.equal(page.data.reading, false, '再点同一条即停止');
-  page.readAnswer({ currentTarget: { dataset: { id: '不存在' } } });
-  assert.equal(page.data.readingId, 'mx', '未知 id 不改变当前状态');
+  assert.equal(typeof page.readAnswer, 'undefined', '朗读处理函数已删除');
 });
 
 // —— 2026-10-01 RAG 别名映射改造（需求文档任务 1）：约 90 组现代别名→古籍果名 ——

@@ -17,6 +17,20 @@ function page() {
 function answer(instance) {
   for (const [qid, oid] of [['fruits', '柿子'], ['activity', 'pick'], ['timing', 'soon']]) instance.toggleOption({ currentTarget: { dataset: { qid, oid } } });
 }
+function answerActivity(instance, fruitId, activityId) {
+  // 先清空（page 的 onLoad 会从存储恢复上一次 persist 的答案，避免多选再次点击被取消）。
+  instance.setData({ answers: {} });
+  instance.toggleOption({ currentTarget: { dataset: { qid: 'fruits', oid: fruitId } } });
+  instance.toggleOption({ currentTarget: { dataset: { qid: 'activity', oid: activityId } } });
+}
+// 默认后端带内置 token，generate 会先发网络请求；离线兜底在请求失败后才触发。
+// 这里模拟请求失败，回到本地灵感地，返回页面实例。
+async function localFinder(fruitId, activityId) {
+  const finder = page(); answerActivity(finder, fruitId, activityId); finder.generate(); await turn();
+  assert.ok(requests.length >= 1, '应有一次推荐请求');
+  requests[requests.length - 1].fail({ errMsg: 'offline' });
+  return finder;
+}
 function snapshot(status, places = []) { return { taskId, status, places, expiresAt: Date.now() + 60000, virtual: true }; }
 const generatedPlace = { id: 'place-1', fruit: '柿子', name: '柿树山居', intro: '秋园采摘慢时光', virtual: true, month: 9, year: 2026, inSeason: true, harvestMonths: [9, 10, 11], image: '', imageStatus: 'failed' };
 function reply(index, data, statusCode = 200) { requests[index].success({ statusCode, data }); }
@@ -46,6 +60,31 @@ test('requires both answers and falls back to fruit-consistent local ideas when 
   assert.match(finder.data.places[0].image, /\/assets\/fruit-art\//, '评审 9.28②：本地灵感地配所选水果的插画');
   assert.match(finder.data.places[0].monthsText, /月/, '评审 9.28③：果期文案为自然语言区间');
   assert.match(finder.data.note, /云端未就绪/);
+});
+
+test('G22 three play methods yield three distinct local results and never empty (offline fallback)', async () => {
+  const expectations = {
+    pick: { must: /自采/, forbid: /取景|拍照|品尝|现做|现尝/ },
+    photo: { must: /取景|拍照/, forbid: /自采|现做|现尝/ },
+    taste: { must: /品尝|现做|现尝/, forbid: /自采|取景|拍照/ }
+  };
+  for (const activity of ['pick', 'photo', 'taste']) {
+    const finder = await localFinder('柿子', activity);
+    assert.ok(finder.data.places.length >= 1, '结果不为空');
+    const intro = finder.data.places[0].intro;
+    assert.match(intro, /柿/, '结果来自所选水果');
+    assert.match(intro, expectations[activity].must, '玩法 ' + activity + ' 的体验文案正确');
+    assert.doesNotMatch(intro, expectations[activity].forbid, '玩法 ' + activity + ' 不含其他玩法文案');
+  }
+});
+
+test('G22 activity filter degrades gracefully when a fruit has no place for that method (offline fallback)', async () => {
+  // 瓯江柑橘观景园只标 photo/taste，不标 pick；选 pick 时按玩法筛为空，应回退到水果匹配而非空结果。
+  const pickFinder = await localFinder('瓯柑', 'pick');
+  assert.ok(pickFinder.data.places.length >= 1);
+  assert.match(pickFinder.data.places[0].name, /柑|橘/, '回退后仍返回所选水果对应的地点');
+  const photoFinder = await localFinder('瓯柑', 'photo');
+  assert.match(photoFinder.data.places[0].intro, /取景|拍照/);
 });
 
 test('accepted task is restored after leaving the page with identity context and polls instead of resubmitting', async () => {

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "知识卡",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  },
+  "disableScroll": false
+}

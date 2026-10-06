@@ -96,9 +96,35 @@ test('the mine markup mounts the tier on the page root and app.wxss carries all 
   assert.match(mineWxml, /aria-label="\{\{fontCopy\.title\}\}"/, 'the slider is announced to screen readers');
   assert.match(mineWxml, /font-slider-ticks/, 'slider carries readable tier ticks');
   const appWxss = fs.readFileSync(path.resolve(__dirname, '../miniprogram/app.wxss'), 'utf8');
-  for (const rule of ['.fs-large { font-size: 32rpx; }', '.fs-xlarge { font-size: 38rpx; }', '.fs-large .prose', '.fs-xlarge .prose']) {
+  // 10.2①：缩放改为 CSS 变量驱动——根节点写入 --fs-scale，任何元素都跟随，不再依赖类名白名单。
+  for (const rule of ['.fs-normal { --fs-scale: 1; }', '.fs-large { --fs-scale: 1.15; }', '.fs-xlarge { --fs-scale: 1.32; }']) {
     assert.ok(appWxss.includes(rule), 'app.wxss defines ' + rule);
   }
   const appJs = fs.readFileSync(path.resolve(__dirname, '../miniprogram/app.js'), 'utf8');
   assert.match(appJs, /getFontClass/, 'app.js exposes the helper pages can call');
+});
+
+test('every wxss font-size scales with --fs-scale so the whole app follows the setting', () => {
+  const root = path.resolve(__dirname, '../miniprogram');
+  const files = [];
+  (function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules') continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith('.wxss')) files.push(full);
+    }
+  })(root);
+  assert.ok(files.length > 20, 'scanned the whole style tree, got ' + files.length);
+  const bare = [];
+  for (const file of files) {
+    const css = fs.readFileSync(file, 'utf8');
+    // 取完整的属性值（到分号或右括号为止），再判断：含 rpx 字号就必须挂上 --fs-scale。
+    for (const match of css.matchAll(/font-size:([^;}]+)/g)) {
+      const value = match[1];
+      if (!/\d+(?:\.\d+)?rpx/.test(value)) continue;
+      if (!/var\(--fs-scale/.test(value)) bare.push(path.relative(root, file) + ' -> ' + value.trim());
+    }
+  }
+  assert.deepEqual(bare, [], 'no un-scaled font-size may remain:\n' + bare.join('\n'));
 });

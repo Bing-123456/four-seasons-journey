@@ -31,7 +31,7 @@ Page({
       season: raw.id, seasonMeta, en, companionMini: store.getCompanion(), legend: en ? legendCopy.en : legendCopy.zh,
       seasons: catalog.seasons.map(item => Object.assign({}, item, { name: seasonName(item.id), shortName: i18n.t('season_' + item.id) })),
       graphNodes: graph.nodes, graphLines: graph.lines, graphDense: graph.dense,
-      L: i18n.labels(['cal_title1','graph_hint','fruit_locked','guoling_search_title','cal_graph_aria','id_search_aria'])
+      L: i18n.labels(['cal_title1','fruit_locked','guoling_search_title','cal_graph_aria','id_search_aria'])
     }, () => this.measureGraph());
   },
   measureGraph: function () {
@@ -62,13 +62,19 @@ Page({
   node: function (fruit, angle, locked) {
     const x = 50 + 37 * Math.cos(angle), y = 47 + 35 * Math.sin(angle);
     const id = fruit.fullId;
-    return { id, name: fruitName(fruit), x, y, originClass: fruit.world ? 'introduced' : 'native', art: fruitArt(id), locked: !!locked, style: 'left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%;' };
+    // 10.2 / P02①：名字一律排在节点靠圆心的那一侧（内圈），紧贴自己的水果。
+    // 早先固定挂在节点正下方，夏季 16 个果时名字互相压住、还会压到下方另一个水果，
+    // 看着像标错了对象；改成沿半径朝内偏移后，每个名字都只贴着自己的那颗果。
+    const inward = 74;
+    const nameStyle = 'left:calc(50% + ' + (-Math.cos(angle) * inward).toFixed(1)
+      + 'rpx);top:calc(50% + ' + (-Math.sin(angle) * inward).toFixed(1) + 'rpx);transform:translate(-50%,-50%);';
+    return { id, name: fruitName(fruit), x, y, originClass: fruit.world ? 'introduced' : 'native', art: fruitArt(id), locked: !!locked, style: 'left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) + '%;', nameStyle };
   },
   selectFruit: function (event) {
     const id = event.currentTarget.dataset.id;
     if (event.currentTarget.dataset.locked === '1') { wx.showToast({ title: i18n.t('fruit_locked'), icon: 'none' }); return; }
     if (!fruitCulture.findFruit(id)) return;
-    wx.navigateTo({ url: '/pages/fruit-detail/fruit-detail?fruit=' + encodeURIComponent(id) });
+    wx.navigateTo({ url: '/packageFruit/pages/fruit-detail/fruit-detail?fruit=' + encodeURIComponent(id) });
   },
   choose: function (event) {
     const id = event.currentTarget.dataset.id;

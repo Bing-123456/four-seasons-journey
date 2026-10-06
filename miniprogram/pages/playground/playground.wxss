@@ -1,47 +1,156 @@
 .playground-page { padding: 30rpx 32rpx calc(60rpx + env(safe-area-inset-bottom)); background: #F5F5F7; min-height: 0; }
 .game-card { background: #FFFFFF; border-radius: 26rpx; padding: 28rpx; margin-bottom: 24rpx; box-shadow: 0 4rpx 18rpx rgba(29,37,32,.025); }
+/* 10.2 / P23②：农谚问答整页铺满，卡片下方不再留一截灰色空白。 */
+.game-card-full { min-height: calc(100vh - 210rpx); margin-bottom: 0; }
 .game-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12rpx; margin-bottom: 16rpx; }
-.game-num { font-family: inherit; font-size: 22rpx; color: #8B948C; font-weight: 600; }
-.game-name { font-size: 30rpx; color: #263B2D; flex: 1; min-width: 0; font-weight: 600; line-height: 1.45; }
-.game-pill { display: inline-block; font-size: 19rpx; line-height: 1.5; background: #EDF0E4; color: #637852; border-radius: 6rpx; padding: 6rpx 11rpx; }
-.game-desc { font-size: 24rpx; color: #747E74; line-height: 1.85; margin-bottom: 18rpx; }
-.playground-page .game-button { width: 100%; margin: 20rpx 0 0; background: #234B3C; color: #FFFCF3; font-size: 26rpx; line-height: 1.5; border-radius: 16rpx; padding: 21rpx 24rpx; }
+.game-num { font-family: inherit; font-size: calc(22rpx * var(--fs-scale, 1)); color: #8B948C; font-weight: 600; }
+.game-name { font-size: calc(30rpx * var(--fs-scale, 1)); color: #263B2D; flex: 1; min-width: 0; font-weight: 600; line-height: 1.45; }
+.game-pill { display: inline-block; font-size: calc(19rpx * var(--fs-scale, 1)); line-height: 1.5; background: #EDF0E4; color: #637852; border-radius: 6rpx; padding: 6rpx 11rpx; }
+.game-desc { font-size: calc(24rpx * var(--fs-scale, 1)); color: #747E74; line-height: 1.85; margin-bottom: 18rpx; }
+.playground-page .game-button { width: 100%; margin: 20rpx 0 0; background: #234B3C; color: #FFFCF3; font-size: calc(26rpx * var(--fs-scale, 1)); line-height: 1.5; border-radius: 16rpx; padding: 21rpx 24rpx; }
 .game-result { margin-top: 22rpx; padding-top: 20rpx; border-top: 1rpx solid #E4E8DA; }
-.result-line { font-size: 24rpx; color: #63745A; line-height: 1.8; }
-.game-result.is-hit .result-line { color: #234B3C; font-size: 28rpx; }
-.quiz-progress { font-size: 21rpx; color: #8C8066; margin: 4rpx 0 16rpx; letter-spacing: 1rpx; }
-.quiz-question { font-size: 34rpx; line-height: 1.65; color: #344B36; padding: 22rpx 24rpx; background: #F2F5EF; border-radius: 14rpx; margin-bottom: 16rpx; font-weight: 600; }
-.quiz-prompt { font-size: 22rpx; color: #808C75; line-height: 1.7; margin: 0 0 16rpx; }
-.quiz-option { display: flex; justify-content: space-between; align-items: center; gap: 18rpx; background: #F7F8F5; border: 1rpx solid #E2E7D7; border-radius: 14rpx; padding: 23rpx; margin-bottom: 12rpx; font-size: 27rpx; line-height: 1.7; color: #52634E; border-color: #E9EDE5; }
+.result-line { font-size: calc(24rpx * var(--fs-scale, 1)); color: #63745A; line-height: 1.8; }
+.game-result.is-hit .result-line { color: #234B3C; font-size: calc(28rpx * var(--fs-scale, 1)); }
+/* 10.2 / P23⑤：进度条——组件背景按已答题数填充，勾选一项时平滑前推，答完整条填满。 */
+.quiz-progress-track { height: 10rpx; border-radius: 5rpx; background: #E7EBE0; overflow: hidden; margin: 4rpx 0 14rpx; }
+.quiz-progress-fill { height: 100%; border-radius: 5rpx; background: #4E6B3F; transition: width .45s cubic-bezier(.22,.61,.36,1); }
+.quiz-progress { font-size: calc(21rpx * var(--fs-scale, 1)); color: #8C8066; margin: 0 0 16rpx; letter-spacing: 1rpx; }
+.quiz-question { font-size: calc(34rpx * var(--fs-scale, 1)); line-height: 1.65; color: #344B36; padding: 22rpx 24rpx; background: #F2F5EF; border-radius: 14rpx; margin-bottom: 16rpx; font-weight: 600; }
+.quiz-prompt { font-size: calc(22rpx * var(--fs-scale, 1)); color: #808C75; line-height: 1.7; margin: 0 0 16rpx; }
+.quiz-option { display: flex; justify-content: space-between; align-items: center; gap: 18rpx; background: #F7F8F5; border: 1rpx solid #E2E7D7; border-radius: 14rpx; padding: 23rpx; margin-bottom: 12rpx; font-size: calc(27rpx * var(--fs-scale, 1)); line-height: 1.7; color: #52634E; border-color: #E9EDE5; }
 .quiz-option.is-correct { background: #EAF2E3; border-color: #B5C9A4; color: #2E4A38; font-weight: 600; }
 .quiz-mark { color: #4E6B3F; flex-shrink: 0; }
-.quiz-feedback { font-size: 24rpx; line-height: 1.8; padding: 10rpx 0 0; color: #AA624D; }
+.quiz-feedback { font-size: calc(24rpx * var(--fs-scale, 1)); line-height: 1.8; padding: 10rpx 0 0; color: #AA624D; }
 .quiz-feedback.good { color: #4E6B3F; }
-.quiz-done { font-size: 30rpx; color: #2E4A38; line-height: 1.8; }
-.quiz-done text { display: block; margin-top: 10rpx; color: #6C7D5E; font-size: 25rpx; }
+.quiz-done { font-size: calc(30rpx * var(--fs-scale, 1)); color: #2E4A38; line-height: 1.8; }
+/* 10.2 / P23③：扇形封面流——中心卡片正对用户、最大最亮，两侧逐级旋转缩小压暗，切换整组连续转动。 */
+/* 10.5：卡片带横向撑满整个屏幕（负边距抵消父级留白），两侧卡片贴屏幕边缘露出半张 */
+.coverflow-wrap { width: 100vw; margin-left: calc(50% - 50vw); margin-top: 10rpx; }
+.coverflow-stage { position: relative; height: 700rpx; perspective: 1200rpx; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.coverflow-card { position: absolute; width: 560rpx; height: 640rpx; box-sizing: border-box; padding: 24rpx; border-radius: 28rpx; background: #FFFFFF; box-shadow: 0 12rpx 34rpx rgba(29,37,32,.18); text-align: center; transform-style: preserve-3d; backface-visibility: hidden; transition: transform .5s cubic-bezier(.22,.61,.36,1), filter .5s ease; }
+/* 手指拖动时关闭过渡，卡片实时跟手；松手后恢复过渡完成吸附 */
+.coverflow-stage.is-dragging .coverflow-card { transition: none; }
+.coverflow-face { display: flex; justify-content: center; margin: 36rpx 0 26rpx; }
+.coverflow-name { font-size: calc(34rpx * var(--fs-scale, 1)); color: #344B36; font-weight: 700; }
+.coverflow-controls { display: flex; align-items: center; justify-content: center; gap: 24rpx; margin-top: 6rpx; }
+.coverflow-arrow { width: 62rpx; height: 62rpx; line-height: 58rpx; padding: 0; margin: 0; border-radius: 50%; background: #EDF0E4; color: #4E6B3F; font-size: calc(36rpx * var(--fs-scale, 1)); }
+.coverflow-arrow::after { border: 0; }
+.coverflow-caption { min-width: 180rpx; text-align: center; font-size: calc(26rpx * var(--fs-scale, 1)); color: #4E6B3F; font-weight: 600; }
+.quiz-done text { display: block; margin-top: 10rpx; color: #6C7D5E; font-size: calc(25rpx * var(--fs-scale, 1)); }
 .paint-intro { display: flex; align-items: center; gap: 20rpx; margin-bottom: 24rpx; }
 .paint-intro-copy { flex: 1; min-width: 0; }
 .paint-intro .game-head { margin-bottom: 12rpx; }
 .paint-intro .game-desc { margin-bottom: 12rpx; }
 .paint-vignette { width: 158rpx; height: 178rpx; flex-shrink: 0; border-radius: 16rpx; background: #F5EAD4; }
 .paint-examples { display: flex; flex-wrap: wrap; gap: 10rpx; margin: 0 0 16rpx; }
-.paint-example { font-size: 22rpx; line-height: 1.5; color: #566E4D; background: #EDF0E5; border-radius: 10rpx; padding: 11rpx 16rpx; }
-.paint-input { box-sizing: border-box; width: 100%; height: 90rpx; line-height: 46rpx; background: #F5F6F3; border: 1rpx solid #DEDCCD; border-radius: 14rpx; padding: 20rpx 22rpx; font-size: 25rpx; margin-top: 20rpx; border-color: #E1E6DC; }
-.paint-note { font-size: 23rpx; color: #79816D; line-height: 1.85; margin-top: 16rpx; }
+.paint-example { font-size: calc(22rpx * var(--fs-scale, 1)); line-height: 1.5; color: #566E4D; background: #EDF0E5; border-radius: 10rpx; padding: 11rpx 16rpx; }
+.paint-input { box-sizing: border-box; width: 100%; height: 90rpx; line-height: 46rpx; background: #F5F6F3; border: 1rpx solid #DEDCCD; border-radius: 14rpx; padding: 20rpx 22rpx; font-size: calc(25rpx * var(--fs-scale, 1)); margin-top: 20rpx; border-color: #E1E6DC; }
+.paint-note { font-size: calc(23rpx * var(--fs-scale, 1)); color: #79816D; line-height: 1.85; margin-top: 16rpx; }
 .paint-result { margin-top: 24rpx; }
 .paint-art { width: 100%; height: 560rpx; border-radius: 16rpx; background: #F5F5F2; margin-bottom: 14rpx; }
 .playground-page .game-share,.playground-page .paint-setup { background: #EAEEDF; color: #31543F; }
 .unlock-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(14,26,17,.62); display: flex; align-items: center; justify-content: center; }
 .unlock-card { width: 600rpx; max-height: 86vh; overflow-y: auto; box-sizing: border-box; background: #FFFFFF; border-radius: 28rpx; padding: 38rpx 36rpx 30rpx; text-align: center; }
 .unlock-face { display: flex; justify-content: center; margin-bottom: 12rpx; }
-.unlock-title { font-size: 40rpx; line-height: 1.5; color: #234B3C; margin: 6rpx 0 14rpx; font-weight: 700; }
-.unlock-body { font-size: 24rpx; color: #68745F; line-height: 1.8; margin-bottom: 26rpx; }
-.unlock-card .unlock-go { width: 100%; background: #234B3C; color: #FFF9DF; font-size: 26rpx; border-radius: 16rpx; padding: 20rpx; line-height: 1.6; margin: 0 0 14rpx; }
-.unlock-card .unlock-continue { width: 100%; background: transparent; color: #4A6350; font-size: 24rpx; line-height: 1.6; padding: 14rpx; margin: 0; }
+.unlock-title { font-size: calc(40rpx * var(--fs-scale, 1)); line-height: 1.5; color: #234B3C; margin: 6rpx 0 14rpx; font-weight: 700; }
+.unlock-body { font-size: calc(24rpx * var(--fs-scale, 1)); color: #68745F; line-height: 1.8; margin-bottom: 26rpx; }
+.unlock-card .unlock-go { width: 100%; background: #234B3C; color: #FFF9DF; font-size: calc(26rpx * var(--fs-scale, 1)); border-radius: 16rpx; padding: 20rpx; line-height: 1.6; margin: 0 0 14rpx; }
+.unlock-card .unlock-continue { width: 100%; background: transparent; color: #4A6350; font-size: calc(24rpx * var(--fs-scale, 1)); line-height: 1.6; padding: 14rpx; margin: 0; }
 page { background: #F5F5F7; }
 .playground-heading { margin: 4rpx 0 28rpx; }
-.playground-kicker { display: block; color: #7B837C; font-size: 22rpx; font-weight: 600; margin-bottom: 8rpx; }
-.playground-title { color: #1D2520; font-size: 46rpx; font-weight: 700; line-height: 1.25; letter-spacing: -1rpx; }
+.playground-kicker { display: block; color: #7B837C; font-size: calc(22rpx * var(--fs-scale, 1)); font-weight: 600; margin-bottom: 8rpx; }
+.playground-title { color: #1D2520; font-size: calc(46rpx * var(--fs-scale, 1)); font-weight: 700; line-height: 1.25; letter-spacing: -1rpx; }
 
-.quiz-kind { color: #6e6e73; font-size: 22rpx; margin-top: 24rpx; }
-.quiz-source { color: #326c50; font-size: 22rpx; line-height: 1.6; margin: 20rpx 0; }
+.quiz-kind { color: #6e6e73; font-size: calc(22rpx * var(--fs-scale, 1)); margin-top: 24rpx; }
+.quiz-source { color: #326c50; font-size: calc(22rpx * var(--fs-scale, 1)); line-height: 1.6; margin: 20rpx 0; }
+/* 10.3 / P23：结算大卡——居中白色圆角卡，手指左右滑动翻页，卡片内水果造型居中。 */
+.result-swiper-wrap { margin-top: 10rpx; }
+.result-swiper { height: 480rpx; }
+.result-card { height: 100%; box-sizing: border-box; background: #FFFFFF; border-radius: 28rpx; box-shadow: 0 10rpx 30rpx rgba(29,37,32,.12); padding: 30rpx; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.result-card-title { font-size: calc(30rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
+.result-card-face { display: flex; justify-content: center; margin: 18rpx 0 10rpx; }
+.result-card-name { font-size: calc(26rpx * var(--fs-scale, 1)); color: #344B36; font-weight: 600; }
+.quiz-finished { text-align: center; color: #6C7D5E; font-size: calc(26rpx * var(--fs-scale, 1)); padding: 20rpx 0; }
+/* —— 农事挑战 —— */
+.challenge-game { display: flex; flex-direction: column; }
+.challenge-left { font-size: calc(22rpx * var(--fs-scale, 1)); color: #8C8066; margin: 4rpx 0 16rpx; flex-shrink: 0; }
+
+/* 状态 6：今日玩完 · 白色背景瀑布流 */
+.challenge-locked { position: fixed; inset: 0; background: #FFFFFF; z-index: 50; display: flex; flex-direction: column; padding: 28rpx; box-sizing: border-box; }
+.challenge-locked-title { text-align: center; font-size: calc(36rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin: 24rpx 0 20rpx; flex-shrink: 0; }
+/* 2 列 3 行，均分填满整屏，无底部空白；长内容卡内滚动 */
+.challenge-cards-grid { flex: 1; display: flex; flex-direction: column; gap: 18rpx; min-height: 0; }
+.challenge-card-row { flex: 1; display: flex; gap: 18rpx; min-height: 0; }
+.challenge-card-item { flex: 1; display: flex; flex-direction: column; box-sizing: border-box; background: #FBF3E0; border-radius: 16rpx; padding: 20rpx; border: 1rpx solid #D7CCC8; min-height: 0; overflow: hidden; opacity: 0; transform: translateY(40rpx); animation: challenge-card-in .6s ease both; }
+@keyframes challenge-card-in { 0% { opacity: 0; transform: translateY(40rpx); } 60% { transform: translateY(-8rpx); } 100% { opacity: 1; transform: translateY(0); } }
+.challenge-card-header { font-size: calc(30rpx * var(--fs-scale, 1)); font-weight: 700; color: #5D4037; text-align: center; margin-bottom: 10rpx; flex-shrink: 0; }
+.challenge-card-line { height: 1rpx; background: #D7CCC8; margin: 8rpx 0; flex-shrink: 0; }
+.challenge-card-body { flex: 1; min-height: 0; overflow-y: auto; }
+.challenge-card-point { font-size: calc(28rpx * var(--fs-scale, 1)); color: #3E2723; line-height: 2.2; text-align: justify; margin-bottom: 8rpx; }
+
+.challenge-wheel-wrap { margin: 0 auto 16rpx; flex-shrink: 0; }
+.challenge-wheel { position: relative; width: 620rpx; height: 620rpx; margin: 0 auto; }
+.challenge-wheel-rings { position: absolute; inset: 0; border-radius: 50%; }
+/* 离屏合成画布：仅在保存相册时由 JS 绘制，平时移出可视区域 */
+.challenge-share-canvas { position: fixed; left: -10000rpx; top: 0; width: 320px; height: 496px; }
+.challenge-wheel-rings.is-spinning { filter: blur(6px); animation: challenge-spin 1.2s linear; }
+.challenge-wheel-canvas { width: 100%; height: 100%; }
+@keyframes challenge-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.wheel-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 120rpx; height: 120rpx; }
+.wheel-summary { text-align: center; font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; font-weight: 700; margin: 10rpx 0 16rpx; flex-shrink: 0; }
+
+.challenge-start-actions { margin-top: 20rpx; flex-shrink: 0; }
+.challenge-start-btn { width: 100%; display: block; margin: 0 !important; }
+
+.challenge-question-area { flex-shrink: 0; }
+.challenge-situation { font-size: calc(30rpx * var(--fs-scale, 1)); line-height: 1.6; color: #344B36; padding: 16rpx 20rpx; background: #F2F5EF; border-radius: 14rpx; margin-bottom: 16rpx; font-weight: 600; }
+.challenge-option { display: flex; align-items: flex-start; gap: 10rpx; padding: 20rpx 22rpx; margin-bottom: 12rpx; background: #FFFFFF; border: 1rpx solid #E2E7D7; border-radius: 14rpx; font-size: calc(27rpx * var(--fs-scale, 1)); color: #52634E; line-height: 1.6; }
+.challenge-option-letter { font-weight: 700; color: #234B3C; flex-shrink: 0; }
+.challenge-option-text { flex: 1; min-width: 0; }
+.challenge-option-mark { flex-shrink: 0; color: #4E6B3F; font-weight: 700; }
+.challenge-option-mark.is-wrong-mark { color: #A0432F; }
+.challenge-option.is-correct { background: #EAF2E3; border-color: #B5C9A4; color: #2E4A38; font-weight: 600; }
+.challenge-option.is-wrong { background: #F7E7E3; border-color: #D9A99E; color: #A0432F; }
+.challenge-option.is-faded { opacity: 0.4; background: #F7F8F5; border-color: #E2E7D7; color: #A0A8A0; }
+.challenge-hint { font-size: calc(24rpx * var(--fs-scale, 1)); color: #AA624D; line-height: 1.7; margin-top: 10rpx; }
+.challenge-actions { display: flex; gap: 16rpx; margin-top: 14rpx; }
+.challenge-mini { flex: 1; margin: 0 !important; }
+.challenge-knowledge { background: #FBF3E0; border-radius: 18rpx; padding: 32rpx; margin-top: 20rpx; }
+.challenge-k-title { font-size: calc(28rpx * var(--fs-scale, 1)); font-weight: 700; color: #5D4037; margin-bottom: 18rpx; }
+.challenge-k-point { font-size: calc(26rpx * var(--fs-scale, 1)); color: #3E2723; line-height: 2.0; text-align: justify; margin-bottom: 12rpx; padding-bottom: 12rpx; border-bottom: 1rpx solid #D7CCC8; }
+.challenge-k-point:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.challenge-k-actions { display: flex; gap: 16rpx; margin-top: 26rpx; }
+.challenge-k-loading { font-size: calc(26rpx * var(--fs-scale, 1)); color: #8C8066; line-height: 2.0; background: #F0F4EE; border-radius: 14rpx; padding: 14rpx 18rpx; text-align: center; }
+.challenge-saved-btn { opacity: .55; }
+.challenge-saving-btn { opacity: .65; }
+
+/* 弹窗（一大轮完成） */
+.limit-overlay { position: fixed; inset: 0; z-index: 300; background: rgba(14,26,17,.5); display: flex; align-items: center; justify-content: center; }
+.limit-card { position: relative; width: 600rpx; background: #FFFFFF; border-radius: 28rpx; padding: 44rpx 40rpx; text-align: center; }
+.limit-text { font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; line-height: 1.7; }
+.limit-close { position: absolute; right: 20rpx; top: 12rpx; font-size: calc(40rpx * var(--fs-scale, 1)); color: #9aa39e; padding: 8rpx; }
+/* —— 文化连连看 —— */
+.match-game { display: flex; flex-direction: column; }
+.match-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; flex-shrink: 0; }
+.match-left { font-size: calc(24rpx * var(--fs-scale, 1)); color: #234B3C; font-weight: 600; }
+.match-tip { font-size: calc(20rpx * var(--fs-scale, 1)); color: #8C8066; }
+/* 棋盘撑满剩余高度，左右两列等高大卡片 */
+.match-board { flex: 1; display: flex; gap: 24rpx; position: relative; align-items: stretch; min-height: 440rpx; }
+.match-lines { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+.match-col { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 16rpx; }
+.match-card { flex: 1; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 18rpx 14rpx; background: #FFFFFF; border: 1rpx solid #E2E7D7; border-radius: 18rpx; box-shadow: 0 4rpx 14rpx rgba(29,37,32,.06); font-size: calc(31rpx * var(--fs-scale, 1)); color: #344B36; text-align: center; line-height: 1.4; }
+.match-card.is-selected { border-color: #234B3C; background: #EAF2E3; box-shadow: 0 0 0 3rpx rgba(35,75,60,.18); }
+.match-card.is-matched { background: #EAF2E3; border-color: #B5C9A4; color: #2E4A38; }
+.match-card.is-wrong { border-color: #C0392B; color: #C0392B; animation: matchShake .4s ease; }
+@keyframes matchShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+/* 底部果灵气泡：固定在卡片下方，静态不浮动 */
+.match-elf-bar { display: flex; align-items: flex-start; gap: 14rpx; margin-top: 20rpx; flex-shrink: 0; background: #FFFFFF; border-radius: 18rpx; padding: 16rpx 18rpx; box-shadow: 0 4rpx 14rpx rgba(29,37,32,.06); min-height: 96rpx; }
+.match-elf-face { width: 56rpx; height: 56rpx; flex-shrink: 0; }
+.match-elf-body { flex: 1; min-width: 0; display: flex; align-items: center; }
+.match-elf-text { font-size: calc(25rpx * var(--fs-scale, 1)); color: #3A4A40; line-height: 1.7; background: #F0F4EE; border-radius: 14rpx; padding: 14rpx 18rpx; width: 100%; box-sizing: border-box; }
+.match-elf-text.fail { color: #A0432F; background: #F7E7E3; }
+.match-elf-text.select { color: #234B3C; background: #FBF4E3; }
+.match-elf-hint { color: #8C8066; background: transparent; padding: 0; }
+.match-done-actions { margin-top: 18rpx; flex-shrink: 0; }
+.match-disabled { opacity: .5; }
+.match-day-end { font-size: calc(22rpx * var(--fs-scale, 1)); color: #8C8066; text-align: center; margin-top: 14rpx; line-height: 1.6; }

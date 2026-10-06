@@ -1,15 +1,37 @@
 .account-page { padding-top: 32rpx; padding-bottom: calc(60rpx + env(safe-area-inset-bottom)); }
 .account-heading { display: flex; align-items: center; gap: 24rpx; }
-.account-heading .page-title { margin: 4rpx 0 20rpx; font-size: 43rpx; }
+.account-heading .page-title { margin: 4rpx 0 20rpx; font-size: calc(43rpx * var(--fs-scale, 1)); }
 .account-heading-line { flex: 1; height: 1rpx; background: #DDDCCA; margin-bottom: 16rpx; }
 .account-avatar-block { display: flex; flex-direction: column; align-items: center; background: #F0EBD9; border: 1rpx solid #E0D9C5; border-radius: 26rpx; padding: 42rpx 28rpx 30rpx; margin: 8rpx 0 28rpx; }
 .account-avatar-photo { display: block; width: 170rpx; height: 170rpx; box-sizing: border-box; border-radius: 50%; border: 2rpx solid #FFFDF8; background: #F4F0E7; box-shadow: 0 6rpx 20rpx rgba(58,55,44,.06); }
-.account-avatar-edit { margin-top: -14rpx; background: #345B42; color: #FFFDF4; border-radius: 12rpx; padding: 10rpx 24rpx; font-size: 23rpx; z-index: 1; }
-.account-avatar-hint { font-size: 23rpx; color: #847A5D; text-align: center; margin-top: 20rpx; line-height: 1.8; }
+.account-avatar-edit { margin-top: -14rpx; background: #345B42; color: #FFFDF4; border-radius: 12rpx; padding: 10rpx 24rpx; font-size: calc(23rpx * var(--fs-scale, 1)); z-index: 1; }
+.account-avatar-hint { font-size: calc(23rpx * var(--fs-scale, 1)); color: #847A5D; text-align: center; margin-top: 20rpx; line-height: 1.8; }
 .account-field { background: #FFFDF8; border: 1rpx solid #E0E5D6; border-radius: 24rpx; padding: 26rpx; }
 .account-field .field-label { margin-top: 0; }
 .account-input-row { display: flex; align-items: center; gap: 12rpx; margin-top: 16rpx; }
-.account-input { flex: 1; min-width: 0; width: 0; background: #F5F6ED; border: 1rpx solid #DCE3D0; border-radius: 14rpx; height: 86rpx; font-size: 27rpx; padding: 0 20rpx; }
-.account-save { flex-shrink: 0; width: auto; margin: 0; background: #345B42; color: #FFFDF5; border-radius: 14rpx; font-size: 25rpx; line-height: 1.5; padding: 24rpx 25rpx; }
-.account-hint { font-size: 23rpx; color: #79856C; margin-top: 16rpx; line-height: 1.8; }
-.account-page .leave-link { width: 100%; margin-top: 28rpx; background: transparent; color: #607452; font-size: 25rpx; line-height: 1.6; padding: 22rpx; }
+.account-input { flex: 1; min-width: 0; width: 0; background: #F5F6ED; border: 1rpx solid #DCE3D0; border-radius: 14rpx; height: 86rpx; font-size: calc(27rpx * var(--fs-scale, 1)); padding: 0 20rpx; }
+.account-save { flex-shrink: 0; width: auto; margin: 0; background: #345B42; color: #FFFDF5; border-radius: 14rpx; font-size: calc(25rpx * var(--fs-scale, 1)); line-height: 1.5; padding: 24rpx 25rpx; }
+.account-hint { font-size: calc(23rpx * var(--fs-scale, 1)); color: #79856C; margin-top: 16rpx; line-height: 1.8; }
+.account-page .leave-link { width: 100%; margin-top: 28rpx; background: transparent; color: #607452; font-size: calc(25rpx * var(--fs-scale, 1)); line-height: 1.6; padding: 22rpx; }
+/* 头像裁剪蒙层（10.5 改版·微信式）：全屏黑底 + 照片铺满 + 可拖动/可拉伸的白色方形裁剪框 */
+.crop-mask { position: fixed; inset: 0; z-index: 400; background: #0B0F0C; display: flex; flex-direction: column; }
+.crop-topbar { padding: calc(24rpx + env(safe-area-inset-top)) 32rpx 12rpx; text-align: center; }
+.crop-hint { color: rgba(255,255,255,.82); font-size: calc(23rpx * var(--fs-scale, 1)); line-height: 1.6; }
+.crop-stage { position: relative; flex: 1; overflow: hidden; }
+.crop-photo { position: absolute; display: block; }
+.crop-frame { position: absolute; box-sizing: border-box; border: 3rpx solid #FFFFFF; }
+/* 四角 L 形把手：只画两条边，形成直角 */
+.crop-handle { position: absolute; width: 40rpx; height: 40rpx; }
+.ch-nw { left: -3rpx; top: -3rpx; border-left: 7rpx solid #FFFFFF; border-top: 7rpx solid #FFFFFF; }
+.ch-ne { right: -3rpx; top: -3rpx; border-right: 7rpx solid #FFFFFF; border-top: 7rpx solid #FFFFFF; }
+.ch-sw { left: -3rpx; bottom: -3rpx; border-left: 7rpx solid #FFFFFF; border-bottom: 7rpx solid #FFFFFF; }
+.ch-se { right: -3rpx; bottom: -3rpx; border-right: 7rpx solid #FFFFFF; border-bottom: 7rpx solid #FFFFFF; }
+/* 四边中点小圆点：拖它也能改大小 */
+.crop-dot { position: absolute; width: 16rpx; height: 16rpx; border-radius: 50%; background: #FFFFFF; }
+.dot-n { left: 50%; top: -8rpx; margin-left: -8rpx; }
+.dot-s { left: 50%; bottom: -8rpx; margin-left: -8rpx; }
+.dot-w { top: 50%; left: -8rpx; margin-top: -8rpx; }
+.dot-e { top: 50%; right: -8rpx; margin-top: -8rpx; }
+.crop-actions { display: flex; gap: 18rpx; padding: 20rpx 32rpx calc(24rpx + env(safe-area-inset-bottom)); }
+.crop-cancel { flex: 1; background: #EDF0E4; color: #234B3C; font-size: calc(26rpx * var(--fs-scale, 1)); border-radius: 16rpx; padding: 20rpx; margin: 0; }
+.crop-confirm { flex: 1; background: #234B3C; color: #FFFCF3; font-size: calc(26rpx * var(--fs-scale, 1)); border-radius: 16rpx; padding: 20rpx; margin: 0; }

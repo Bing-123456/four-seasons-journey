@@ -35,7 +35,7 @@
     <view class="craft-summary">{{learnView.intro}}{{L.craft_done_note}}</view>
     <button class="button craft-next" bindtap="saveKnowledge">{{favorite ? L.craft_saved : L.craft_save}}</button>
     <button class="button-secondary craft-next" bindtap="restart">{{L.craft_restart}}</button>
+    <!-- 评审 10.5：分享按钮颜色与「已收藏」一致（墨绿实心底），原先误用次级样式 -->
+    <button class="button craft-next" bindtap="shareToCommunity">{{L.craft_share_community}}</button>
   </view>
-
-  <button class="leave-link" bindtap="back">{{L.craft_back}}</button>
 </view>

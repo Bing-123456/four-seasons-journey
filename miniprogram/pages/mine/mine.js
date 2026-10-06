@@ -17,8 +17,8 @@ const FONT_OPTIONS = [
   { value: 'xlarge', label: '特大', en: 'Extra large' }
 ];
 const fontCopyFor = en => en
-  ? { title: 'Font size', hint: 'Larger text across the whole mini program, easier for older eyes' }
-  : { title: '字体大小', hint: '调大整个小程序的正文字号，方便长辈阅读' };
+  ? { title: 'Font size' }
+  : { title: '字体大小' };
 
 // 浇水日历：当月网格，浇水日深色，未浇水浅灰。
 function buildCalendar(wateredDates, now) {
@@ -83,7 +83,7 @@ Page({
       proverbGrowthText: farm.planted ? i18nL.t('proverb_growth', { crop: cropLabel, stage: STAGE_KEYS[farm.stage.key] ? i18nL.t(STAGE_KEYS[farm.stage.key]) : farm.stage.label, total: farm.totalWatered, streak: farm.streak }) : '',
       farmCropPreview: companionLib.defaultConfig(cropId),
       appLanguage: (store.getSettings().language || 'zh'),
-      L: i18nL.labels(['save','mine_notes','traveller','nickname_ph','demo_badge','demo_account','exit_demo','reset_demo','demo_entry_title','demo_entry_sub','demo_entry_btn','stat_culture','stat_places','avatar_set','avatar_edit','companion_pet','companion_guoling','companion_desc','start_customize','language','my_identity','role_tourist','role_farmer','settings_title','settings_note_demo','cloud_ai','cloud_ai_sub','cloud_connected_note','account_edit','account_entry','clear_data','clear_demo','footer_note','farm_calendar_title','farm_calendar_watered','farm_calendar_plain','my_farm','farm_intro','farm_watered_today','farm_water','farm_watered_btn','farm_plant','proverb_kicker','proverb_close','health_idle','health_checking','demo_desc','demo_metric_stops','demo_metric_lessons','demo_metric_cloud','avatar_fallback','mine_profile_aria','mine_share_title','cal_fav_added','fav_fail','demo_back_local','demo_reset_done','demo_entered','demo_switch_fail','settings_save_fail','clear_demo_title','clear_demo_demo_body','clear_local_body','local_data_cleared','clear_fail','switch_fail','switched_zh','farm_planted_toast','farm_plant_fail','week_1','week_2','week_3','week_4','week_5','week_6','week_7','farm_stage_seedling','farm_hint','demo_scenario_label']),
+      L: i18nL.labels(['save','mine_notes','traveller','nickname_ph','demo_badge','demo_account','exit_demo','reset_demo','demo_entry_title','demo_entry_sub','demo_entry_btn','mine_journal_title','mine_journal_sub','stat_culture','stat_places','avatar_set','avatar_edit','companion_pet','companion_guoling','companion_desc','start_customize','language','my_identity','role_tourist','role_farmer','settings_title','settings_note_demo','cloud_ai','cloud_ai_sub','cloud_connected_note','account_edit','account_entry','clear_data','clear_demo','footer_note','farm_calendar_title','farm_calendar_watered','farm_calendar_plain','my_farm','farm_intro','farm_watered_today','farm_water','farm_watered_btn','farm_plant','proverb_kicker','proverb_close','health_idle','health_checking','demo_desc','demo_metric_stops','demo_metric_lessons','demo_metric_cloud','avatar_fallback','mine_profile_aria','mine_share_title','cal_fav_added','fav_fail','demo_back_local','demo_reset_done','demo_entered','demo_switch_fail','settings_save_fail','clear_demo_title','clear_demo_demo_body','clear_local_body','local_data_cleared','clear_fail','switch_fail','switched_zh','farm_planted_toast','farm_plant_fail','week_1','week_2','week_3','week_4','week_5','week_6','week_7','farm_stage_seedling','farm_hint','demo_scenario_label']),
       knowledgeFavorites: store.getKnowledgeFavorites(),
       calendarCells: buildCalendar(farm.wateredDates),
       calendarWeekHeaders: ['week_1','week_2','week_3','week_4','week_5','week_6','week_7'].map(key => i18nL.t(key)),
@@ -115,6 +115,7 @@ Page({
   },
   companion: function () { wx.navigateTo({ url: '/pages/companion/companion' }); },
   openKnowledgeFavorites: function () { wx.navigateTo({ url: '/pages/favorites/favorites?type=knowledge' }); },
+  openSeasonJournal: function () { wx.navigateTo({ url: '/pages/season-journal/season-journal' }); },
   openPlaceFavorites: function () { wx.navigateTo({ url: '/pages/favorites/favorites?type=places' }); },
   toggleAI: function (event) {
     // 云端开关默认开启、直接切换；发送范围见开关下方的说明文字。

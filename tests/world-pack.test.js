@@ -10,8 +10,8 @@ const { sites } = require('../miniprogram/packageWorld/data/sites');
 const app = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../miniprogram/app.json'), 'utf8'));
 
 test('subpackage is registered with its single world page', () => {
-  // packageWorld 之外新增了 packageTrip（分步向导定制行程，评审 P24③）；世界分包仍排首位。
-  assert.equal(app.subPackages.length, 2);
+  // packageWorld 之外新增了 packageFruit（果乡/水果详情分包）与 packageTrip（分步向导定制行程，评审 P24③）；世界分包仍排首位。
+  assert.equal(app.subPackages.length, 3);
   assert.equal(app.subPackages[0].root, 'packageWorld');
   assert.deepEqual(app.subPackages[0].pages, ['pages/index/index']);
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {

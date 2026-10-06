@@ -1,0 +1,6 @@
+.smart-card-page { padding: 24rpx 32rpx 60rpx; }
+.smart-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20rpx; }
+.smart-card-title { font-size: calc(34rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
+.smart-card-back { font-size: calc(26rpx * var(--fs-scale, 1)); color: #3C9D6E; }
+.card-canvas { width: 600rpx; height: 800rpx; background: #FFFDF8; border-radius: 20rpx; box-shadow: 0 6rpx 20rpx rgba(35,75,60,.08); }
+.smart-save { margin-top: 28rpx; }

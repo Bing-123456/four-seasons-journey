@@ -1,6 +1,6 @@
 <view wx:if="{{welcomeVisible}}" class="welcome-overlay" catchtouchmove="noop">
-  <view class="welcome-center"><companion-view config="{{welcomeCompanion}}" size="420" animated="{{true}}"/><view class="welcome-title serif">{{L.welcome_title}}</view><view class="welcome-caption">{{L.welcome_caption}}</view><button id="welcome-companion" class="welcome-customize" bindtap="openCompanion">{{L.welcome_customize}}</button></view>
-  <view class="welcome-brand serif">{{L.home_tagline1}}</view>
+  <view class="welcome-center"><companion-view config="{{welcomeCompanion}}" size="420" animated="{{true}}"/><view class="welcome-title serif">{{L.welcome_title}}</view><view class="welcome-caption">{{L.welcome_caption}}</view><button id="welcome-companion" class="welcome-customize" bindtap="openCompanion">{{L.welcome_customize}}</button><view class="welcome-skip" bindtap="skipWelcome">{{L.welcome_skip}}</view></view>
+  <view class="welcome-brand serif">{{L.home_brand_welcome}}</view>
 </view>
 <view wx:if="{{roleSelectVisible}}" class="role-overlay" catchtouchmove="noop">
   <view class="role-card">
@@ -18,24 +18,18 @@
 </view>
 <view class="home-screen {{fontClass}}">
   <view class="home-demo"><demo-notice id="demo-mode-notice"/></view>
-  <view class="home-heading"><view class="heading-copy"><view class="home-kicker">{{termNote.name}} · {{visualCopy.journal}}</view><view class="home-brand">{{L.home_tagline1}}</view></view><view class="heading-actions"><me-entry/></view></view>
-  <view id="guoling-search" class="home-search" bindtap="openSearch" role="button" aria-label="{{L.id_search_aria}}"><text class="search-symbol">⌕</text><text>{{L.search_local_web}}</text><text class="search-go">›</text></view>
+  <view class="home-heading"><view class="heading-copy"><view class="home-brand">{{L.tab_discover}}</view></view><view class="heading-actions"><me-entry/></view></view>
   <view id="farming-forecast" class="feature-region">
-    <swiper class="feature-swiper" current="{{featureIndex}}" bindchange="changeFeature" autoplay="{{false}}" circular="{{forecastPosters.length > 1}}" duration="320" previous-margin="{{featureSideMargin}}px" next-margin="{{featureSideMargin}}px">
+    <swiper class="feature-swiper" current="{{featureIndex}}" bindchange="changeFeature" autoplay="{{true}}" interval="5000" circular="{{forecastPosters.length > 1}}" duration="320" previous-margin="{{featureSideMargin}}px" next-margin="{{featureSideMargin}}px">
       <swiper-item wx:for="{{forecastPosters}}" wx:key="id">
         <view class="feature-card {{featureIndex === index ? 'is-current' : ''}}" data-id="{{item.id}}" bindtap="openBooking" role="button" aria-label="{{item.title}} · {{visualCopy.eventAction}}">
-          <image class="feature-image feature-image-bg" src="{{item.imageBg || item.image}}" mode="aspectFill" aria-hidden="true"/>
-          <image class="feature-image feature-image-main" src="{{item.image}}" mode="aspectFit" aria-label="{{item.title}}"/>
+          <image class="feature-image feature-image-bg" src="{{item.imageBg || item.image}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
+          <image class="feature-image feature-image-main" src="{{item.image}}" mode="aspectFit" lazy-load="true" aria-label="{{item.title}}"/>
           <view wx:if="{{item.bookable}}" class="activity-cover-copy"><view class="activity-cover-title">{{item.title}}</view><view>{{item.place}}</view><view>{{item.date}}</view></view>
         </view>
       </swiper-item>
     </swiper>
     <view class="feature-dots"><view wx:for="{{forecastPosters}}" wx:key="id" class="feature-dot-hit" data-index="{{index}}" bindtap="selectFeature" role="button" aria-label="{{item.title}}"><view class="feature-dot {{featureIndex === index ? 'active' : ''}}"/></view></view>
-  </view>
-  <view class="home-shortcuts">
-    <view id="journal-entry" class="shortcut-card journal-shortcut" bindtap="openJournal" role="button"><image class="shortcut-image" src="/assets/illustrations/orchard-garden.jpg" mode="aspectFill"/><view class="shortcut-shade"/><view class="shortcut-text"><text>{{visualCopy.reading}}</text><view>{{visualCopy.readingTitle}} <text>›</text></view></view></view>
-    <view wx:if="{{identity.role !== 'farmer'}}" id="profile-bag" class="shortcut-card profile-shortcut" bindtap="openPlaceFinder" role="button" aria-label="{{L.id_bag_aria}}"><image class="shortcut-fruit" src="/assets/illustrations/loquat-still-life.jpg" mode="aspectFill"/><view class="shortcut-text"><text>{{visualCopy.collection}}</text><view>{{L.id_bag_title}} <text>›</text></view></view></view>
-    <view wx:else id="farmer-entry" class="shortcut-card profile-shortcut" bindtap="openSeller" role="button"><image class="shortcut-fruit" src="/assets/illustrations/loquat-still-life.jpg" mode="aspectFill"/><view class="shortcut-text"><text>{{L.role_farmer}}</text><view>{{L.farmer_studio}} <text>›</text></view></view></view>
   </view>
 </view>
 

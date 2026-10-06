@@ -9,30 +9,31 @@ const { createSpeechService, createSpeechAdapter, VOICES } = require('../server/
 test('speech validates dialect and caches completed audio across restarts without a second provider call', async t => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'speech-test-')); t.after(() => rm(dir, { recursive: true, force: true }));
   let count = 0;
-  const adapter = { async synthesize() { count++; await new Promise(resolve => setTimeout(resolve, 10)); return { bytes: Buffer.from('RIFFtestWAVEaudio'), format: 'wav' }; } };
+  const adapter = { async synthesize() { count++; await new Promise(resolve => setTimeout(resolve, 10)); return { bytes: Buffer.from('ID3fake-mp3-audio'), format: 'mp3' }; } };
   const service = createSpeechService(adapter, { dir });
   const body = { text: '四时果园', dialect: 'mandarin' };
   const results = await Promise.all([service.synthesize(body), service.synthesize(body)]);
   assert.equal(count, 1); assert.equal(results[0].audioUrl, results[1].audioUrl);
   const restarted = createSpeechService(adapter, { dir });
   assert.equal((await restarted.synthesize(body)).cached, true); assert.equal(count, 1);
-  assert.equal((await restarted.read(results[0].audioUrl.split('/').pop())).contentType, 'audio/wav');
+  assert.equal((await restarted.read(results[0].audioUrl.split('/').pop())).contentType, 'audio/mpeg');
   assert.equal(await restarted.read('../private.env'), null);
   await assert.rejects(service.synthesize({ text: 'x', dialect: 'unknown' }), /无效/);
   await assert.rejects(service.synthesize({ text: 'x'.repeat(1201), dialect: 'mandarin' }), /无效/);
-  assert.equal(new Set(Object.values(VOICES).map(v => v.voice)).size, 6);
+  assert.ok(Object.values(VOICES).every(v => v.model === 'cosyvoice-v3-flash'), 'all dialects moved off quota-exhausted qwen3-tts-flash');
 });
 
 test('provider HTTP URLs are upgraded only for the expected Alibaba result storage', async () => {
   const requests = [];
-  const adapter = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { fetch: async (url, init) => {
+  const qwenMandarin = { model: 'qwen3-tts-flash', voice: 'Cherry', language_type: 'Chinese' };
+  const adapter = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { voices: { mandarin: qwenMandarin }, fetch: async (url, init) => {
     requests.push(String(url));
     if (init.method) return { ok: true, json: async () => ({ output: { audio: { url: 'http://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/audio.wav?signature=example' } } }) };
     return new Response(Buffer.from('RIFF0000WAVEdata'));
   } });
   assert.equal((await adapter.synthesize('你好', 'mandarin')).format, 'wav');
   assert.ok(requests[1].startsWith('https://dashscope-result-'));
-  const invalid = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { fetch: async () => ({ ok: true, json: async () => ({ output: { audio: { url: 'https://127.0.0.1/secret' } } }) }) });
+  const invalid = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { voices: { mandarin: qwenMandarin }, fetch: async () => ({ ok: true, json: async () => ({ output: { audio: { url: 'https://127.0.0.1/secret' } } }) }) });
   await assert.rejects(invalid.synthesize('你好', 'mandarin'), /speech_url/);
 });
 
@@ -41,7 +42,8 @@ test('streaming WAV placeholder chunk sizes are rewritten with real byte counts 
   header.write('RIFF', 0); header.writeUInt32LE(0x7fffffbf, 4); header.write('WAVE', 8);
   header.write('fmt ', 12); header.writeUInt32LE(16, 16); header.write('data', 36); header.writeUInt32LE(0x7fffff9b, 40);
   const wav = Buffer.concat([header, Buffer.from([1, 2, 3, 4])]);
-  const adapter = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { fetch: async (url, init) => {
+  const qwenMandarin = { model: 'qwen3-tts-flash', voice: 'Cherry', language_type: 'Chinese' };
+  const adapter = createSpeechAdapter({ apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' }, { voices: { mandarin: qwenMandarin }, fetch: async (url, init) => {
     if (init.method) return { ok: true, json: async () => ({ output: { audio: { url: 'http://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/audio.wav?signature=example' } } }) };
     return new Response(wav);
   } });

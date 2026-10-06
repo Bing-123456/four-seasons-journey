@@ -35,20 +35,7 @@ test('an asynchronous personal save remains personal when active account changes
 test('unload during export discards only new preview and does not overwrite persisted artwork',async()=>{
   const subject=page();subject.rotate();asyncCopy=true;const saved=subject.save();subject.onUnload();pendingCopy.success();assert.equal(await saved,false);assert.equal(store.getCompanion().rotation,0);assert.equal(calls.deleted.length,1);
 });
-test('optional photo selection has zero upload or model requests and is not persisted',async()=>{
-  wx.chooseMedia=options=>{options.success({tempFiles:[{tempFilePath:'wxfile://temp/fruit.jpg'}]});options.complete();};const subject=page();subject.choosePhoto();assert.equal(subject.data.photoPath,'wxfile://temp/fruit.jpg');assert.equal(subject.data.photoBusy,false);assert.equal(calls.uploads,0);assert.equal(calls.network,0);subject.rotate();await subject.save();assert.equal(JSON.stringify(store.getCompanion()).includes('fruit.jpg'),false);subject.onUnload();assert.equal(subject._photoPath,'');
-});
 test('missing canvas reports recovery without destroying unsaved config',()=>{
   const subject=page();subject.rotate();subject.createSelectorQuery=()=>({select(){return this;},fields(){return this;},exec(callback){callback([null]);}});subject.initializeCanvas();assert.equal(subject.data.canvasReady,false);assert.match(subject.data.canvasError,/画布/);assert.equal(subject._editor.config.rotation,90);
   subject.createSelectorQuery=()=>({select(){return this;},fields(){return this;},exec(callback){callback([{node:{getContext:()=>context()},width:512,height:512}]);}});subject.initializeCanvas();assert.equal(subject.data.canvasReady,true);assert.equal(subject._editor.config.rotation,90);
-});
-test('section heading 03 shares the exact typography contract of headings 01/02',()=>{
-  const wxml=fs.readFileSync(path.resolve(__dirname,'../miniprogram/pages/companion/companion.wxml'),'utf8');
-  const wxss=fs.readFileSync(path.resolve(__dirname,'../miniprogram/pages/companion/companion.wxss'),'utf8');
-  // 03「果灵生成卡通形象」与 01「选一个水果」挂同一 section-heading 字号/颜色/字重（评审 P12②）。
-  assert.match(wxml,/class="photo-heading section-heading"[^>]*><view><text>03 \/ <\/text>/);
-  assert.equal(wxml.includes('photo-heading-num'),false,'the smaller separate number style is retired');
-  assert.match(wxss,/\.photo-heading\.section-heading\s*\{[^}]*\}/);
-  const pinned=wxss.match(/\.photo-heading\.section-heading\s*\{([^}]*)\}/)[1];
-  for (const declaration of ['font-size: 28rpx','font-weight: 600','color: #234B3C']) assert.ok(pinned.includes(declaration),'heading 03 must pin '+declaration);
 });

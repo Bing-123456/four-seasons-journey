@@ -65,9 +65,6 @@ test('craft notes load translated product names and refresh dialect labels witho
     const page = instance(source);
     assert.doesNotThrow(() => page.onLoad({ fruit: 'spring-plum', cat: 'craft' }));
     assert.equal(page.data.category.learn.product, lang === 'zh' ? '青梅酱' : 'Green plum jam');
-    assert.deepEqual(page.data.dialects.map(item => item.label), lang === 'zh'
-      ? ['普通话', '河南话', '东北话', '上海话', '四川话', '粤语', '英语']
-      : ['Mandarin', 'Henan', 'Dongbei', 'Shanghai', 'Sichuan', 'Cantonese', 'English']);
     assertVisibleLabels(page, 'fruit-note');
   }
 });

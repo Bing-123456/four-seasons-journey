@@ -3,13 +3,13 @@
 .stage-orbit{position:absolute;border:1rpx solid rgba(142,126,89,.13);border-radius:50%;left:50%;top:45%;transform:translate(-50%,-50%);width:520rpx;height:520rpx}
 .orbit-two{width:400rpx;height:400rpx}
 .stage-floor{position:absolute;width:440rpx;height:70rpx;border-radius:50%;background:radial-gradient(ellipse,rgba(66,63,43,.17),rgba(66,63,43,0) 70%);left:50%;bottom:145rpx;transform:translateX(-50%)}
-.stage-caption{position:absolute;bottom:32rpx;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18rpx;color:#8b8471;font-size:21rpx;letter-spacing:2rpx}
+.stage-caption{position:absolute;bottom:32rpx;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:18rpx;color:#8b8471;font-size:calc(21rpx * var(--fs-scale, 1));letter-spacing:2rpx}
 .caption-line{width:42rpx;height:1rpx;background:#b5ac92}
-.stage-status,.stage-error{position:absolute;z-index:3;top:45%;left:35rpx;right:35rpx;text-align:center;color:#6d755f;font-size:25rpx;line-height:1.7;pointer-events:none}
+.stage-status,.stage-error{position:absolute;z-index:3;top:45%;left:35rpx;right:35rpx;text-align:center;color:#6d755f;font-size:calc(25rpx * var(--fs-scale, 1));line-height:1.7;pointer-events:none}
 .stage-error{background:rgba(255,252,242,.93);border-radius:16rpx;padding:24rpx;color:#986747}
 .mill-stage{height:490rpx;background:radial-gradient(ellipse at 50% 32%,#fffdf5 0,#ece8d9 72%,#e6e0cf 100%)}
 .mill-stage .canvas{height:458rpx}
 .mill-stage .stage-orbit{width:420rpx;height:320rpx;top:44%}
 .mill-stage .orbit-two{width:330rpx;height:238rpx}
 .mill-stage .stage-floor{bottom:85rpx;width:320rpx}
-.mill-stage .stage-caption{bottom:20rpx;font-size:20rpx;letter-spacing:2rpx}
+.mill-stage .stage-caption{bottom:20rpx;font-size:calc(20rpx * var(--fs-scale, 1));letter-spacing:2rpx}

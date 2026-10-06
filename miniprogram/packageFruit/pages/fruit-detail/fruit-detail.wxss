@@ -1,0 +1,22 @@
+page{background:#F5F5F7}
+.fruit-page{display:flex;flex-direction:column;min-height:100vh;box-sizing:border-box;padding:30rpx 32rpx calc(60rpx + env(safe-area-inset-bottom))}
+.fruit-heading{flex-shrink:0;padding:10rpx 4rpx 30rpx}
+.fruit-season{font-size:calc(23rpx * var(--fs-scale, 1));color:#728B77;font-weight:500}
+.fruit-name{font-size:calc(58rpx * var(--fs-scale, 1));font-weight:700;color:#1F3026;line-height:1.3;margin:14rpx 0 18rpx;letter-spacing:-1rpx}
+.fruit-intro{font-size:calc(23rpx * var(--fs-scale, 1));line-height:1.7;color:#8C948B}
+/* 10.2 / P22：横向手风琴。默认每条等宽窄条（只显示竖排序号＋标题＋爱心），
+   点开的那条变宽显示详情，其余同步收窄；详情文字延迟淡入，避免展开瞬间闪现。 */
+.fruit-categories{flex:1;min-height:0;display:flex;align-items:stretch;gap:10rpx;background:transparent;padding:0;overflow:visible}
+.fruit-cat{flex:1 1 0;min-width:0;display:flex;align-items:stretch;border-radius:22rpx;background:#FFFFFF;overflow:hidden;box-shadow:0 4rpx 16rpx rgba(29,37,32,.05);transition:flex-grow .45s cubic-bezier(.22,.61,.36,1)}
+.fruit-cat.is-open{flex-grow:3.4;background:#FBFCF8}
+.fruit-cat-rail{width:76rpx;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:14rpx;padding:22rpx 0 18rpx;background:#FFFFFF;border-radius:22rpx 0 0 22rpx}
+.fruit-cat.is-open .fruit-cat-rail{background:#F1F5EA}
+.category-number{color:#AEB8A9;font-size:calc(21rpx * var(--fs-scale, 1));font-weight:600}
+.fruit-cat-label{flex:1;min-width:0;font-size:calc(26rpx * var(--fs-scale, 1));font-weight:600;color:#2F4838;line-height:1.35;text-align:center;writing-mode:vertical-rl;letter-spacing:2rpx}
+.fruit-fav{font-size:calc(28rpx * var(--fs-scale, 1));line-height:1;color:#B2BCAE;padding:6rpx 2rpx}
+.fruit-fav.is-fav{color:#D0342C}
+.fruit-cat-body{flex:1;min-width:0;padding:26rpx 24rpx;display:flex;flex-direction:column;justify-content:space-between;opacity:0;transition:opacity .32s ease .16s}
+.fruit-cat.is-open .fruit-cat-body{opacity:1}
+.fruit-cat-preview{font-size:calc(23rpx * var(--fs-scale, 1));line-height:1.75;color:#6E7A6B;display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden}
+.fruit-cat-more{margin-top:18rpx;font-size:calc(24rpx * var(--fs-scale, 1));font-weight:600;color:#4E6B3F}
+.back-button{margin-top:24rpx}

@@ -1,0 +1,40 @@
+<view class="page fruit-town {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="back-bar">
+    <view class="back-btn" bindtap="goBack" role="button" aria-label="返回行程页">← 返回</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+
+  <block wx:else>
+    <view class="hero-wrap">
+      <image class="hero" src="{{imagePath}}" mode="aspectFill" aria-hidden="true"/>
+    </view>
+
+    <view class="head">
+      <view class="badge">{{town.term}} · {{town.fruit}}</view>
+      <view class="town-name serif">{{town.name}}</view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">{{L.ft_story}}</view>
+      <view class="block-text">{{storyText}}</view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">{{L.ft_culture}}</view>
+      <view class="block-text">{{cultureText}}</view>
+      <view wx:if="{{cultureFrom === 'static'}}" class="block-note">（知识库静态片段）</view>
+    </view>
+
+    <view class="block">
+      <view class="block-title">{{L.ft_experience}}</view>
+      <view class="tags">
+        <text wx:for="{{town.experiences}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+    </view>
+
+    <button class="action-btn nav" bindtap="openLocation">{{L.ft_nav}}</button>
+  </block>
+</view>

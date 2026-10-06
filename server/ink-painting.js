@@ -30,7 +30,7 @@ function createInkPaintingService(adapter, options = {}) {
     const task = { id, keyword, owner, status: 'queued', expiresAt: Date.now() + TTL };
     jobs.set(id, task);
     try { task.providerId = await adapter.create({ prompt: PROMPT_TEMPLATE.replace('{keyword}', keyword), requestId: id }); }
-    catch (error) { task.status = 'failed'; }
+    catch (error) { console.error('[ink-painting]', error && error.stack || error); task.status = 'failed'; }
     return { taskId: id, status: task.status };
   }
   async function status(id, owner = 'local-development', origin = '') {
@@ -42,7 +42,7 @@ function createInkPaintingService(adapter, options = {}) {
     if (!job.providerId) return { taskId: id, status: 'queued' };
     let result;
     try { result = await adapter.status(job.providerId); }
-    catch { throw new InputError('图像服务查询暂不可用，请稍后重试', 'image_provider_unavailable', 502); }
+    catch (error) { console.error('[ink-painting]', error && error.stack || error); throw new InputError('图像服务查询暂不可用，请稍后重试', 'image_provider_unavailable', 502); }
     if (!result || !['queued', 'generating', 'succeeded', 'failed'].includes(result.status)) throw new InputError('图像服务返回无效状态', 'invalid_image_response', 502);
     if (result.status === 'succeeded' && (typeof result.imageUrl !== 'string' || !/^https:\/\//.test(result.imageUrl))) throw new InputError('图像结果无效', 'invalid_image_response', 502);
     job.status = result.status;

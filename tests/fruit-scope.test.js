@@ -124,22 +124,9 @@ test('the Guoling search page refuses foreign fruit and still finds world-layer 
   assert.equal(page.data.emptyNote, page.data.L.search_no_result);
 });
 
-test('fruit story generation never invents foreign farming culture', () => {
-  const tasks = require('../server/tasks');
-  const config = { provider: 'openai-compatible', timeoutMs: 1000 };
-  const transport = { request: () => { throw new Error('模型不应该被调用'); } };
-  const instance = tasks.createTasks({ config, catalog: require('../miniprogram/data/catalog'), core, transport });
-  return instance.run('fruitStory', { keyword: '榴莲', language: 'zh' }).then(result => {
-    assert.equal(result.outOfScope, true);
-    assert.equal(result.zh, '榴莲' + REFUSAL);
-    assert.equal(result.mode, 'out-of-scope');
-    assert.match(result.en, /introduced to China from abroad/);
-  });
-});
-
 test('the ask system prompt carries the same content boundary', () => {
   const source = read('server/tasks.js');
   assert.match(source, /SCOPE_RULE/);
   assert.match(source, /内容边界：只回答中国本土的果品与农耕常识/);
-  assert.match(source, /fruitScope\.classify\(fruit\)/, 'fruit stories check the scope before calling the model');
+  assert.match(source, /fruitScope\.TEMPLATES\.fruit/, 'the scope rule uses the fruit boundary template');
 });

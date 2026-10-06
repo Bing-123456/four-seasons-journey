@@ -1,0 +1,35 @@
+<view class="page journal {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="back-bar"><view class="back-btn" bindtap="goBack" role="button" aria-label="返回">← 返回</view></view>
+  <view class="page-title serif">{{L.sj_title}}</view>
+
+  <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+
+  <block wx:else>
+    <view class="map-card">
+      <canvas type="2d" id="mapCanvas" class="map-canvas"></canvas>
+    </view>
+    <view class="count">已收藏 {{favoritedTowns.length}} 个果乡</view>
+
+    <view class="list">
+      <view wx:for="{{favoritedTowns}}" wx:key="id" class="list-item" data-id="{{item.id}}" bindtap="openTown" role="button">
+        <text class="li-name">{{item.name}}</text>
+        <text class="li-term">{{item.term}}</text>
+      </view>
+      <view wx:if="{{!favoritedTowns.length}}" class="empty">{{L.sj_empty}}</view>
+    </view>
+
+    <button class="action-btn" bindtap="generatePoster">{{L.sj_gen_poster}}</button>
+  </block>
+
+  <view wx:if="{{posterReady}}" class="poster-mask" catchtouchmove="noop" bindtap="closePoster">
+    <view class="poster-card" catchtap="noop">
+      <image class="poster-img" src="{{posterPath}}" mode="widthFix" aria-hidden="true"/>
+      <button class="action-btn save" bindtap="savePoster">{{L.sj_save}}</button>
+      <view class="poster-close" bindtap="closePoster">{{L.sj_close}}</view>
+    </view>
+  </view>
+
+  <canvas type="2d" id="posterCanvas" class="poster-canvas"></canvas>
+</view>

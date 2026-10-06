@@ -163,4 +163,96 @@ function createDashScopeText2ImageAdapter(options = {}) {
   };
 }
 
-module.exports = { createDashScopeImageAdapter, createDashScopeText2ImageAdapter, MODEL };
+// 腾讯 CloudBase 混元生图适配器（Node SDK 渠道）。
+// 该能力仅允许 SDK 调用（HTTP 网关不开放）；SDK 用 CloudBase API Key（accessKey）鉴权，
+// 与文字通道同一套凭证，无需腾讯云 SecretId/SecretKey。generateImage 为同步长耗时接口
+//（10-60s+），与 DashScope 照片适配器一致：create() 立即返回任务 id，后台执行，status() 查询内存快照。
+const TCB_T2I_MODEL = 'HY-Image-3.0-Plus-4090-Tob-v1.0';    // 文生图
+const TCB_I2I_MODEL = 'HY-Image-v3.0-I2I-ToB-v1.0.1';        // 图生图（垫图）
+const TCB_SIZE = '1024x1024';
+
+function createCloudBaseImageAdapters(options = {}) {
+  const { envId, accessKey } = options;
+  if (!envId || !accessKey) return null;
+  const sdk = options.sdk || require('@cloudbase/node-sdk');
+  const now = options.now || Date.now;
+  const ttl = options.ttl || 30 * 60 * 1000;
+  const maxJobs = options.maxJobs || 100, maxConcurrent = options.maxConcurrent || 2;
+  const app = sdk.init({ env: envId, accessKey, timeout: 180000 });
+  const imageModel = app.ai().createImageModel('hunyuan-image');
+  const uploads = new Map(), jobs = new Map();
+  let active = 0;
+  function purge() {
+    for (const map of [uploads, jobs]) for (const [id, value] of map) if (value.expiresAt <= now()) map.delete(id);
+  }
+  function validateImageUrl(url) {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) throw new Error('tcb_invalid_image');
+    return parsed.href;
+  }
+  async function run(job, payload) {
+    job.status = 'generating';
+    try {
+      const response = await imageModel.generateImage(payload);
+      const url = response && Array.isArray(response.data) && response.data[0] && response.data[0].url;
+      if (typeof url !== 'string' || !url) throw new Error('tcb_missing_image');
+      job.imageUrl = validateImageUrl(url); job.status = 'succeeded';
+    } catch (error) { console.error('[tcb-image]', error && error.stack || error); job.status = 'failed'; }
+    finally { active -= 1; }
+  }
+  function launch(job, payload) {
+    jobs.set(job.id, job); active += 1;
+    Promise.resolve().then(() => run(job, payload));
+    return job.id;
+  }
+  async function statusOf(providerId) {
+    purge();
+    const job = jobs.get(providerId);
+    if (!job) throw new Error('tcb_task_expired');
+    return job.status === 'succeeded' ? { status: job.status, imageUrl: job.imageUrl } : { status: job.status };
+  }
+  return {
+    // 照片 → 水果伙伴卡通插画（图生图，垫图走 images base64）
+    companion: {
+      async upload({ bytes, mimeType }) {
+        purge();
+        if (uploads.size >= 200) throw new Error('tcb_upload_limit');
+        const id = randomUUID();
+        uploads.set(id, { base64: bytes.toString('base64'), expiresAt: now() + ttl });
+        void mimeType;
+        return id;
+      },
+      async create({ resource, requestId }) {
+        purge();
+        const stored = typeof resource === 'string' ? uploads.get(resource) : null;
+        if (!stored) throw new Error('tcb_invalid_resource');
+        if (requestId) {
+          for (const [id, job] of jobs) if (job.requestId === requestId) {
+            if (job.resource !== resource) throw new Error('tcb_request_conflict');
+            return id;
+          }
+        }
+        if (jobs.size >= maxJobs || active >= maxConcurrent) throw new Error('tcb_server_busy');
+        return launch({ id: randomUUID(), resource, requestId, status: 'queued', expiresAt: now() + ttl },
+          { model: TCB_I2I_MODEL, prompt: PROMPT, images: [stored.base64], size: TCB_SIZE });
+      },
+      status: statusOf
+    },
+    // 关键词 → 国风插画（文生图）
+    text2image: {
+      async create({ prompt, requestId }) {
+        purge();
+        if (typeof prompt !== 'string' || !prompt.trim()) throw new Error('tcb_missing_prompt');
+        if (requestId) {
+          for (const [id, job] of jobs) if (job.requestId === requestId) return id;
+        }
+        if (jobs.size >= maxJobs || active >= maxConcurrent) throw new Error('tcb_server_busy');
+        return launch({ id: randomUUID(), requestId, status: 'queued', expiresAt: now() + ttl },
+          { model: TCB_T2I_MODEL, prompt, size: TCB_SIZE, revise: { value: false }, enable_thinking: { value: false } });
+      },
+      status: statusOf
+    }
+  };
+}
+
+module.exports = { createDashScopeImageAdapter, createDashScopeText2ImageAdapter, createCloudBaseImageAdapters, MODEL };

@@ -1,0 +1,49 @@
+<view class="page publish {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="head">
+    <view class="back-btn" bindtap="goBack" role="button" aria-label="返回">← 返回</view>
+    <view class="head-title">发布果乡名片（{{step}}/3）</view>
+  </view>
+
+  <view wx:if="{{error}}" class="err">{{error}}</view>
+
+  <view wx:if="{{step === 1}}" class="step">
+    <label class="label">{{L.pub_name}}</label>
+    <input class="input" model:value="{{form.name}}" maxlength="20" placeholder="如：洛川王大爷苹果园"/>
+    <label class="label">{{L.pub_region}}</label>
+    <picker mode="region" value="{{[form.province, form.city, form.county]}}" bindchange="onRegionChange">
+      <view class="input picker">{{form.province || '请选择'}} {{form.city}} {{form.county}} ⌄</view>
+    </picker>
+    <label class="label">{{L.pub_location}}</label>
+    <view class="input picker location-row {{form.locationName ? '' : 'placeholder'}}" bindtap="chooseLocation">{{form.locationName || '点击选择果乡位置'}} ⌄</view>
+    <label class="label">{{L.pub_fruit}}</label>
+    <input class="input" model:value="{{form.fruit}}" maxlength="10" placeholder="如：苹果"/>
+    <button class="next" bindtap="next1">{{L.pub_next}}</button>
+  </view>
+
+  <view wx:elif="{{step === 2}}" class="step">
+    <label class="label">{{L.pub_experience}}</label>
+    <view class="exp-row">
+      <text wx:for="{{experiences}}" wx:key="*this" class="exp {{expSelected[item] ? 'on' : ''}}" data-exp="{{item}}" bindtap="toggleExp">{{item}}</text>
+    </view>
+    <label class="label">{{L.pub_desc}}</label>
+    <textarea class="input area" model:value="{{form.description}}" maxlength="200" placeholder="讲讲你的果园和故事…"/>
+    <label class="label">{{L.pub_transport}}</label>
+    <input class="input" model:value="{{form.transport}}" maxlength="100" placeholder="如：从县城出发约 20 分钟"/>
+    <label class="label">{{L.pub_contact}}</label>
+    <input class="input" model:value="{{form.contact}}" maxlength="50" placeholder="微信号或电话"/>
+    <button class="next" bindtap="next2">{{L.pub_next}}</button>
+    <button class="back-step" data-step="1" bindtap="back">← 上一步</button>
+  </view>
+
+  <view wx:else class="step">
+    <label class="label">{{L.pub_your_desc}}</label>
+    <view class="preview">{{form.description}}</view>
+    <button class="polish" loading="{{polishing}}" disabled="{{polishing}}" bindtap="polish">AI 帮我润色</button>
+    <label class="label">{{L.pub_polished}}</label>
+    <view class="preview polished">{{polishedText || '点击上方按钮，让果灵帮你润色一段温暖的果乡文案'}}</view>
+    <button wx:if="{{polishedText}}" class="back-step" bindtap="polish">{{L.pub_repolish}}</button>
+    <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{editing ? '保存修改' : '确认发布'}}</button>
+    <button class="back-step" data-step="2" bindtap="back">← 上一步</button>
+  </view>
+</view>

@@ -12,6 +12,8 @@
     "pages/workshop/index",
     "pages/companion/companion",
     "pages/seller/index",
+    "pages/seller/publish/publish",
+    "pages/season-journal/season-journal",
     "pages/graph/graph",
     "pages/search/search",
     "pages/craft-lesson/craft-lesson",
@@ -19,9 +21,12 @@
     "pages/fruit-note/fruit-note",
     "pages/place-finder/place-finder",
     "pages/journal/journal",
-    "pages/fruit-detail/fruit-detail",
     "pages/playground/playground",
-    "pages/route-detail/route-detail"
+    "pages/route-detail/route-detail",
+    "pages/smart-card/smart-card",
+    "pages/community/community",
+    "pages/community/post",
+    "pages/community/detail"
   ],
   "window": {
     "navigationBarTitleText": "果物四时记",
@@ -66,7 +71,7 @@
   "lazyCodeLoading": "requiredComponents",
   "permission": {
     "scope.userLocation": {
-      "desc": "仅在主动设置行程起点时读取一次位置"
+      "desc": "用于显示果园与你的距离"
     },
     "scope.record": {
       "desc": "仅用于果灵搜索的语音提问：点按麦克风开始录音，再点一次结束并转成文字"
@@ -85,6 +90,13 @@
       "root": "packageWorld",
       "pages": [
         "pages/index/index"
+      ]
+    },
+    {
+      "root": "packageFruit",
+      "pages": [
+        "pages/fruit-town/fruit-town",
+        "pages/fruit-detail/fruit-detail"
       ]
     },
     {

@@ -5,7 +5,7 @@
       <image class="profile-avatar-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
       <view class="profile-avatar-edit">{{L.account_edit}}</view>
     </view>
-    <view><view class="page-title">{{identity.nickname || L.traveller}}{{L.mine_notes}}</view><view class="muted">{{demoSummary.active ? L.demo_account : L.account_entry}}</view></view>
+    <view><view class="page-title">{{identity.nickname || L.traveller}}{{L.mine_notes}}</view></view>
   </view>
   <view id="farm-card" class="farm-card">
     <view class="farm-scene">
@@ -60,6 +60,10 @@
   </view>
   <view wx:else class="demo-entry"><view><view class="subheading">{{L.demo_entry_title}}</view><view class="muted">{{L.demo_entry_sub}}</view></view><button id="enter-demo" bindtap="enterDemo">{{L.demo_entry_btn}}</button></view>
   <view class="stats"><view id="stat-knowledge" bindtap="openKnowledgeFavorites"><text>{{knowledgeFavorites.length}}</text>{{L.stat_culture}}</view><view id="stat-places" bindtap="openPlaceFavorites"><text>{{favorites.length}}</text>{{L.stat_places}}</view></view>
+  <view class="journal-entry" bindtap="openSeasonJournal">
+    <view class="je-text"><view class="je-title serif">{{L.mine_journal_title}}</view><view class="muted">{{L.mine_journal_sub}}</view></view>
+    <view class="je-arrow" aria-hidden="true">→</view>
+  </view>
   <view id="my-companion" class="companion-card" bindtap="companion">
     <companion-view config="{{companion}}" size="180"/>
     <view class="companion-copy">
@@ -76,7 +80,6 @@
   <slider id="font-scale-slider" class="font-slider" min="0" max="2" step="1" value="{{fontIndex}}" activeColor="#234B3C" backgroundColor="#DCE5D0" block-size="24" block-color="#234B3C" bindchanging="onFontSlider" bindchange="onFontSlider" aria-label="{{fontCopy.title}}"/>
   <view class="font-slider-ticks" aria-hidden="true"><text>{{fontTickLeft}}</text><text>{{fontTickMid}}</text><text>{{fontTickRight}}</text></view>
 </view>
-<view class="muted font-scale-hint">{{fontCopy.hint}}</view>
 </view>
   <view class="section-title">{{L.settings_title}}</view>
   <view wx:if="{{demoSummary.active}}" class="cloud-disclosure">{{L.settings_note_demo}}</view>

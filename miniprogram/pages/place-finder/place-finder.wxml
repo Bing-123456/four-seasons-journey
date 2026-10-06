@@ -1,5 +1,5 @@
 <demo-notice id="demo-mode-notice"/>
-<view class="page finder-page">
+<view class="page finder-page {{fontClass}}">
   <view class="finder-head">
     <view class="finder-face"><companion-view config="{{companion}}" size="72"/></view>
     <view class="finder-title serif">{{L.id_bag_title}}</view>

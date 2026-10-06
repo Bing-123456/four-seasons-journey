@@ -1,0 +1,19 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{invalid}}" class="page empty"><view class="page-title">{{L.fn_invalid_title}}</view><button class="button" bindtap="back">{{L.fn_back}}</button></view>
+<view wx:elif="{{fruit}}" class="page fruit-page {{fontClass}}">
+  <view class="fruit-heading"><view class="fruit-season">{{fruit.seasonName}}</view><view class="fruit-name">{{fruit.name}}</view><view class="fruit-intro">{{L.fruit_note_short}}</view></view>
+  <!-- 10.2 / P22：横向手风琴。默认每条等宽窄条，点开的那条变宽显示详情，其余同步收窄，
+       详情内容延迟淡入，避免展开瞬间文字闪现。 -->
+  <view class="fruit-categories">
+    <view wx:for="{{fruit.categories}}" wx:key="cat" id="fruit-cat-{{item.cat}}" class="fruit-cat {{activeCat === item.cat ? 'is-open' : ''}}">
+      <view class="fruit-cat-rail" data-cat="{{item.cat}}" bindtap="toggleAccordion" role="button" aria-label="{{item.label}}" aria-expanded="{{activeCat === item.cat}}">
+        <view class="fruit-cat-label">{{item.label}}</view>
+        <view class="fruit-fav {{item.fav ? 'is-fav' : ''}}" data-id="{{item.favId}}" catchtap="toggleFavorite" role="button" aria-label="{{L.cal_fav_aria}}{{item.label}}">{{item.fav ? '♥' : '♡'}}</view>
+      </view>
+      <view class="fruit-cat-body">
+        <view class="fruit-cat-preview">{{item.preview}}</view>
+        <view class="fruit-cat-more" data-cat="{{item.cat}}" bindtap="openCategory" role="button">{{L.fn_read}}</view>
+      </view>
+    </view>
+  </view>
+</view>

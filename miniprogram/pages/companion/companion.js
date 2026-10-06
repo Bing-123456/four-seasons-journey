@@ -1,6 +1,4 @@
 const companion = require('../../lib/companion');
-const companionApi = require('../../lib/companion-api');
-const media = require('../../lib/media-service');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -15,7 +13,7 @@ function templatesWithLocks(query, unlocks) {
 }
 
 Page({
-  data:{templates:[],query:'',config:companion.defaultConfig(),palette:companion.PALETTE,color:'#234B3C',tool:'fill',penWidth:7,historyCount:0,strokeCount:0,dirty:false,previewing:false,saving:false,canvasReady:false,canvasError:'',photoPath:'',photoBusy:false,partitionLabel:'',selectionHint:'',genBusy:false,genState:'',genMessage:'',unlocks:['watermelon'],fruitName:'',L:{}},
+  data:{templates:[],query:'',config:companion.defaultConfig(),palette:companion.PALETTE,color:'#234B3C',tool:'fill',penWidth:7,historyCount:0,strokeCount:0,dirty:false,previewing:false,saving:false,canvasReady:false,canvasError:'',partitionLabel:'',selectionHint:'',unlocks:['watermelon'],fruitName:'',L:{}},
   onLoad:function(options){ i18n.applyNav('companion_page_title');
     this._alive=true;this._partition=store.capturePartition();this._editor=companion.createEditor(store.getCompanion(this._partition));
     this._gate=options&&options.gate==='1';this.setData({selectionHint:i18n.t('companion_selection_hint')});
@@ -23,16 +21,6 @@ Page({
     this.setData({config:this._editor.config,fruitName:this.fruitLabel(this._editor.config),partitionLabel:this._partition==='demo'?i18n.t('companion_demo'):i18n.t('companion_local'),L:i18n.labels(['companion_page_title','companion_pick','companion_paint','companion_preview','companion_search_ph','companion_rotate','companion_flip','companion_stepback','companion_undo_all','companion_default','companion_hint_fill','companion_gen_title','companion_gen_sub','companion_gen_pick','companion_gen_pick_again','companion_gen_run','companion_remove_photo','companion_gen_local_note','companion_save','companion_back','companion_locked_label','companion_lock_toast','companion_intro','companion_unlocked_suffix','companion_no_result','companion_paint_mode_fill','companion_paint_mode_brush','companion_paint_mode_preview','companion_reopen_canvas','companion_unsaved','companion_saved_state','companion_tool_fill','companion_tool_brush','companion_brush','companion_brush_thin','companion_brush_mid','companion_brush_thick','companion_hint_generated','companion_photo_chosen','companion_photo_tip','companion_craft_note','companion_preview_btn','companion_keep_editing','companion_saving','loading','comp_palette_aria','comp_search_aria','comp_canvas_aria','comp_color_aria'])});
     this.setData({ paintModeLabel: this.paintModeLabel() });
     this._apiClient = null;
-  },
-  imageClient:function(){
-    const context = media.capture();
-    this._mediaContext = context;
-    this._apiClient = companionApi.createClient({
-      enabled: true,
-      isDemo: () => !this._alive || !media.isCurrent(context),
-      transport: (method, path, body) => media.request(context, method, path, body)
-    });
-    return this._apiClient;
   },
   paintModeLabel:function(){
     const zh = i18n.getLang() !== 'en';
@@ -84,7 +72,7 @@ Page({
   stopDrawingFrame:function(){if(this._frame&&this._canvas&&this._canvas.cancelAnimationFrame)this._canvas.cancelAnimationFrame(this._frame);this._frame=null;},
   syncEditor:function(){
     const dirty=companion.isDirty(this._editor);
-    this.setData({config:clone(this._editor.config),dirty,strokeCount:this._editor.config.strokes.length,fruitName:this.fruitLabel(this._editor.config)});
+    this.setData({config:clone(this._editor.config),dirty,strokeCount:this._editor.config.strokes.length,historyCount:this._editor.history.length,fruitName:this.fruitLabel(this._editor.config)});
     if(dirty!==this._alertEnabled){this._alertEnabled=dirty;if(dirty&&wx.enableAlertBeforeUnload)wx.enableAlertBeforeUnload({message:i18n.t('companion_unsaved_body'),fail(){}});else if(!dirty&&wx.disableAlertBeforeUnload)wx.disableAlertBeforeUnload({fail(){}});}
     this.draw();
   },
@@ -126,10 +114,15 @@ Page({
   touchCancel:function(){this._stroke=null;this.draw();},
   rotate:function(){this.change({type:'rotate'});},
   flip:function(){this.change({type:'flip'});},
-  // 回退一笔：一步一步返回上一笔（只删最后一笔描画）。
-  stepBack:function(){if(this.data.saving)return;this._stroke=null;this.change({type:'step-back'});},
-  // 撤销（清空画笔）：一次撤销全部描画笔迹。
-  undoAll:function(){if(this.data.saving)return;this._stroke=null;this.change({type:'clear-strokes'});},
+  // 10.2 / P23④：填色模式同样可用。回退走通用撤销（撤销最后一次填色或描画）；
+  // 清空在填色模式下恢复模板默认配色，在描画模式下清空全部笔迹。
+  stepBack:function(){
+    if(this.data.saving)return;
+    this._stroke=null;
+    if(this.data.tool==='fill'){if(!this._editor.history.length)return;this._editor=companion.undo(this._editor);this.syncEditor();return;}
+    this.change({type:'step-back'});
+  },
+  undoAll:function(){if(this.data.saving)return;this._stroke=null;this.change({type:this.data.tool==='fill'?'clear-fills':'clear-strokes'});},
   reset:function(){if(this.data.saving)return;wx.showModal({title:i18n.t('companion_reset_title'),content:i18n.t('companion_reset_body'),confirmText:i18n.t('companion_reset_ok'),success:result=>{if(result.confirm&&this._alive)this.change({type:'reset'});}});},
   preview:function(){this.touchCancel();this.setData({previewing:!this.data.previewing},()=>this.setData({paintModeLabel:this.paintModeLabel()}));this.updateBounds();},
   save:function(){
@@ -137,89 +130,6 @@ Page({
     this.touchEnd();const partition=this._partition;const config=clone(this._editor.config);const old=store.getCompanion(partition);let newPath='';
     this.setData({saving:true});this.draw();if(!this.data.canvasReady){this.setData({saving:false});return Promise.resolve(false);}
     return companion.savePreview(this._canvas,partition).then(path=>{newPath=path;if(!this._alive)throw new Error(i18n.t('companion_closed_unsaved'));config.previewPath=path;store.saveCompanion(config,partition);if(old.previewPath&&old.previewPath!==path)companion.removePreview(old.previewPath,partition);this._editor=companion.createEditor(config);this.syncEditor();this.refreshTemplates(this.data.query);wx.showToast({title:partition==='demo'?i18n.t('companion_saved_demo'):i18n.t('companion_saved'),icon:'success'});if(this._gate){setTimeout(()=>{wx.navigateBack({delta:1,fail(){}});},700);}return true;}).catch(error=>{if(newPath)companion.removePreview(newPath,partition);if(this._alive)wx.showToast({title:error.message||i18n.t('companion_save_fail'),icon:'none'});return false;}).finally(()=>{if(this._alive)this.setData({saving:false});});
-  },
-  // 拍照/相册：先弹隐私说明（允许/取消），同意后由微信弹出底部选择框。
-  choosePhoto:function(){
-    if(this.data.photoBusy)return;
-    const page=this;
-    wx.showModal({
-      title:i18n.t('companion_pick_source'),
-      content:i18n.t('companion_gen_privacy'),
-      confirmText:'允许',
-      cancelText:'取消',
-      success:result=>{
-        if(!result.confirm)return;
-        page.setData({photoBusy:true});
-        const chosen=media=>{if(!page._alive)return;const file=media.tempFiles&&media.tempFiles[0];if(file&&file.tempFilePath)page.ensureMinWidth(file.tempFilePath);};
-        const failed=error=>{if(page._alive&&!/cancel/i.test(error.errMsg||''))wx.showToast({title:i18n.t('companion_pick_fail'),icon:'none'});};
-        const done=()=>{if(page._alive)page.setData({photoBusy:false});};
-        if(wx.chooseMedia)wx.chooseMedia({count:1,mediaType:['image'],sourceType:['album','camera'],sizeType:['compressed'],success:chosen,fail:failed,complete:done});
-        else{done();wx.showToast({title:i18n.t('companion_pick_unsupported'),icon:'none'});}
-      }
-    });
-  },
-  ensureMinWidth:function(path){
-    // 选图仅本机预览；生成时统一处理尺寸，不提前上传。
-    this._photoPath=path;this.setData({photoPath:path});
-  },
-  clearPhoto:function(){this._photoPath='';this.setData({photoPath:''});},
-  generateCartoon:async function(){
-    if (this.data.genBusy) return;
-    const temp = this._photoPath || this.data.photoPath;
-    if (!temp) { wx.showToast({ title: i18n.t('companion_need_photo'), icon: 'none' }); return; }
-    let client;
-    try { client = this.imageClient(); } catch (error) { this.setData({ genMessage: error.message }); return; }
-    const context = this._mediaContext;
-    const current = () => this._alive && media.isCurrent(context);
-    const assertCurrent = () => { if (!current()) throw new Error(i18n.t('companion_ctx_changed')); };
-    const requestId = 'gen-' + Date.now() + '-' + Math.floor(Math.random() * 1e6);
-    let localPath = '';
-    let committed = false;
-    this.setData({ genBusy: true, genState: i18n.t('companion_preparing'), genMessage: '' });
-    try {
-      const image = await media.readImage(temp, { forEditing: true });
-      assertCurrent();
-      this.setData({ genState: i18n.t('companion_uploading') });
-      let state = await client.generate(image, true, requestId);
-      if (['failed', 'disabled'].includes(state.status)) throw new Error(state.message || i18n.t('companion_gen_unavailable'));
-      this.setData({ genState: i18n.t('companion_generating') });
-      for (let i = 0; i < 48; i++) {
-        assertCurrent();
-        state = await client.poll();
-        assertCurrent();
-        if (state.status === 'succeeded') break;
-        if (!['queued', 'generating'].includes(state.status)) throw new Error(state.message || i18n.t('paint_fail'));
-        await new Promise(resolve => setTimeout(resolve, 2500));
-      }
-      if (state.status !== 'succeeded') throw new Error(i18n.t('paint_timeout'));
-      this.setData({ genState: i18n.t('companion_saving_work') });
-      const downloaded = await new Promise((resolve, reject) => wx.downloadFile({ url: state.imageUrl,
-        success: res => res.statusCode === 200 ? resolve(res.tempFilePath) : reject(new Error(i18n.t('companion_download_fail'))),
-        fail: () => reject(new Error(i18n.t('download_fail_domain'))) }));
-      assertCurrent();
-      const fs = wx.getFileSystemManager();
-      const dir = wx.env.USER_DATA_PATH + '/companions/' + this._partition;
-      try { fs.mkdirSync(dir, true); } catch (error) { fs.accessSync(dir); }
-      localPath = dir + '/gen-' + Date.now() + '.png';
-      await new Promise((resolve, reject) => fs.copyFile({ srcPath: downloaded, destPath: localPath,
-        success: resolve, fail: () => reject(new Error(i18n.t('companion_store_fail'))) }));
-      assertCurrent();
-      const config = companion.normalizeConfig({ kind: 'generated-image', sourcePath: localPath,
-        rotation: 0, flipped: false, strokes: [], colors: {}, name: this._editor.config.name });
-      store.saveCompanion(config, this._partition);
-      committed = true;
-      this._editor = companion.createEditor(config);
-      this.setData({ config: clone(config), genState: '', genMessage: '', tool: 'brush', previewing: false });
-      if (this._canvas) this.loadSourceAndRender();
-      this.syncEditor();
-      this.setData({ paintModeLabel: this.paintModeLabel() });
-      this.refreshTemplates(this.data.query);
-      wx.showToast({ title: i18n.t('companion_cartoon_saved'), icon: 'success' });
-      if (this._gate) setTimeout(() => { if (this._alive) wx.navigateBack({ delta: 1, fail(){} }); }, 700);
-    } catch (error) {
-      if (localPath && !committed) companion.removePreview(localPath, this._partition);
-      if (this._alive) this.setData({ genState: '', genMessage: error.message || i18n.t('companion_gen_incomplete') });
-    } finally { if (this._alive) this.setData({ genBusy: false }); }
   },
   leave:function(){
     const exit=()=>{if(wx.disableAlertBeforeUnload)wx.disableAlertBeforeUnload({fail(){}});wx.navigateBack({delta:1,fail(){wx.navigateTo({url:'/pages/mine/mine'});}});};

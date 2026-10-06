@@ -15,7 +15,7 @@
     <view wx:if="{{!templates.length}}" class="no-results">{{L.companion_no_result}}</view>
   </view>
 
-  <view class="section-heading canvas-heading"><text>{{previewing ? L.companion_preview : L.companion_paint}}</text><text class="library-count">{{paintModeLabel}}</text></view>
+  <view class="section-heading canvas-heading"><text>{{previewing ? L.companion_preview : L.companion_paint}}</text></view>
   <view class="canvas-paper {{previewing ? 'paper-preview' : ''}}">
     <canvas type="2d" id="editor-canvas" class="editor-canvas" catchtouchstart="touchStart" catchtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchCancel" aria-label="{{L.comp_canvas_aria}}"></canvas>
     <view wx:if="{{canvasError}}" class="canvas-error"><text>{{canvasError}}</text><button bindtap="initializeCanvas">{{L.companion_reopen_canvas}}</button></view>
@@ -28,23 +28,12 @@
     <view class="transform-tools">
       <button bindtap="rotate"><text class="tool-icon">↻</text>{{L.companion_rotate}}</button>
       <button bindtap="flip"><text class="tool-icon">⇆</text>{{L.companion_flip}}</button>
-      <button disabled="{{!strokeCount}}" bindtap="stepBack"><text class="tool-icon">⤺</text>{{L.companion_stepback}}</button>
-      <button disabled="{{!strokeCount}}" bindtap="undoAll"><text class="tool-icon">↶</text>{{L.companion_undo_all}}</button>
+      <button disabled="{{!historyCount}}" bindtap="stepBack"><text class="tool-icon">⤺</text>{{L.companion_stepback}}</button>
+      <button disabled="{{!historyCount}}" bindtap="undoAll"><text class="tool-icon">↶</text>{{L.companion_undo_all}}</button>
       <button bindtap="reset"><text class="tool-icon">↺</text>{{L.companion_default}}</button>
     </view>
-    <view class="subtle-hint">{{config.kind === 'template' ? L.companion_hint_fill : L.companion_hint_generated}}</view>
   </view>
 
-  <view class="photo-section">
-    <view class="photo-heading section-heading"><view><text>03 / </text><text>{{L.companion_gen_title}}</text><text class="photo-subtitle">{{L.companion_gen_sub}}</text></view></view>
-    <view class="photo-body">
-      <view wx:if="{{photoPath}}" class="photo-preview"><image src="{{photoPath}}" mode="aspectFit"/><view class="photo-status">{{L.companion_photo_chosen}}</view>
-      <button class="use-photo gen-button" bindtap="generateCartoon" loading="{{genBusy}}" disabled="{{photoBusy || genBusy}}">{{genBusy ? (genState || L.loading) : L.companion_gen_run}}</button><view wx:if="{{genMessage}}" class="photo-status gen-error">{{genMessage}}</view><button class="clear-photo" bindtap="clearPhoto">{{L.companion_remove_photo}}</button></view>
-      <button class="button-secondary" bindtap="choosePhoto" loading="{{photoBusy}}" disabled="{{photoBusy}}">{{photoPath ? L.companion_gen_pick_again : L.companion_gen_pick}}</button>
-      <view class="subtle-hint">{{L.companion_gen_local_note}}</view>
-    </view>
-  </view>
   <view class="original-note">{{L.companion_craft_note}}</view>
-  <button class="leave-link" bindtap="leave">{{L.companion_back}}</button>
-  <view class="editor-bottom"><button class="preview-button" bindtap="preview" disabled="{{!canvasReady || saving}}">{{previewing ? L.companion_keep_editing : L.companion_preview_btn}}</button><button class="save-button" bindtap="save" loading="{{saving}}" disabled="{{!canvasReady || saving}}">{{saving ? L.companion_saving : L.companion_save}}</button></view>
+  <view class="editor-bottom"><button class="save-button" bindtap="save" loading="{{saving}}" disabled="{{!canvasReady || saving}}">{{saving ? L.companion_saving : L.companion_save}}</button></view>
 </view>

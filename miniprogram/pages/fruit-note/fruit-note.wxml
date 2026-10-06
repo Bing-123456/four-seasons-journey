@@ -17,19 +17,7 @@
     <view wx:if="{{category.cat === 'craft' && category.learn}}" class="note-learn-link" bindtap="goCraftLesson" role="button">{{L.fn_learn_a}}{{category.learn.product}} →</view>
   </view>
 
-  <view id="guoling-read" class="read-card">
-    <view class="read-head">
-      <view class="read-face"><companion-view config="{{companion}}" size="64"/></view>
-      <view class="read-copy"><view class="read-title serif">{{L.read_aloud}}</view><view class="muted read-hint">{{L.read_aloud_hint}}</view></view>
-    </view>
-    <view class="dialect-row">
-      <view wx:for="{{dialects}}" wx:key="code" class="dialect-chip {{dialect === item.code ? 'on' : ''}}" data-code="{{item.code}}" bindtap="chooseDialect">{{item.label}}</view>
-    </view>
-    <button id="read-aloud" class="button read-button" bindtap="toggleRead" loading="{{readBusy}}">{{reading || readBusy ? L.read_stop : L.read_play}}</button>
-  </view>
-
   <view class="note-foot-row">
     <view class="note-fav {{fav ? 'is-fav' : ''}}" bindtap="toggleFavorite" role="button" aria-label="{{L.fn_fav_aria}}">{{fav ? L.fn_fav_on : L.fn_fav_off}}</view>
-    <view class="muted note-verify">{{L.note_verify_short}}</view>
   </view>
 </view>

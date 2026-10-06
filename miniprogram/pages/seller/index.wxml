@@ -1,102 +1,26 @@
-<demo-notice id="demo-mode-notice" force-chinese="{{true}}"/>
-<view class="page seller-page {{fontClass}}">
-  <view class="seller-heading"><view class="seller-heading-mark serif" aria-hidden="true">田</view><view class="page-title serif">{{L.sl_eyebrow}}</view></view>
-  <view class="local-note">{{simulated ? "演示种植记录，不发布真实活动" : "种植记录保存在本机，预约人数同步至工作台"}}</view><button class="visitor-switch" bindtap="enterVisitor">切换到游客</button>
-  <view wx:if="{{error}}" class="error" role="alert">{{error}}</view>
-  <view wx:if="{{batches.length && !showForm}}" class="batch-picker"><text class="muted">{{L.sl_current_batch}}</text><scroll-view scroll-x><view class="batch-options"><view wx:for="{{batches}}" wx:key="id" class="batch-chip {{selectedId === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectBatch">{{item.name}}</view></view></scroll-view></view>
+<view class="page seller {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+  <view class="head">
+    <view class="mark serif" aria-hidden="true">乡</view>
+    <view class="title serif">{{L.sl_title}}</view>
+  </view>
+  <button class="publish-btn" bindtap="publishNew">＋ 发布我的果乡名片</button>
 
-  <block wx:if="{{section === 'ai'}}">
-    <scroll-view scroll-x class="tabs"><view class="tab-row"><view wx:for="{{tabs}}" wx:key="*this" data-index="{{index}}" bindtap="chooseTab" class="tab {{tab === index ? 'selected' : ''}}">{{item}}</view></view></scroll-view>
-    <view wx:if="{{!selected}}" class="empty"><view class="empty-mark serif">田</view><view>{{L.sl_ai_empty_hint}}</view><button class="button" data-section="mine" bindtap="chooseSection">{{L.sl_ai_empty_go}}</button></view>
-    <block wx:elif="{{tab === 0}}">
-      <view class="risk-card risk-{{risk.status}}"><view class="card-kicker">{{risk.date}} · {{L.sl_risk_kicker}}</view><view class="card-title serif">{{riskLabel}}</view><view wx:if="{{risk.status !== 'insufficient'}}"><text class="risk-number">{{risk.remainingKg}}</text><text>{{L.sl_risk_remaining_unit}}</text></view><block wx:else><view class="risk-help" wx:for="{{risk.errors}}" wx:key="*this">{{item}}</view></block><view class="hint">{{risk.windowDays}} {{L.sl_risk_window}} {{risk.windowEnd}}{{L.sl_risk_disclaimer}}</view></view>
-      <view class="signals">
-        <view class="signal-card"><view class="signal-head">{{L.sl_signal_weather}}</view><view class="signal-body">{{weatherView.label}}</view><view wx:if="{{weatherView.available}}" class="hint">虚拟演示天气 · 非真实数据，仅供解读演示</view><view wx:else class="hint">{{L.sl_weather_nofail}}</view></view>
-        <view class="signal-card"><view class="signal-head">人流量 · 虚拟演示</view><block wx:if="{{tourismView && tourismView.totalTrips}}"><view class="signal-body">{{tourismView.totalTrips}} 组 · {{tourismView.totalParties}} 人</view><view class="signal-rows"><view wx:for="{{tourismView.top}}" wx:key="name" class="signal-row"><text>{{item.name}}</text><text>{{item.count}} 人</text></view></view></block><view wx:else class="signal-body muted">{{tourismView.available ? "暂无演示人流量" : "演示人流量暂不可用"}}</view><view class="hint">演示用虚拟人流量，不来自真实预约；预约与人流不等于实际到访或购买。</view></view>
+  <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+  <block wx:else>
+    <view class="section-title">{{L.sl_mine}}</view>
+    <view wx:if="{{!myTowns.length}}" class="empty">{{L.sl_empty}}</view>
+    <view wx:for="{{myTowns}}" wx:key="id" class="town-card">
+      <view class="tc-main">
+        <view class="tc-name">{{item.name}}</view>
+        <view class="tc-tag">{{item.term}} · {{item.fruit}}</view>
       </view>
-      <view class="insight-card card">
-        <view class="section-title">{{L.sl_insight_title}}</view>
-        <view class="hint">结合种植情况、虚拟演示天气与人流量，生成可执行的文旅活动草案。</view>
-        <button class="button plan-button" bindtap="runInsight" loading="{{insightBusy}}" disabled="{{insightBusy}}">{{insight ? L.sl_insight_regen : L.sl_insight_go}}</button>
-        <block wx:if="{{insight}}">
-          <view class="insight-mode">{{insightMode === 'local-rules' || insight.fallbackReason ? L.sl_mode_local : L.sl_mode_ai}}{{insight.fallbackReason ? ' · ' + insight.fallbackReason : ''}}</view>
-          <view class="insight-reading">{{insight.reading}}</view>
-          <view class="subheading">{{L.sl_suggestions}}</view>
-          <view wx:for="{{insight.suggestions}}" wx:key="*this" class="hint">· {{item}}</view>
-          <view wx:if="{{insight.planSteps.length}}" class="subheading">{{L.sl_insight_synced}}</view>
-        </block>
+      <view class="tc-status {{item.published ? 'on' : 'off'}}">{{item.statusText}}</view>
+      <view class="tc-actions">
+        <text class="tc-edit" data-id="{{item.id}}" bindtap="editTown">{{L.sl_edit}}</text>
+        <text wx:if="{{item.published}}" class="tc-down" data-id="{{item.id}}" bindtap="unpublishTown">{{L.sl_unpublish}}</text>
       </view>
-      <button class="text-button" bindtap="toggleAdvanced">{{advanced ? "收起经营依据" : "查看经营依据"}}</button><block wx:if="{{advanced}}"><view class="formula card"><view class="section-title">{{L.sl_formula_title}}</view><view><text>{{L.sl_f_supply}}</text><text>{{risk.supplyKg}} 公斤</text></view><view><text>{{L.sl_f_pending}}</text><text>{{risk.pendingKg}} 公斤</text></view><view><text>{{L.sl_f_expected}}</text><text>{{risk.expectedSalesKg === null ? L.sl_f_tbd : risk.expectedSalesKg + ' 公斤'}}</text></view><view class="hint">{{risk.basis}}</view><view class="hint">{{L.sl_f_stock_a}}{{risk.stockKg}}{{L.sl_f_stock_b}}{{risk.incomingKg}}{{L.sl_f_stock_c}}{{risk.incomingLowKg}}–{{risk.incomingHighKg}}{{L.sl_f_stock_d}}</view><view wx:for="{{risk.notes}}" wx:key="*this" class="hint">{{item}}</view></view>
-          </block></block>
-    <block wx:elif="{{tab === 1}}">
-      <view class="section-title">{{L.sl_plan_title}}</view><view class="hint">{{L.sl_plan_hint}}</view><button class="button plan-button" bindtap="createPlan">{{L.sl_plan_go}}</button>
-      <view wx:for="{{plans}}" wx:key="id" class="plan card">
-        <view class="card-kicker">{{L.sl_draft}} · {{item.mode === 'ai-insight' ? L.sl_draft_ai : item.mode === 'local-constraints' ? L.sl_draft_local : ''}}</view>
-        <view class="card-title serif">{{item.title}}</view>
-        <block wx:if="{{item.mode === 'ai-insight'}}">
-          <view class="pill">{{item.capacity ? L.sl_cap_a + item.capacity + L.sl_cap_b : L.sl_cap_tbd}}{{item.budget !== null ? L.sl_budget_a + item.budget : ''}}</view>
-          <view class="insight-reading">{{item.reading}}</view>
-          <view class="subheading">{{L.sl_ai_suggestions}}</view><view wx:for="{{item.suggestions}}" wx:for-item="suggestion" wx:key="*this" class="hint">· {{suggestion}}</view>
-          <view class="subheading">{{L.sl_steps}}</view>
-        </block>
-        <view wx:else><view class="pill">{{item.capacity ? L.sl_cap_plain_a + item.capacity + L.sl_cap_b : L.sl_no_visit}}</view></view>
-        <view wx:if="{{item.culturalBasis}}" class="basis"><view class="subheading">{{item.culturalBasis.title}}</view><view>{{item.culturalBasis.text}}</view><view class="hint">{{item.culturalBasis.relation}}</view></view><view wx:elif="{{item.mode !== 'ai-insight'}}" class="local-note">{{L.sl_no_culture}}</view>
-        <view wx:for="{{item.steps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="*this" class="plan-step"><text>{{stepIndex + 1 < 10 ? '0' : ''}}{{stepIndex + 1}}</text><view>{{step}}</view></view>
-        <view wx:if="{{item.cost}}" class="plan-cost">{{L.sl_cost_a}}{{item.cost.budget}}{{L.sl_cost_b}}{{item.cost.estimated}}<view class="hint">{{item.cost.description}}</view></view>
-        <view class="subheading">{{L.sl_to_confirm}}</view><view wx:for="{{item.confirmations}}" wx:for-item="confirmation" wx:key="*this" class="hint">· {{confirmation}}</view>
-        <view wx:if="{{item.alternative}}" class="alternative">{{item.alternative}}</view><button wx:if="{{!simulated}}" class="button-secondary" data-plan="{{item.id}}" bindtap="openActivity">完善并发布此活动</button>
-
-      </view>
-    </block>
-  </block>
-
-  <block wx:if="{{section === 'mine'}}">
-    <button wx:if="{{batches.length}}" class="text-button" bindtap="toggleAdvanced">{{advanced ? "收起详细台账" : "详细台账与执行记录"}}</button>
-    <scroll-view wx:if="{{advanced}}" scroll-x class="tabs"><view class="tab-row"><view wx:for="{{tabs}}" wx:key="*this" data-index="{{index}}" bindtap="chooseTab" class="tab {{tab === index ? 'selected' : ''}}">{{item}}</view></view></scroll-view>
-    <view wx:if="{{tab === 0}}">
-      <block wx:if="{{!showForm}}">
-        <view wx:if="{{!selected}}" class="empty"><view class="empty-mark serif">田</view><view>{{L.sl_batch_empty}}</view><view class="muted">{{L.sl_batch_empty_note}}</view></view>
-        <view wx:if="{{selected}}" class="batch-card card"><view class="card-title">{{selected.variety || selected.crop}}</view><view class="dates"><view>预计成熟 <text>{{selected.matureDate}}</text></view><view>预计总产量 <text>{{selected.yieldMaxKg}} 公斤</text></view><view>可采摘时间 <text>{{selected.reception.startDate || selected.harvestStart}} — {{selected.reception.endDate || selected.harvestEnd}}</text></view></view><view class="growth-note">{{selected.growthNote || '暂无生长概况'}}</view><button class="button-secondary" bindtap="editBatch">编辑种植记录</button></view>
-        <button class="button" bindtap="newBatch">{{L.sl_new_batch}}</button>
-        <button wx:if="{{batches.length}}" class="text-button" bindtap="exportRecords">{{L.sl_export}}</button>
-        <button wx:if="{{selected}}" class="text-button" data-section="ai" bindtap="chooseSection">{{L.sl_goto_ai}}</button>
-        <view wx:if="{{selected}}" class="card activity-section"><view class="section-title">采摘活动与预约</view><view wx:if="{{bookingError}}" class="hint">{{bookingError}}</view><button class="button-secondary" bindtap="loadBookings" loading="{{bookingBusy}}">刷新预约</button><view wx:for="{{publishedActivities}}" wx:key="id" class="published-activity"><view class="subheading">{{item.title}} · {{item.published ? '已发布' : '已关闭'}}</view><view class="hint">{{item.startDate}} — {{item.endDate}} · 每天 {{item.capacityPerDay}} 人</view><view class="hint">{{item.location}}</view><view wx:for="{{item.reservations}}" wx:for-item="day" wx:key="date" class="signal-row"><text>{{day.date}}</text><text>{{day.reservations}} 笔 · {{day.people}} 人</text></view><view class="inline-actions"><button data-id="{{item.id}}" bindtap="openActivity">编辑活动</button><button wx:if="{{item.published}}" data-id="{{item.id}}" bindtap="unpublishActivity" disabled="{{activityBusy}}">关闭新预约</button></view></view><button class="button" disabled="{{simulated}}" bindtap="openActivity">发布采摘活动</button></view>
-      </block>
-      <view wx:if="{{showForm}}" class="form-panel">
-        <view class="section-title">{{editing ? L.sl_form_edit : L.sl_form_new}}</view>
-        <label class="field-label">水果品种</label><input class="input" value="{{form.variety || form.crop}}" maxlength="60" placeholder="例如：麒麟西瓜" data-field="variety" bindinput="formInput"/>
-        <label class="field-label">预计成熟时间</label><picker mode="date" value="{{form.matureDate}}" data-field="matureDate" bindchange="formInput"><view class="input">{{form.matureDate}} ⌄</view></picker>
-        <label class="field-label">生长概况</label><textarea class="input area" value="{{form.growthNote}}" maxlength="300" data-field="growthNote" bindinput="formInput" placeholder="长势、健康状况与近期变化"/>
-        <label class="field-label">预计总产量（公斤）</label><input class="input" type="digit" value="{{form.yieldTotal}}" placeholder="请输入预计产量" data-field="yieldTotal" bindinput="formInput"/>
-        <label class="field-label">可采摘时间</label><view class="two-fields"><picker mode="date" value="{{form.receptionStart}}" data-field="receptionStart" bindchange="formInput"><view class="input">{{form.receptionStart}}</view></picker><picker mode="date" value="{{form.receptionEnd}}" data-field="receptionEnd" bindchange="formInput"><view class="input">{{form.receptionEnd}}</view></picker></view>
-        <button class="button" bindtap="saveBatch" loading="{{busy}}" disabled="{{busy}}">{{L.sl_save_batch}}</button><button class="text-button" bindtap="cancelForm">{{L.sl_cancel}}</button>
-      </view>
-    </view>
-
-    <view wx:elif="{{!selected}}" class="empty">{{L.sl_ledger_empty_batch}}</view>
-    <view wx:elif="{{tab === 1}}">
-      <view class="section-title">{{L.sl_ledger_title}}</view><view class="hint">{{L.sl_ledger_hint}}</view>
-      <label class="field-label">{{L.sl_f_type}}</label><picker range="{{eventTypes}}" range-key="label" value="{{eventForm.type}}" data-field="type" bindchange="eventPicker"><view class="input picker">{{eventTypes[eventForm.type].label}}<text>⌄</text></view></picker>
-      <label class="field-label">{{L.sl_f_date}}</label><picker mode="date" value="{{eventForm.date}}" data-field="date" bindchange="eventInput"><view class="input">{{eventForm.date}} ⌄</view></picker>
-      <block wx:if="{{!closesDay}}"><label class="field-label">{{L.sl_f_qty}}</label><view class="two-fields"><input class="input" type="digit" value="{{eventForm.quantity}}" placeholder="{{L.sl_qty_ph}}" data-field="quantity" bindinput="eventInput"/><picker range="{{quantities}}" range-key="label" value="{{eventForm.unit}}" data-field="unit" bindchange="eventPicker"><view class="input">{{quantities[eventForm.unit].label}} ⌄</view></picker></view></block>
-      <block wx:if="{{requiresReference}}"><label class="field-label">{{L.sl_f_reference}}</label><picker wx:if="{{referenceOptions.length}}" range="{{referenceOptions}}" range-key="label" value="{{referenceIndex}}" bindchange="referenceChange"><view class="input">{{referenceOptions[referenceIndex].label}} ⌄</view></picker><view wx:else class="local-note">{{L.sl_no_reference}}</view></block>
-      <view wx:if="{{closesDay}}" class="local-note">{{L.sl_close_note}}</view>
-      <label class="field-label">{{L.sl_f_note}}</label><textarea class="input area" maxlength="500" value="{{eventForm.note}}" data-field="note" bindinput="eventInput" placeholder="{{L.sl_note_ph}}"/>
-      <button class="button" bindtap="saveEvent" disabled="{{busy || (requiresReference && !referenceOptions.length)}}" loading="{{busy}}">{{L.sl_save_event}}</button>
-      <view class="section-title">{{L.sl_book_title}} <text class="count">{{events.length}}</text></view><view wx:if="{{!events.length}}" class="muted">{{L.sl_no_events}}</view><view wx:for="{{events}}" wx:key="id" class="ledger-row"><view><view>{{item.label}}</view><view class="hint">{{item.date}} · {{item.note || L.sl_no_note}}</view></view><text>{{item.type === 'close' ? L.sl_closed : item.quantityKg + ' 公斤'}}</text></view>
-    </view>
-
-    <view wx:elif="{{tab === 2}}">
-      <view class="section-title">{{L.sl_exec_title}}</view><view class="hint">{{L.sl_exec_hint}}</view>
-      <block wx:if="{{plans.length}}"><label class="field-label">{{L.sl_f_plan}}</label><picker range="{{plans}}" range-key="title" value="{{planIndex}}" bindchange="choosePlan"><view class="input">{{plans[planIndex].title}} ⌄</view></picker><label class="field-label">{{L.sl_f_intent}}</label><input class="input" type="number" value="{{feedbackForm.intentCount}}" data-field="intentCount" bindinput="feedbackInput"/><label class="field-label">{{L.sl_f_actual}}</label><input class="input" type="digit" value="{{feedbackForm.actualCost}}" data-field="actualCost" bindinput="feedbackInput"/><label class="field-label">{{L.sl_f_what}}</label><textarea class="input area" value="{{feedbackForm.note}}" maxlength="1000" data-field="note" bindinput="feedbackInput" placeholder="{{L.sl_what_ph}}"/><button class="button" bindtap="saveFeedback">{{L.sl_save_exec}}</button></block><view wx:else class="local-note">{{L.sl_exec_empty}}</view>
-      <view class="section-title">{{L.sl_exec_book}}</view><view wx:for="{{feedback}}" wx:key="id" class="card"><view class="card-kicker">{{item.simulated ? L.sl_rec_sim : L.sl_rec_local}}</view><view>{{L.sl_intent_a}}{{item.intentCount}}{{L.sl_intent_b}}{{item.actualCost}}</view><view class="feedback-note">{{item.note}}</view><view class="hint">{{item.interpretation}}</view></view>
     </view>
   </block>
 </view>
-
-<view class="section-bar-wrap"><view class="section-bar">
-  <view class="section-item {{section === 'ai' ? 'active' : ''}}" data-section="ai" bindtap="chooseSection" role="tab" aria-selected="{{section === 'ai'}}"><text class="section-glyph">⌖</text>{{L.sl_section_ai}}</view>
-  <view class="section-item {{section === 'mine' ? 'active' : ''}}" data-section="mine" bindtap="chooseSection" role="tab" aria-selected="{{section === 'mine'}}"><text class="section-glyph">❋</text>{{L.sl_section_mine}}</view>
-</view></view>
-
-<view wx:if="{{activityFormVisible}}" class="activity-mask"><view class="activity-sheet"><view class="section-title">{{activityForm.id ? '编辑活动' : '发布采摘活动'}}</view><scroll-view scroll-y class="activity-scroll"><view wx:if="{{error}}" class="error">{{error}}</view><label class="field-label">活动名称</label><input class="input" maxlength="60" value="{{activityForm.title}}" data-field="title" bindinput="activityInput"/><label class="field-label">活动介绍</label><textarea class="input area" maxlength="300" value="{{activityForm.description}}" data-field="description" bindinput="activityInput"/><label class="field-label">集合地点</label><input class="input" maxlength="160" value="{{activityForm.location}}" placeholder="请填写游客可找到的具体地址" data-field="location" bindinput="activityInput"/><label class="field-label">活动日期</label><view class="two-fields"><picker mode="date" value="{{activityForm.startDate}}" data-field="startDate" bindchange="activityInput"><view class="input">{{activityForm.startDate}}</view></picker><picker mode="date" value="{{activityForm.endDate}}" data-field="endDate" bindchange="activityInput"><view class="input">{{activityForm.endDate}}</view></picker></view><label class="field-label">每日最多接待人数</label><input class="input" type="number" value="{{activityForm.capacityPerDay}}" data-field="capacityPerDay" bindinput="activityInput"/><view class="hint">发布后，游客可在首页预约，人数按活动日期汇总。请确认地点、日期与接待能力。</view></scroll-view><button class="button" bindtap="publishActivity" loading="{{activityBusy}}" disabled="{{activityBusy}}">确认发布</button><button class="text-button" bindtap="closeActivity" disabled="{{activityBusy}}">取消</button></view></view>

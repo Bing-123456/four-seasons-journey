@@ -4,15 +4,26 @@ const path = require('node:path');
 const { loadEnv } = require('./env');
 const { readConfig } = require('./config');
 const { createServer } = require('./app');
-const { createDashScopeImageAdapter, createDashScopeText2ImageAdapter } = require('./image-provider');
+const { createDashScopeImageAdapter, createDashScopeText2ImageAdapter, createCloudBaseImageAdapters } = require('./image-provider');
 const { createSpeechAdapter } = require('./speech');
 const { createAsrAdapter } = require('./asr');
+
+// 进程防崩兜底（评审 10.5 教训：第三方 SDK 偶发在异步链外抛错，Node 默认因此退出，
+// 导致整个容器反复崩溃 502）。记录日志但不退出，保证其余功能持续可用。
+process.on('unhandledRejection', reason => { console.error('[unhandledRejection]', reason); });
+process.on('uncaughtException', error => { console.error('[uncaughtException]', error); });
 
 function start() {
   loadEnv(path.resolve(__dirname, '..', '.env'));
   const config = readConfig();
-  const imageAdapter = config.image && config.image.provider === 'dashscope' ? createDashScopeImageAdapter({ apiKey: config.image.apiKey, baseUrl: config.image.baseUrl }) : null;
-  const inkAdapter = config.image && config.image.provider === 'dashscope' ? createDashScopeText2ImageAdapter({ apiKey: config.image.apiKey, baseUrl: config.image.baseUrl }) : null;
+  let imageAdapter = null, inkAdapter = null;
+  if (config.image && config.image.provider === 'dashscope') {
+    imageAdapter = createDashScopeImageAdapter({ apiKey: config.image.apiKey, baseUrl: config.image.baseUrl });
+    inkAdapter = createDashScopeText2ImageAdapter({ apiKey: config.image.apiKey, baseUrl: config.image.baseUrl });
+  } else if (config.image && config.image.provider === 'cloudbase') {
+    const adapters = createCloudBaseImageAdapters(config.image.cloudbase);
+    if (adapters) { imageAdapter = adapters.companion; inkAdapter = adapters.text2image; }
+  }
   const server = createServer({ config, imageAdapter, inkAdapter, speechAdapter: createSpeechAdapter(config.speech), asrAdapter: createAsrAdapter(config.asr) });
   server.listen(config.port, config.host, () => {
     const address = server.address();
