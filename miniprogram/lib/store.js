@@ -169,7 +169,7 @@ function unlockFruit(fruitId, partition) {
   write(state, target);
   return { added, unlocks: clone(state.fruitUnlocks) };
 }
-// 农谚问答进度（10.5 游戏③）：按「本机日期」记录当天已答完的轮数；
+// 农谚问时进度（10.5 游戏③）：按「本机日期」记录当天已答完的轮数；
 // 出题记录跨天保留，保证出过的题不再重复，全部出完后再洗牌重来。
 function localDayKey() {
   const now = new Date();

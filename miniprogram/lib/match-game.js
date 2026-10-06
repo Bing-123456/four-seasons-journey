@@ -1,6 +1,6 @@
 'use strict';
 
-// 文化连连看游戏逻辑：点水果 → 点标签 → 判定配对 → 果灵气泡讲解。
+// 文脉连连游戏逻辑：点水果 → 点标签 → 判定配对 → 果灵气泡讲解。
 // 后台 server/chat.js 的 taskType==='match' 分支已能返回 AI 点评，本文件只改前端，
 // 不改动后端。
 const MATCH_POOL = require('../data/match-questions');

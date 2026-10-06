@@ -1,6 +1,6 @@
 .playground-page { padding: 30rpx 32rpx calc(60rpx + env(safe-area-inset-bottom)); background: #F5F5F7; min-height: 0; }
 .game-card { background: #FFFFFF; border-radius: 26rpx; padding: 28rpx; margin-bottom: 24rpx; box-shadow: 0 4rpx 18rpx rgba(29,37,32,.025); }
-/* 10.2 / P23②：农谚问答整页铺满，卡片下方不再留一截灰色空白。 */
+/* 10.2 / P23②：农谚问时整页铺满，卡片下方不再留一截灰色空白。 */
 .game-card-full { min-height: calc(100vh - 210rpx); margin-bottom: 0; }
 .game-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12rpx; margin-bottom: 16rpx; }
 .game-num { font-family: inherit; font-size: calc(22rpx * var(--fs-scale, 1)); color: #8B948C; font-weight: 600; }
@@ -71,7 +71,7 @@ page { background: #F5F5F7; }
 .result-card-face { display: flex; justify-content: center; margin: 18rpx 0 10rpx; }
 .result-card-name { font-size: calc(26rpx * var(--fs-scale, 1)); color: #344B36; font-weight: 600; }
 .quiz-finished { text-align: center; color: #6C7D5E; font-size: calc(26rpx * var(--fs-scale, 1)); padding: 20rpx 0; }
-/* —— 农事挑战 —— */
+/* —— 农事转盘 —— */
 .challenge-game { display: flex; flex-direction: column; }
 .challenge-left { font-size: calc(22rpx * var(--fs-scale, 1)); color: #8C8066; margin: 4rpx 0 16rpx; flex-shrink: 0; }
 
@@ -129,7 +129,7 @@ page { background: #F5F5F7; }
 .limit-card { position: relative; width: 600rpx; background: #FFFFFF; border-radius: 28rpx; padding: 44rpx 40rpx; text-align: center; }
 .limit-text { font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; line-height: 1.7; }
 .limit-close { position: absolute; right: 20rpx; top: 12rpx; font-size: calc(40rpx * var(--fs-scale, 1)); color: #9aa39e; padding: 8rpx; }
-/* —— 文化连连看 —— */
+/* —— 文脉连连 —— */
 .match-game { display: flex; flex-direction: column; }
 .match-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; flex-shrink: 0; }
 .match-left { font-size: calc(24rpx * var(--fs-scale, 1)); color: #234B3C; font-weight: 600; }

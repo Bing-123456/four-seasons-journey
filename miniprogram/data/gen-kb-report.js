@@ -153,7 +153,7 @@ const html = `<!DOCTYPE html>
   <li><b>fruit-scope.js</b>：拦截规则。35 种外来果（榴莲、车厘子、蓝莓等）直接拒答并推荐本土替代果，不进 AI。</li>
   <li><b>fruit-culture.js</b>：季节排布 + 本土/外圈名单（决定哪些果在链图内圈可点）。</li>
 </ul>
-<p style="color:var(--sub);font-size:13px;">不进问果灵、仅作页面展示的数据：catalog.js（中牟地方资料）、farmer-stories.js（果农故事）、heritage.js（河南博物院农具）、solar-term-notes.js（节气卡片，只做跳转建议）、fruit-quiz.js（农谚问答题库）、workshop.js（瓜豆酱手作专题）、farm-activities.js（农事活动）。</p>
+<p style="color:var(--sub);font-size:13px;">不进问果灵、仅作页面展示的数据：catalog.js（中牟地方资料）、farmer-stories.js（果农故事）、heritage.js（河南博物院农具）、solar-term-notes.js（节气卡片，只做跳转建议）、fruit-quiz.js（农谚问时题库）、workshop.js（瓜豆酱手作专题）、farm-activities.js（农事活动）。</p>
 </div>
 
 <h2>二、覆盖矩阵（字数 = 该维度 导语+正文 总字数）</h2>

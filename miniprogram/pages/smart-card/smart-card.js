@@ -1,6 +1,6 @@
 'use strict';
 
-// 知识卡：把农事挑战答对后的知识点画成图片，保存到手机相册。
+// 知识卡：把农事转盘答对后的知识点画成图片，保存到手机相册。
 const i18n = require('../../lib/i18n');
 
 Page({
@@ -31,7 +31,7 @@ Page({
       ctx.textAlign = 'center';
       ctx.fillStyle = '#8C8066';
       ctx.font = '22px sans-serif';
-      ctx.fillText('果物四时记 · 农事挑战 · 知识卡', W / 2, 56);
+      ctx.fillText('果物四时记 · 农事转盘 · 知识卡', W / 2, 56);
       ctx.fillStyle = '#234B3C';
       ctx.font = 'bold 56px sans-serif';
       ctx.fillText(self.data.fruit, W / 2, 132);
