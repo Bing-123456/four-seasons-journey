@@ -9,6 +9,23 @@ const dict = {
   tab_calendar: ['四时', 'Seasons'],
   tab_games: ['游戏', 'Games'],
   tab_route: ['行程', 'Trips'],
+
+  // 第1 轮 · 发现页抽屉（2026-10-06，依据 mockups/final-design-3pages.html）
+  drawer_handle: ['向上展开', 'Pull up'],
+  drawer_seg_season: ['四时', 'Seasons'],
+  drawer_seg_game: ['游戏', 'Games'],
+  drawer_seg_route: ['行程', 'Trips'],
+  drawer_seg_news: ['快讯', 'News'],
+  drawer_game_title: ['玩一局', 'Play a round'],
+  drawer_game_fresh: ['今天还没玩', 'Not played today'],
+  drawer_game_today_done: ['已完成一局', 'One round done'],
+  drawer_game_used_up: ['已用完', 'All used up'],
+  drawer_game_resume: ['还没打完', 'Unfinished'],
+  drawer_season_none: ['今天推荐水果：霜降后揭晓', 'Today’s fruit: revealed after Frost’s Descent'],
+  drawer_season_none_sub: ['点这里打开四时', 'Tap to open the almanac'],
+  drawer_route_empty: ['今天还没有行程 · 去排一张票', 'No trip yet · plan one now'],
+  drawer_news_none: ['果农今天还没有发布', 'No grower post today'],
+  drawer_news_empty: ['果农今天还没有发布', 'No grower post today'],
   tab_mine: ['我的', 'Me'],
 
   // 通用

@@ -214,10 +214,11 @@ test('live activities never inherit the fruit or date printed on campaign poster
     assert.equal(activity.date, '2026-10-01 — 2026-10-03');
     assert.equal(home.data.forecastPosters.filter(item => !item.bookable).length, 3);
     const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
-    assert.match(markup, /wx:if="\{\{item\.bookable\}\}" class="activity-cover-copy"/);
+    assert.match(markup, /wx:if="\{\{item\.bookable\}\}" class="poster-cover-copy"/);
     // 轮播防黑边：底层预烘焙模糊底图铺满（不依赖运行时 CSS filter），上层完整显示。
-    assert.match(markup, /class="feature-image feature-image-bg"[^>]*src="\{\{item\.imageBg \|\| item\.image\}\}"[^>]*mode="aspectFill"/);
-    assert.match(markup, /class="feature-image feature-image-main"[^>]*mode="aspectFit"/);
+    // 2026-10-06 第1 轮：类名 feature-image-* 改为 poster-image-*，取图与mode 规范不变。
+    assert.match(markup, /class="poster-image poster-image-bg"[^>]*src="\{\{item\.imageBg \|\| item\.image\}\}"[^>]*mode="aspectFill"/);
+    assert.match(markup, /class="poster-image poster-image-main"[^>]*mode="aspectFit"/);
     for (const poster of home.data.forecastPosters.filter(item => !item.bookable)) {
       assert.ok(poster.imageBg, poster.id + ' has pre-baked background');
       assertImagePackaged(poster.imageBg, poster.imageBg);

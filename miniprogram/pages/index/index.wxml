@@ -19,17 +19,75 @@
 <view class="home-screen {{fontClass}}">
   <view class="home-demo"><demo-notice id="demo-mode-notice"/></view>
   <view class="home-heading"><view class="heading-copy"><view class="home-brand">{{L.tab_discover}}</view></view><view class="heading-actions"><me-entry/></view></view>
-  <view id="farming-forecast" class="feature-region">
-    <swiper class="feature-swiper" current="{{featureIndex}}" bindchange="changeFeature" autoplay="{{true}}" interval="5000" circular="{{forecastPosters.length > 1}}" duration="320" previous-margin="{{featureSideMargin}}px" next-margin="{{featureSideMargin}}px">
+  <!-- 全屏海报：底层 bg（本地小图，只铺满防黑边）+ 上层清晰主图（云存储 fileID） -->
+  <view id="farming-forecast" class="poster-region">
+    <swiper class="poster-swiper" current="{{featureIndex}}" bindchange="changeFeature" autoplay="{{true}}" interval="5000" circular="{{forecastPosters.length > 1}}" duration="320">
       <swiper-item wx:for="{{forecastPosters}}" wx:key="id">
-        <view class="feature-card {{featureIndex === index ? 'is-current' : ''}}" data-id="{{item.id}}" bindtap="openBooking" role="button" aria-label="{{item.title}} · {{visualCopy.eventAction}}">
-          <image class="feature-image feature-image-bg" src="{{item.imageBg || item.image}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
-          <image class="feature-image feature-image-main" src="{{item.image}}" mode="aspectFit" lazy-load="true" aria-label="{{item.title}}"/>
-          <view wx:if="{{item.bookable}}" class="activity-cover-copy"><view class="activity-cover-title">{{item.title}}</view><view>{{item.place}}</view><view>{{item.date}}</view></view>
+        <view class="poster-card {{featureIndex === index ? 'is-current' : ''}}" data-id="{{item.id}}" bindtap="openBooking" role="button" aria-label="{{item.title}} · {{visualCopy.eventAction}}">
+          <image class="poster-image poster-image-bg" src="{{item.imageBg || item.image}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
+          <image class="poster-image poster-image-main" src="{{item.image}}" mode="aspectFit" lazy-load="true" binderror="onPosterError" data-idx="{{index}}" aria-label="{{item.title}}"/>
+          <view wx:if="{{item.bookable}}" class="poster-cover-copy"><view class="poster-cover-title">{{item.title}}</view><view>{{item.place}}</view><view>{{item.date}}</view></view>
+          <view wx:if="{{featureIndex === index}}" class="poster-dots"><view wx:for="{{forecastPosters}}" wx:key="id" wx:for-item="dot" wx:for-index="dotIdx" class="poster-dot {{dotIdx === index ? 'active' : ''}}"/></view>
         </view>
       </swiper-item>
     </swiper>
-    <view class="feature-dots"><view wx:for="{{forecastPosters}}" wx:key="id" class="feature-dot-hit" data-index="{{index}}" bindtap="selectFeature" role="button" aria-label="{{item.title}}"><view class="feature-dot {{featureIndex === index ? 'active' : ''}}"/></view></view>
+  </view>
+
+  <!-- 底部把手 58px：点按或上滑展开抽屉 -->
+  <view class="poster-handle {{drawerOpen ? 'is-open' : ''}}" bindtap="toggleDrawer" role="button" aria-label="{{L.drawer_handle}}" aria-expanded="{{drawerOpen}}">
+    <view class="handle-grip"/>
+    <view class="handle-label">{{L.drawer_handle}}</view>
+    <view class="handle-arrow {{drawerOpen ? 'is-open' : ''}}">›</view>
+  </view>
+
+  <!-- 抽屉：四时 / 游戏 / 行程 / 快讯，四段顺序固定 -->
+  <view class="drawer {{drawerOpen ? 'is-open' : ''}}" catchtouchmove="noop">
+    <view class="drawer-panel">
+      <view class="drawer-grip-area" bindtap="toggleDrawer"><view class="handle-grip"/></view>
+
+      <view class="drawer-row" data-seg="season" bindtap="openDrawerSeg" role="button">
+        <view class="drawer-row-text">
+          <view class="drawer-tag">{{L.drawer_seg_season}}</view>
+          <view class="drawer-title">{{drawer.season.title}}</view>
+          <view class="drawer-sub">{{drawer.season.sub}}</view>
+        </view>
+        <view class="drawer-arrow">›</view>
+      </view>
+
+      <view class="drawer-row" data-seg="game" bindtap="openDrawerGameHub" role="button">
+        <view class="drawer-row-text">
+          <view class="drawer-tag">{{L.drawer_seg_game}}</view>
+          <view class="drawer-title">{{L.drawer_game_title}}</view>
+          <view class="drawer-sub">{{drawer.game.sub}}</view>
+          <view class="drawer-games">
+            <view wx:for="{{drawer.game.slots}}" wx:key="key" class="drawer-game" data-game="{{item.key}}" catchtap="openGame" role="button">
+              <view class="drawer-game-no">{{item.no}}</view>
+              <view class="drawer-game-name">{{item.name}}</view>
+              <view class="drawer-game-state">{{item.state}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="drawer-arrow">›</view>
+      </view>
+
+      <view class="drawer-row" data-seg="route" bindtap="openDrawerSeg" role="button">
+        <view class="drawer-row-text">
+          <view class="drawer-tag">{{L.drawer_seg_route}}</view>
+          <view class="drawer-title">{{drawer.route.title}}</view>
+          <view class="drawer-sub">{{drawer.route.sub}}</view>
+        </view>
+        <view class="drawer-arrow">›</view>
+      </view>
+
+      <view class="drawer-row drawer-row-static" data-seg="news">
+        <view class="drawer-row-text">
+          <view class="drawer-tag">{{L.drawer_seg_news}}</view>
+          <view class="drawer-title">{{drawer.news.title}}</view>
+          <view class="drawer-sub">{{drawer.news.sub}}</view>
+        </view>
+        <view class="drawer-arrow is-dim">›</view>
+      </view>
+    </view>
   </view>
 
 </view>

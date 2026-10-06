@@ -48,10 +48,11 @@ test.beforeEach(() => {
 });
 test.after(() => { global.wx = original.wx; global.Page = original.Page; i18n.invalidateLang(); });
 
-test('the discover page keeps the carousel and leaves the space below blank', () => {
+test('the discover page keeps the carousel and adds the poster handle plus four-section drawer', () => {
   const markup = read('miniprogram/pages/index/index.wxml');
   assert.match(markup, /id="farming-forecast"/, '三图自动轮播保留');
-  assert.match(markup, /<swiper class="feature-swiper"[^>]*autoplay="\{\{true\}\}"/, '轮播仍然自动连播');
+  // 2026-10-06 第1 轮：轮播容器改名为 poster-swiper，自动轮播设置按用户要求原样保留。
+  assert.match(markup, /<swiper class="poster-swiper"[^>]*autoplay="\{\{true\}\}"[^>]*interval="5000"/, '轮播仍然自动连播且间隔不变');
   // 2026-10-06 用户决定下方留白、A+B 学习成果兑现设计撤销：这些板块不得存在。
   ['study-progress', 'action-loop', 'action-towns', 'action-tally'].forEach(id =>
     assert.doesNotMatch(markup, new RegExp('id="' + id + '"'), id + ' 板块不应存在（已被用户撤销）'));
@@ -59,6 +60,19 @@ test('the discover page keeps the carousel and leaves the space below blank', ()
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/action-loop['"]\)/, 'index 不再引用 action-loop');
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/farmtown-service['"]\)/, 'index 不再引用 farmtown-service');
   assert.doesNotMatch(markup, /home-shortcuts/, '旧入口不应复活');
+  // 第1 轮新增：海报取图规范（底层 bg 铺满 + 上层清晰主图 + 主图兜底）与四段抽屉。
+  assert.match(markup, /poster-image-bg[^>]*mode="aspectFill"/, '海报底层用 aspectFill 铺满防黑边');
+  assert.match(markup, /poster-image-main[^>]*mode="aspectFit"/, '海报主图用 aspectFit');
+  assert.match(markup, /binderror="onPosterError"/, '主图要有加载失败兜底');
+  assert.match(markup, /class="poster-handle/, '底部有把手');
+  ['season', 'game', 'route', 'news'].forEach((seg, i) => {
+    assert.ok(markup.indexOf('drawer_seg_' + seg) > 0 || markup.indexOf('data-seg="' + seg + '"') > 0, seg + ' 段存在');
+  });
+  // 四段顺序固定：四时 / 游戏 / 行程 / 快讯
+  const order = ['season', 'game', 'route', 'news'].map(s => markup.indexOf('data-seg="' + s + '"'));
+  assert.ok(order.every(v => v > 0) && order.every((v, i) => i === 0 || v > order[i - 1]), '四段顺序必须是四时/游戏/行程/快讯');
+  // 快讯页本轮未建，段落不可跳转到不存在的页面
+  assert.match(markup, /drawer-row-static" data-seg="news"/, '快讯段本轮不绑定跳转');
 });
 
 test('the discover page does not load learning-payoff data (space below kept blank)', () => {
