@@ -20,18 +20,18 @@
 
 // 云存储 fileID 配置区——上传后把对应值填进来即可生效。
 const CLOUD = {
-  'illustrations/orchard-garden-banner': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/orchard-garden-banner.jpg',
-  'illustrations/home-carousel/activity-plum': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-plum.jpg',
-  'illustrations/home-carousel/activity-loquat': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-loquat.jpg',
-  'illustrations/home-carousel/activity-mulberry': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-mulberry.jpg',
-  'dahecun-foundations-real': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/dahecun-foundations-real.jpg',
-  'illustrations/farmer-story-care': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/farmer-story-care.jpg',
-  'illustrations/farmer-story-scene': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/farmer-story-scene.jpg',
-  'doubanjiang-ref': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/doubanjiang-ref.jpg',
-  'henan-museum-real': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/henan-museum-real.jpg',
-  'illustrations/orchard-garden': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/orchard-garden.jpg',
-  'fruit-studio-illustration': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/fruit-studio-illustration.jpg',
-  'illustrations/loquat-still-life': 'cloud://cloud1-d5gcgaukz8cb3f907.636-cloud1-d5gcgaukz8cb3f907-1499093335/assets/loquat-still-life.jpg'
+  'illustrations/orchard-garden-banner': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/orchard-garden-banner.jpg',
+  'illustrations/home-carousel/activity-plum': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-plum.jpg',
+  'illustrations/home-carousel/activity-loquat': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-loquat.jpg',
+  'illustrations/home-carousel/activity-mulberry': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/activity-mulberry.jpg',
+  'dahecun-foundations-real': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/dahecun-foundations-real.jpg',
+  'illustrations/farmer-story-care': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/farmer-story-care.jpg',
+  'illustrations/farmer-story-scene': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/farmer-story-scene.jpg',
+  'doubanjiang-ref': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/doubanjiang-ref.jpg',
+  'henan-museum-real': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/henan-museum-real.jpg',
+  'illustrations/orchard-garden': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/orchard-garden.jpg',
+  'fruit-studio-illustration': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/fruit-studio-illustration.jpg',
+  'illustrations/loquat-still-life': 'cloud://cloud1-d5gcgaukz8cb3f907.636c-cloud1-d5gcgaukz8cb3f907-1499093335/assets/loquat-still-life.jpg'
 };
 
 // 这些键对应的图片仍需留在主包（小体积、需同步渲染或被 CSS 引用）。
