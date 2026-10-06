@@ -45,7 +45,7 @@ Page({
   goRoutePlan: function () { wx.switchTab({ url: '/pages/route/route' }); },
   noop: function () {},
   onShow: function () {
- this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });     const bar = this.getTabBar(); if (bar) bar.setData({ selected: 0 });
+ this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });     const bar = this.getTabBar(); if (bar) { bar.setData({ selected: 0 }); if (bar.applyLang) bar.applyLang(); }
     const identity = store.getIdentity();
     if (identity.roleChosen && identity.role === 'farmer') { this.resumeFarmer(); return; }
     this._farmerRedirecting = false;

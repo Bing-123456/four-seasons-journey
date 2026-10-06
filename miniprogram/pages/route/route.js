@@ -60,7 +60,8 @@ Page({
   onShow: function () {
     this.setData({ fontClass: fontClass() });
     this.applyNav();
-    const bar = this.getTabBar && this.getTabBar(); if (bar) bar.setData({ selected: 3 });
+    const bar = this.getTabBar && this.getTabBar();
+    if (bar) { bar.setData({ selected: 3 }); if (bar.applyLang) bar.applyLang(); }
     if (this.data.currentTerm) this.loadTowns(this.data.currentTerm);
   },
   // 导航栏统一显示 App 名，页面内大标题显示「行程」，中英切换时同步更新。

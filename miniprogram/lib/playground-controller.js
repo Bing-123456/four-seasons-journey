@@ -34,7 +34,8 @@ module.exports = function createPlaygroundController(options) {
       this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
       i18n.applyNav(isHub ? 'app_name' : this.data.game === 'challenge' ? 'game_challenge' : this.data.game === 'match' ? 'game_match' : 'game_quiz');
       this._closed = false;
-      const bar = isHub && this.getTabBar && this.getTabBar(); if (bar) bar.setData({ selected: 2 });
+      const bar = isHub && this.getTabBar && this.getTabBar();
+      if (bar) { bar.setData({ selected: 2 }); if (bar.applyLang) bar.applyLang(); }
       this.setData({ L: i18n.labels(['quiz_proverb_type','quiz_knowledge_type','game_quiz','quiz_pill','quiz_prompt','quiz_correct','quiz_wrong','quiz_next','quiz_done','quiz_again','quiz_finished','quiz_unlock_title','game_challenge','game_match','unlock_title','unlock_body_suffix','unlock_go','unlock_continue','unlock_owned_title','unlock_owned_body','loading','challenge_left','challenge_knowledge_loading','challenge_save_card','challenge_save_album','challenge_next','challenge_day_limit','challenge_round_done','challenge_elf_says','challenge_auto','challenge_saved_toast','challenge_saving','match_left','match_tip','match_again','match_day_limit','match_round_done','match_exhausted','match_day_end']) });
       const en = i18n.getLang() === 'en';
       this.setData({

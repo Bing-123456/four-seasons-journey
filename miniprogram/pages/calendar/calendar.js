@@ -16,7 +16,7 @@ Page({
   data: { season: 'spring', seasons: [], seasonMeta: null, graphNodes: [], graphLines: [], legend: legendCopy.zh, companionMini: null, en: false, L: {} },
   onLoad: function () { i18n.applyNav('nav_calendar'); this.render(store.getProfile().season); },
   onShow: function () {
- this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });     const bar = this.getTabBar(); if (bar) bar.setData({ selected: 1 });
+ this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });     const bar = this.getTabBar(); if (bar) { bar.setData({ selected: 1 }); if (bar.applyLang) bar.applyLang(); }
     this.render(store.getProfile().season);
   },
   onReady: function () { this.measureGraph(); },
