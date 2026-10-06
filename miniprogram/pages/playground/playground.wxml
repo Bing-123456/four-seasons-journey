@@ -9,12 +9,12 @@
   </view>
 </view>
 
-<!-- 农事挑战 · 一大轮完成 弹窗 -->
+<!-- 六艺挑战 · 一大轮完成 弹窗 -->
 <view wx:if="{{challengeRoundVisible}}" class="limit-overlay" catchtouchmove="noop" bindtap="closeChallengeRound">
   <view class="limit-card" catchtap="noop"><view class="limit-text">{{L.challenge_round_done}}</view><view class="limit-close" bindtap="closeChallengeRound">×</view></view>
 </view>
 
-<!-- 文化连连看 · 一大轮完成 弹窗（每日结束弹窗已移除，改由结束页按钮下方文字提示） -->
+<!-- 果典连连 · 一大轮完成 弹窗（每日结束弹窗已移除，改由结束页按钮下方文字提示） -->
 <view wx:if="{{matchRoundVisible}}" class="limit-overlay" catchtouchmove="noop" bindtap="closeMatchRound">
   <view class="limit-card" catchtap="noop"><view class="limit-text">{{L.match_round_done}}</view><view class="limit-close" bindtap="closeMatchRound">×</view></view>
 </view>
@@ -59,7 +59,7 @@
     </block>
   </view>
 
-  <!-- 农事挑战 -->
+  <!-- 六艺挑战 -->
   <view wx:if="{{game === 'challenge'}}" id="game-challenge" class="game-card game-card-full challenge-game">
 
     <!-- 状态 6：今日次数用完，2 列 3 行填满整屏展示 6 张知识卡 -->
@@ -139,7 +139,7 @@
     </block>
   </view>
 
-  <!-- 文化连连看 -->
+  <!-- 果典连连 -->
   <view wx:if="{{game === 'match'}}" id="game-match" class="game-card game-card-full match-game">
     <view class="match-top">
       <view class="match-left">{{L.match_left}}{{matchLeft}} / {{matchDailyLimit}}</view>

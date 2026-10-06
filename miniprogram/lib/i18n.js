@@ -182,10 +182,10 @@ const dict = {
   pub_next: ['下一步 →', 'Next →'],
   pub_experience: ['可提供的体验（可多选，最多 3 个）', 'Experiences (multi-select, up to 3)'],
   pub_contact: ['联系方式（选填）', 'Contact (optional)'],
-  game_challenge: ['农事挑战', 'Farming Challenge'],
-  game_match: ['文化连连看', 'Culture Match'],
+  game_challenge: ['六艺挑战', 'Six-Art Challenge'],
+  game_match: ['果典连连', 'Allusion Match'],
   challenge_day_limit: ['今天的次数已结束，欢迎明天再来玩～', 'Today\'s rounds are finished. Come back tomorrow!'],
-  challenge_round_done: ['🎉 恭喜！农事挑战里所有「水果 × 节气 × 困境」的搭配，你都走了一遍。明天开始，又是全新的一大轮～', '🎉 Congratulations! You have gone through every "fruit × solar term × situation" combo in the Farming Challenge. A brand new round starts tomorrow!'],
+  challenge_round_done: ['🎉 恭喜！六艺挑战里所有「水果 × 节气 × 困境」的搭配，你都走了一遍。明天开始，又是全新的一大轮～', '🎉 Congratulations! You have gone through every "fruit × solar term × situation" combo in the Six-Art Challenge. A brand new round starts tomorrow!'],
   challenge_knowledge_loading: ['果灵正在整理知识…', 'Guoling is organizing knowledge…'],
   challenge_save_card: ['保存知识卡', 'Save card'],
   challenge_save_album: ['保存到相册', 'Save to album'],
@@ -232,7 +232,7 @@ const dict = {
   crop_title: ['调整头像', 'Adjust avatar'],
   crop_confirm: ['裁剪并保存', 'Crop & save'],
   crop_hint: ['拖动白框调整范围 · 拉四角改变大小', 'Drag the frame · pull a corner to resize'],
-  // 农事挑战 · 状态页与提示文案（按六类困境给具体提示，不带语气词）
+  // 六艺挑战 · 状态页与提示文案（按六类困境给具体提示，不带语气词）
   challenge_left: ['今日剩余次数：', 'Rounds left today: '],
   challenge_hint_farm: ['提示：{{term}}的{{fruit}}，农活上最该做什么？', 'Hint: at {{term}}, what must be done for {{fruit}} in the orchard?'],
   challenge_hint_folk: ['提示：{{term}}前后，{{fruit}}有什么老讲究？', 'Hint: what tradition surrounds {{fruit}} around {{term}}?'],
