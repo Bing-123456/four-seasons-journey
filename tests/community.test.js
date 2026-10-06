@@ -43,6 +43,10 @@ function createSdkStub() {
         delete copy._id;
         docs.set(id, copy);
         return { updated: 1 };
+      },
+      remove: async () => {
+        if (docs.has(id)) { docs.delete(id); return { removed: 1 }; }
+        return { removed: 0 };
       }
     }),
     orderBy: () => collection,
@@ -182,7 +186,7 @@ test('comment 真实写入 comments 字段并支持回复某人', async () => {
   assert.equal(second.count, 2);
   const doc = stub.docs.get(id);
   assert.equal(doc.comments.length, 2);
-  assert.deepEqual(doc.comments[0], { nickname: '冰冰', text: '好漂亮', replyTo: '', createdAt: doc.comments[0].createdAt });
+  assert.deepEqual(doc.comments[0], { nickname: '冰冰', text: '好漂亮', replyTo: '', createdAt: doc.comments[0].createdAt, openid: 'openid-B' });
   assert.equal(doc.comments[1].replyTo, '冰冰');
   // 列表里可见（朋友圈式平铺）
   const list = await service.list('');
@@ -261,3 +265,80 @@ test('rename：无 openid（本地调试）或新名等同旧名/默认名时安
   assert.deepEqual(await service.rename('冰冰', '小冰', ''), { skipped: true, reason: 'no_openid' });
   assert.equal(stub.docs.get(id).nickname, '冰冰', '跳过的改名不应改动帖子');
 });
+
+test('comment 把 openid 一并写入评论（用于后续认主删除）', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: '帖', nickname: 'A' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  await service.comment({ id: id, text: '我的评论', nickname: '冰冰' }, 'openid-B');
+  assert.equal(stub.docs.get(id).comments[0].openid, 'openid-B', '评论必须带 openid');
+});
+
+test('deleteComment：评论主人(openid 命中)可删，他人 403', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: '帖', nickname: 'A' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  await service.comment({ id: id, text: 'B 的评论', nickname: 'B' }, 'openid-B'); // index 0
+  await service.comment({ id: id, text: 'A 的评论', nickname: 'A' }, 'openid-A'); // index 1
+  // 他人(A)不能删 B 的评论 → 403
+  await assert.rejects(() => service.deleteComment({ id: id, index: 0, nickname: 'A' }, 'openid-A'), error => error.status === 403);
+  // 主人(B)可删自己的评论
+  const ok = await service.deleteComment({ id: id, index: 0, nickname: 'B' }, 'openid-B');
+  assert.equal(ok.ok, true);
+  assert.equal(stub.docs.get(id).comments.length, 1);
+  assert.equal(stub.docs.get(id).comments[0].nickname, 'A');
+});
+
+test('deleteComment：无 openid 的旧评论按当前昵称认主（排除默认名「旅人」）', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: '帖', nickname: 'A' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  // 旧评论：没有 openid，只有昵称
+  stub.docs.get(id).comments.push({ nickname: '老用户', text: '老评论', replyTo: '', createdAt: Date.now() });
+  const ok = await service.deleteComment({ id: id, index: 0, nickname: '老用户' }, '');
+  assert.equal(ok.ok, true);
+  assert.equal(stub.docs.get(id).comments.length, 0);
+  // 默认名「旅人」的旧评论不允许按昵称删除（避免匿名串删）
+  stub.docs.get(id).comments.push({ nickname: '旅人', text: '匿名评论', replyTo: '', createdAt: Date.now() });
+  await assert.rejects(() => service.deleteComment({ id: id, index: 0, nickname: '旅人' }, ''), error => error.status === 403);
+});
+
+test('deletePost：作者(openid)可删，他人 403，删除后查不到', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: 'A 的帖', nickname: 'A' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  const ok = await service.deletePost({ id: id }, 'openid-A');
+  assert.equal(ok.ok, true);
+  await assert.rejects(() => service.detail(id, 'openid-A'), error => error.status === 404);
+  // 他人不能删
+  await service.publish({ imageFileId: FILE_ID, text: 'B 的帖', nickname: 'B' }, 'openid-B');
+  const idB = Array.from(stub.docs.keys())[0]; // A 已删除，只剩 B
+  await assert.rejects(() => service.deletePost({ id: idB }, 'openid-A'), error => error.status === 403);
+});
+
+test('serializePost 给当前查看者标记 mine（按 openid）', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: 'A 的帖', nickname: 'A' }, 'openid-A');
+  const mine = await service.list('openid-A');
+  assert.equal(mine.posts[0].mine, true);
+  const notMine = await service.list('openid-B');
+  assert.equal(notMine.posts[0].mine, false);
+});
+
+test('rename 同时把旧评论补上 openid（便于后续按账号认主）', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: 'A 的帖', nickname: '冰冰' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  await service.comment({ id: id, text: 'A 的旧评论', nickname: '冰冰' }, 'openid-A');
+  await service.rename('冰冰', '小冰', 'openid-A');
+  const c = stub.docs.get(id).comments[0];
+  assert.equal(c.nickname, '小冰');
+  assert.equal(c.openid, 'openid-A');
+});
+

@@ -2,7 +2,8 @@
 <view class="page detail-page {{fontClass}}">
   <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
   <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
-  <view wx:elif="{{post}}" class="detail-body">
+  <view wx:elif="{{post}}" class="detail-body" bindlongpress="onLongPressPost">
+    <view class="community-hint">{{L.community_delete_hint}}</view>
     <view class="feed-head">
       <image class="feed-avatar" src="{{avatar || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
       <view class="feed-head-copy">
@@ -16,7 +17,7 @@
       <view class="feed-action {{liked ? 'on' : ''}}" bindtap="toggleLike" role="button" aria-label="{{liked ? '已赞' : '点赞'}}">{{liked ? '♥' : '♡'}} {{likes}}</view>
     </view>
     <view wx:if="{{comments.length}}" class="feed-comments">
-      <view wx:for="{{comments}}" wx:for-item="c" wx:key="index" class="feed-comment" data-nickname="{{c.nickname}}" bindtap="tapReply">
+      <view wx:for="{{comments}}" wx:for-item="c" wx:key="index" class="feed-comment" data-nickname="{{c.nickname}}" data-index="{{index}}" catchlongpress="onLongPressComment" bindtap="tapReply">
         <text class="fc-name">{{c.nickname}}</text><text wx:if="{{c.replyTo}}" class="fc-reply-text"> 回复 <text class="fc-name">{{c.replyTo}}</text></text><text class="fc-text">：{{c.text}}</text>
       </view>
     </view>

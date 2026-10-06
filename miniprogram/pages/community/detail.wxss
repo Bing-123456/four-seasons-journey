@@ -28,3 +28,5 @@ page { background: #F7F5ED; }
 .comment-input-ph { color: #A8AFA6; }
 .comment-send { flex-shrink: 0; background: #D8DCCE; color: #FFFFFF; border-radius: 999rpx; padding: 14rpx 30rpx; font-size: calc(25rpx * var(--fs-scale, 1)); line-height: 1.4; }
 .comment-send.ready { background: #234B3C; }
+/* 长按删除提示：浅灰小字，低调不抢视觉 */
+.community-hint { font-size: calc(21rpx * var(--fs-scale, 1)); color: #A8AFA6; padding: 4rpx 4rpx 10rpx; line-height: 1.5; }

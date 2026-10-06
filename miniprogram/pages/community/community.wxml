@@ -15,7 +15,8 @@
     <view class="empty-text">{{L.community_empty}}</view>
   </view>
   <view wx:else class="feed-list">
-    <view wx:for="{{posts}}" wx:key="_id" class="feed-item" data-id="{{item._id}}" bindtap="goDetail" role="button" aria-label="查看这条动态的详情">
+    <view class="community-hint">{{L.community_delete_hint}}</view>
+    <view wx:for="{{posts}}" wx:key="_id" class="feed-item" data-id="{{item._id}}" bindtap="goDetail" bindlongpress="onLongPressPost" role="button" aria-label="查看这条动态的详情">
       <view class="feed-head">
         <image class="feed-avatar" src="{{item.avatar || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
         <view class="feed-head-copy">
@@ -29,9 +30,9 @@
         <view class="feed-action {{item.liked ? 'on' : ''}}" data-id="{{item._id}}" catchtap="toggleLike" role="button" aria-label="{{item.liked ? '已赞' : '点赞'}}">{{item.liked ? '♥' : '♡'}} {{item.likes || 0}}</view>
         <view class="feed-action" data-id="{{item._id}}" catchtap="addComment" role="button" aria-label="评论">评论 {{item.comments.length || 0}}</view>
       </view>
-      <!-- 评论区（微信朋友圈样式）：灰底块、昵称+冒号+内容；点昵称即回复该人 -->
+      <!-- 评论区（微信朋友圈样式）：灰底块、昵称+冒号+内容；点昵称即回复该人；长按自己的评论可删除 -->
       <view wx:if="{{item.comments.length}}" class="feed-comments" catchtap="goDetail" data-id="{{item._id}}">
-        <view wx:for="{{item.comments}}" wx:for-item="c" wx:key="index" class="feed-comment" data-id="{{item._id}}" data-reply-to="{{c.nickname}}" catchtap="addComment">
+        <view wx:for="{{item.comments}}" wx:for-item="c" wx:key="index" class="feed-comment" data-id="{{item._id}}" data-index="{{index}}" data-nickname="{{c.nickname}}" data-reply-to="{{c.nickname}}" catchtap="addComment" catchlongpress="onLongPressComment">
           <text class="fc-name">{{c.nickname}}</text><text wx:if="{{c.replyTo}}" class="fc-reply-text"> 回复 <text class="fc-name">{{c.replyTo}}</text></text><text class="fc-text">：{{c.text}}</text>
         </view>
       </view>

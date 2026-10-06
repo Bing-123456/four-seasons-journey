@@ -149,7 +149,15 @@ function createServer(options = {}) {
       }
       if (path === '/api/community/comment' && request.method === 'POST') {
         if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
-        send(200, await community.comment(await readBody(request, 4096))); return;
+        send(200, await community.comment(await readBody(request, 4096), communityOpenid())); return;
+      }
+      if (path === '/api/community/delete-comment' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
+        send(200, await community.deleteComment(await readBody(request, 256), communityOpenid())); return;
+      }
+      if (path === '/api/community/delete-post' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
+        send(200, await community.deletePost(await readBody(request, 256), communityOpenid())); return;
       }
       if (path === '/api/community/nickname-exists' && request.method === 'GET') {
         const query = Object.fromEntries(new URL(request.url, 'http://localhost').searchParams);

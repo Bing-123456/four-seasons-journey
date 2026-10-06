@@ -129,7 +129,8 @@ function createCommunityService(options = {}) {
         replyTo: (c && c.replyTo) || '',
         createdAt: (c && c.createdAt) || 0
       })),
-      createdAt: Number(post.createdAt) || 0
+      createdAt: Number(post.createdAt) || 0,
+      mine: !!(openid && post.openid && post.openid === openid)
     };
   }
 
@@ -213,13 +214,14 @@ function createCommunityService(options = {}) {
     } catch (error) { throw toInputError(error, '点赞失败，请稍后再试'); }
   }
 
-  async function comment(body) {
+  async function comment(body, openid) {
     const id = body && typeof body.id === 'string' ? body.id : '';
     if (!ID_PATTERN.test(id)) throw new InputError('动态不存在', 'not_found', 404);
     const text = cleanText(body.text, MAX_TEXT);
     if (!text) throw new InputError('评论内容不能为空');
     const nickname = cleanText(body.nickname, MAX_NICKNAME) || '旅人';
     const replyTo = cleanText(body.replyTo, MAX_NICKNAME);
+    const key = typeof openid === 'string' ? openid.trim().slice(0, 64) : '';
     try {
       const app = await getApp();
       const db = app.database();
@@ -227,7 +229,7 @@ function createCommunityService(options = {}) {
       if (!raw) throw new InputError('动态不存在或已被删除', 'not_found', 404);
       const row = unwrapRow(raw);
       const comments = (Array.isArray(row.comments) ? row.comments : []).slice(-(MAX_COMMENTS - 1));
-      comments.push({ nickname: nickname, text: text, replyTo: replyTo, createdAt: Date.now() });
+      comments.push({ nickname: nickname, text: text, replyTo: replyTo, createdAt: Date.now(), openid: key });
       // node-sdk：update 直接接收字段对象（不包 { data: ... }，10.5 修复）
       await db.collection(COLLECTION).doc(id).update({ comments: comments });
       return { ok: true, count: comments.length };
@@ -274,7 +276,7 @@ function createCommunityService(options = {}) {
           const comments = Array.isArray(row.comments) ? row.comments : [];
           let changed = false;
           for (const c of comments) {
-            if (c && typeof c.nickname === 'string' && c.nickname === prev) { c.nickname = next; changed = true; }
+            if (c && typeof c.nickname === 'string' && c.nickname === prev) { c.nickname = next; if (key) c.openid = key; changed = true; }
           }
           if (changed) {
             const fixed = Object.assign({}, row); delete fixed._id; fixed.data = null; // 顺带清旧包裹字段
@@ -286,7 +288,52 @@ function createCommunityService(options = {}) {
     } catch (error) { throw toInputError(error, '昵称同步失败'); }
   }
 
-  return { list, detail, publish, like, comment, nicknameExists, rename, COLLECTION };
+  // 删除评论（仅评论主人本人）：新评论按 openid 认主；改名前的旧评论无 openid，退化为按「当前昵称」比对
+  // （昵称经 ⑬ 唯一性约束保证每人独占，且排除默认名「旅人」避免匿名串删）。彻底删除该条，其下回复不受影响。
+  async function deleteComment(body, openid) {
+    const id = body && typeof body.id === 'string' ? body.id : '';
+    if (!ID_PATTERN.test(id)) throw new InputError('动态不存在', 'not_found', 404);
+    const index = Number(body && typeof body.index === 'number' ? body.index : (body && typeof body.index === 'string' ? parseInt(body.index, 10) : NaN));
+    if (!Number.isInteger(index) || index < 0) throw new InputError('评论不存在', 'not_found', 404);
+    const nickname = cleanText((body && body.nickname) || '', MAX_NICKNAME);
+    const key = typeof openid === 'string' ? openid.trim().slice(0, 64) : '';
+    try {
+      const app = await getApp();
+      const db = app.database();
+      const raw = await getDoc(db, id);
+      if (!raw) throw new InputError('动态不存在或已被删除', 'not_found', 404);
+      const row = unwrapRow(raw);
+      const comments = Array.isArray(row.comments) ? row.comments : [];
+      if (index >= comments.length) throw new InputError('评论不存在', 'not_found', 404);
+      const target = comments[index] || {};
+      // 认主：新评论(openid 命中) 或 旧评论(无 openid 时按当前昵称，且昵称非默认「旅人」)
+      const mine = (target.openid && key && target.openid === key)
+        || (!target.openid && nickname && target.nickname === nickname && nickname !== '旅人');
+      if (!mine) throw new InputError('只能删除自己的评论', 'forbidden', 403);
+      comments.splice(index, 1);
+      await db.collection(COLLECTION).doc(id).update({ comments: comments });
+      return { ok: true };
+    } catch (error) { throw toInputError(error, '删除评论失败，请稍后再试'); }
+  }
+
+  // 删除动态（仅作者本人）：帖子始终带 openid，直接按 openid 认主。彻底删除整条（含其评论）。
+  async function deletePost(body, openid) {
+    const id = body && typeof body.id === 'string' ? body.id : '';
+    if (!ID_PATTERN.test(id)) throw new InputError('动态不存在', 'not_found', 404);
+    const key = typeof openid === 'string' ? openid.trim().slice(0, 64) : '';
+    try {
+      const app = await getApp();
+      const db = app.database();
+      const raw = await getDoc(db, id);
+      if (!raw) throw new InputError('动态不存在或已被删除', 'not_found', 404);
+      const row = unwrapRow(raw);
+      if (!(row.openid && key && row.openid === key)) throw new InputError('只能删除自己的动态', 'forbidden', 403);
+      await db.collection(COLLECTION).doc(id).remove();
+      return { ok: true };
+    } catch (error) { throw toInputError(error, '删除动态失败，请稍后再试'); }
+  }
+
+  return { list, detail, publish, like, comment, nicknameExists, rename, deleteComment, deletePost, COLLECTION };
 }
 
 module.exports = { createCommunityService, cleanText, isFileId, unwrapRow, COLLECTION, MAX_TEXT, MAX_NICKNAME };

@@ -13,13 +13,14 @@ function callApi(method, path, body) { return communityApi.callApi(method, path,
 function formatRelativeTime(ts) { return communityApi.formatRelativeTime(ts); }
 
 Page({
-  data: { posts: [], loading: true, error: '', L: {} },
+  data: { posts: [], loading: true, error: '', myNickname: '', L: {} },
   onLoad: function () {
     i18n.applyNav('community_title');
-    this.setData({ L: i18n.labels(['loading', 'community_empty', 'community_post_title', 'network_error', 'community_offline']) });
+    this.setData({ L: i18n.labels(['loading', 'community_empty', 'community_post_title', 'network_error', 'community_offline', 'community_delete_hint', 'community_delete_comment_title', 'community_delete_comment_msg', 'community_delete_post_title', 'community_delete_post_msg', 'community_delete', 'community_cancel', 'community_deleted', 'community_only_self']) });
   },
   onShow: function () {
-    this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
+    const me = store.getIdentity() || {};
+    this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal', myNickname: me.nickname || i18n.t('traveller') });
     this.loadPosts();
   },
   // 未连接云托管（测试/开发环境）时优雅降级，不报错。
@@ -75,5 +76,56 @@ Page({
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: '/pages/community/detail?id=' + id });
   },
-  goPost: function () { wx.navigateTo({ url: '/pages/community/post' }); }
+  goPost: function () { wx.navigateTo({ url: '/pages/community/post' }); },
+  // 长按删除评论：仅本人（昵称匹配，且非默认名「旅人」）可删；确认后真实删除并刷新。
+  onLongPressComment: function (event) {
+    const id = event.currentTarget.dataset.id;
+    const index = event.currentTarget.dataset.index;
+    const nickname = event.currentTarget.dataset.nickname || '';
+    if (this.data.myNickname === i18n.t('traveller') || nickname !== this.data.myNickname) {
+      wx.showToast({ title: i18n.t('community_only_self'), icon: 'none' });
+      return;
+    }
+    if (typeof wx === 'undefined' || !wx.showModal) return;
+    wx.showModal({
+      title: i18n.t('community_delete_comment_title'),
+      content: i18n.t('community_delete_comment_msg'),
+      confirmText: i18n.t('community_delete'),
+      cancelText: i18n.t('community_cancel'),
+      success: res => {
+        if (!res.confirm) return;
+        if (!cloudAvailable()) return;
+        callApi('POST', '/api/community/delete-comment', { id: id, index: index, nickname: this.data.myNickname })
+          .then(() => { wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' }); this.loadPosts(); })
+          .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
+      }
+    });
+  },
+  // 长按删除自己的动态：仅 mine 为真可删；确认后从列表移除。
+  onLongPressPost: function (event) {
+    const id = event.currentTarget.dataset.id;
+    const post = (this.data.posts || []).find(p => p._id === id);
+    if (!post || !post.mine) {
+      wx.showToast({ title: i18n.t('community_only_self'), icon: 'none' });
+      return;
+    }
+    if (typeof wx === 'undefined' || !wx.showModal) return;
+    wx.showModal({
+      title: i18n.t('community_delete_post_title'),
+      content: i18n.t('community_delete_post_msg'),
+      confirmText: i18n.t('community_delete'),
+      cancelText: i18n.t('community_cancel'),
+      success: res => {
+        if (!res.confirm) return;
+        if (!cloudAvailable()) return;
+        callApi('POST', '/api/community/delete-post', { id: id })
+          .then(() => {
+            const posts = (this.data.posts || []).filter(p => p._id !== id);
+            this.setData({ posts: posts });
+            wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' });
+          })
+          .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
+      }
+    });
+  }
 });

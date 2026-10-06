@@ -30,3 +30,5 @@ page { background: #F7F5ED; }
 .fc-text { color: #34403A; }
 /* 右下角浮动「+」按钮：墨绿圆底 + 白色加号 */
 .community-fab { position: fixed; right: 32rpx; bottom: calc(48rpx + env(safe-area-inset-bottom)); width: 104rpx; height: 104rpx; border-radius: 50%; background: #234B3C; color: #FFFFFF; font-size: calc(56rpx * var(--fs-scale, 1)); line-height: 104rpx; text-align: center; box-shadow: 0 10rpx 24rpx rgba(35,75,60,.3); z-index: 20; }
+/* 长按删除提示：浅灰小字，低调不抢视觉 */
+.community-hint { font-size: calc(21rpx * var(--fs-scale, 1)); color: #A8AFA6; padding: 4rpx 4rpx 10rpx; line-height: 1.5; }

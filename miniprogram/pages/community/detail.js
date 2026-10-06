@@ -9,12 +9,12 @@ function callApi(method, path, body) { return communityApi.callApi(method, path,
 Page({
   data: {
     id: '', post: null, image: '', avatar: '', comments: [],
-    loading: true, error: '', liked: false, likes: 0,
+    loading: true, error: '', liked: false, likes: 0, myNickname: '',
     replyTo: '', commentValue: '', sending: false, L: {}
   },
   onLoad: function (options) {
     this.setData({
-      L: i18n.labels(['loading', 'network_error', 'community_detail_title', 'community_text_ph', 'community_send', 'community_reply_prefix', 'community_post_gone'])
+      L: i18n.labels(['loading', 'network_error', 'community_detail_title', 'community_text_ph', 'community_send', 'community_reply_prefix', 'community_post_gone', 'community_delete_hint', 'community_delete_comment_title', 'community_delete_comment_msg', 'community_delete_post_title', 'community_delete_post_msg', 'community_delete', 'community_cancel', 'community_deleted', 'community_only_self'])
     });
     const id = options && typeof options.id === 'string' ? options.id : '';
     this.setData({ id: id });
@@ -23,7 +23,8 @@ Page({
     this.loadDetail();
   },
   onShow: function () {
-    this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
+    const me = store.getIdentity() || {};
+    this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal', myNickname: me.nickname || i18n.t('traveller') });
   },
   loadDetail: function () {
     if (!communityApi.cloudAvailable()) { this.setData({ loading: false, error: i18n.t('community_offline') }); return; }
@@ -81,6 +82,50 @@ Page({
     }).catch(error => {
       this.setData({ sending: false });
       wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' });
+    });
+  },
+  // 长按删除评论：仅本人（昵称匹配，且非默认名「旅人」）可删；确认后刷新详情。
+  onLongPressComment: function (event) {
+    const index = event.currentTarget.dataset.index;
+    const nickname = event.currentTarget.dataset.nickname || '';
+    if (this.data.myNickname === i18n.t('traveller') || nickname !== this.data.myNickname) {
+      wx.showToast({ title: i18n.t('community_only_self'), icon: 'none' });
+      return;
+    }
+    if (typeof wx === 'undefined' || !wx.showModal) return;
+    wx.showModal({
+      title: i18n.t('community_delete_comment_title'),
+      content: i18n.t('community_delete_comment_msg'),
+      confirmText: i18n.t('community_delete'),
+      cancelText: i18n.t('community_cancel'),
+      success: res => {
+        if (!res.confirm) return;
+        if (!communityApi.cloudAvailable()) return;
+        callApi('POST', '/api/community/delete-comment', { id: this.data.id, index: index, nickname: this.data.myNickname })
+          .then(() => { wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' }); this.loadDetail(); })
+          .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
+      }
+    });
+  },
+  // 长按删除自己的动态：仅 post.mine 为真可删；确认后返回列表。
+  onLongPressPost: function () {
+    if (!this.data.post || !this.data.post.mine) {
+      wx.showToast({ title: i18n.t('community_only_self'), icon: 'none' });
+      return;
+    }
+    if (typeof wx === 'undefined' || !wx.showModal) return;
+    wx.showModal({
+      title: i18n.t('community_delete_post_title'),
+      content: i18n.t('community_delete_post_msg'),
+      confirmText: i18n.t('community_delete'),
+      cancelText: i18n.t('community_cancel'),
+      success: res => {
+        if (!res.confirm) return;
+        if (!communityApi.cloudAvailable()) return;
+        callApi('POST', '/api/community/delete-post', { id: this.data.id })
+          .then(() => { wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' }); setTimeout(function () { wx.navigateBack(); }, 400); })
+          .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
+      }
     });
   }
 });
