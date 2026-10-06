@@ -169,5 +169,5 @@ Page({
       wx.showToast({ title: isFav ? '已取消收藏' : '已收藏到手账', icon: 'none' });
     } catch (err) { wx.showToast({ title: '收藏失败', icon: 'none' }); }
   },
-  openJournal: function () { wx.navigateTo({ url: '/pages/season-journal/season-journal' }); }
+  openJournal: function () { wx.navigateTo({ url: '/packageMore/season-journal/season-journal' }); }
 });

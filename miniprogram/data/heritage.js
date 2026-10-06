@@ -14,7 +14,7 @@ const artifacts = [{
     { number: '02', title: '动一动：来回滚碾', text: '这套器具的操作方式是用磨棒来回滚碾，帮助谷壳与谷粒分离。留意磨棒的位置与滚动方向。' },
     { number: '03', title: '想一想：一餐之前', text: '从收获到入口，加工也是农耕生活的一部分。再看一看家乡的食物，哪些需要经过人的双手？' }
   ],
-  experienceLink: '/pages/workshop/index?id=guadoujiang',
+  experienceLink: '/packageMore/workshop/index?id=guadoujiang',
   experienceLabel: '再认识一种河南乡味',
   question: '这套石磨盘与磨棒，怎样配合工作？',
   choices: [

@@ -23,7 +23,7 @@ function memoryStorage() {
 function buildPage() {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages/search/search.js');
+  const file = path.resolve(__dirname, '../miniprogram/packageMore/search/search.js');
   delete require.cache[require.resolve(file)];
   require(file);
   const page = Object.assign({}, definition, {
@@ -194,7 +194,7 @@ test('clearChat wipes local history after confirmation', async () => {
 
 test('elf answers no longer expose read-aloud controls', () => {
   const fs = require('node:fs');
-  const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/search/search.wxml'), 'utf8');
+  const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/packageMore/search/search.wxml'), 'utf8');
   assert.doesNotMatch(wxml, /read-btn|readAnswer/, '果灵回答的朗读按钮已删除');
   const page = buildPage();
   assert.equal(typeof page.readAnswer, 'undefined', '朗读处理函数已删除');
@@ -204,7 +204,7 @@ test('elf answers no longer expose read-aloud controls', () => {
 // 数据来自用户人工审核的字典；替换法归一化 + 长词在前保证最长匹配。
 {
   global.Page = () => {}; global.getCurrentPages = () => [];
-  const search = require('../miniprogram/pages/search/search');
+  const search = require('../miniprogram/packageMore/search/search');
   const cases = [
     ['酸梅有什么讲究', '青梅'], ['桑椹是什么', '桑葚'], ['中国樱桃好吃吗', '樱桃'],
     ['芦橘是什么果', '枇杷'], ['水蜜桃怎么挑', '桃子'], ['三华李是什么', '李子'],

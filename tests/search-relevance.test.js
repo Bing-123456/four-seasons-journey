@@ -14,7 +14,7 @@ const original = { wx: global.wx, Page: global.Page };
 function buildPage() {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages/search/search.js');
+  const file = path.resolve(__dirname, '../miniprogram/packageMore/search/search.js');
   delete require.cache[require.resolve(file)];
   require(file);
   const page = Object.assign({}, definition, {

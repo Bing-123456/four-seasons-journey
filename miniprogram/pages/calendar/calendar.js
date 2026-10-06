@@ -81,6 +81,6 @@ Page({
     if (!catalog.seasons.some(item => item.id === id)) return;
     const profile = store.getProfile(); profile.season = id; store.saveProfile(profile); this.render(id);
   },
-  openSearch: function () { wx.navigateTo({ url: '/pages/search/search' }); },
+  openSearch: function () { wx.navigateTo({ url: '/packageMore/search/search' }); },
   onShareAppMessage: function () { return { title: i18n.t('cal_share_title'), path: '/pages/calendar/calendar' }; }
 });

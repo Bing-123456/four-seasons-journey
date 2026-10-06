@@ -194,7 +194,7 @@ test('wizard page walks one screen per step and redirects to the trip page after
   assert.equal(page.data.summaryRows[0].k, '水果主题');
   // 生成 → redirectTo 行程详情页；路线与向导数据都已落库。
   page.generate();
-  assert.deepEqual(calls.navigation, ['/pages/route-detail/route-detail']);
+  assert.deepEqual(calls.navigation, ['/packageMore/route-detail/route-detail']);
   const saved = store.getRoute();
   assert.ok(saved && saved.ok);
   assert.equal(saved.wizard.peopleCount, 'family');
@@ -204,7 +204,7 @@ test('wizard page walks one screen per step and redirects to the trip page after
   page.generate();
   assert.equal(page.data.step, 7);
   assert.match(page.data.error, /暂时排不出来/);
-  assert.deepEqual(calls.navigation, ['/pages/route-detail/route-detail']);
+  assert.deepEqual(calls.navigation, ['/packageMore/route-detail/route-detail']);
   // 上一步回退。
   page.prevStep();
   assert.equal(page.data.step, 6);
@@ -218,14 +218,14 @@ test('entries and registration: route-detail opens the wizard, P04 route page is
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
     assert.ok(fs.existsSync(path.join(root, 'packageTrip/pages/trip-wizard/trip-wizard.' + ext)), ext + ' missing');
   }
-  const detail = fs.readFileSync(path.join(root, 'pages/route-detail/route-detail.wxml'), 'utf8');
+  const detail = fs.readFileSync(path.join(root, 'packageMore/route-detail/route-detail.wxml'), 'utf8');
   assert.match(detail, /id="start-route"[^>]*bindtap="openWizard"/);
   assert.match(detail, /id="route-add"[^>]*bindtap="openWizard"/);
   assert.doesNotMatch(detail, /id="start-route"[^>]*bindtap="editProfile"/);
   assert.match(detail, /bindtap="editProfile"/, 'other entries keep pointing at the profile form');
   const routeTab = fs.readFileSync(path.join(root, 'pages/route/route.wxml'), 'utf8');
   assert.doesNotMatch(routeTab, /openWizard/, 'P04 route tab keeps its own editProfile entries');
-  const detailJs = fs.readFileSync(path.join(root, 'pages/route-detail/route-detail.js'), 'utf8');
+  const detailJs = fs.readFileSync(path.join(root, 'packageMore/route-detail/route-detail.js'), 'utf8');
   assert.match(detailJs, /packageTrip\/pages\/trip-wizard\/trip-wizard/);
   // 页面文案保持文旅语气，不出现商业词。
   const pageSource = ['trip-wizard.wxml', 'trip-wizard.js'].map(name => fs.readFileSync(path.join(root, 'packageTrip/pages/trip-wizard', name), 'utf8')).join('\n');

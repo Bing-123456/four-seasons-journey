@@ -14,7 +14,7 @@ const read = (...parts) => fs.readFileSync(path.resolve(__dirname, '..', ...part
 test('the refusal sentence is written once and reused', () => {
   assert.equal(fruitScope.TEMPLATES.fruit, '{{name}}为外来引进我国的果品，不属于《四时》板块收录的中国本土原生水果。');
   assert.equal(fruitScope.TEMPLATES.topic, '{{name}}属于境外农耕文化，不属于《四时》板块收录的中国本土农耕文化。');
-  for (const file of ['miniprogram/pages/search/search.js', 'miniprogram/lib/evidence.js', 'server/tasks.js']) {
+  for (const file of ['miniprogram/packageMore/search/search.js', 'miniprogram/lib/evidence.js', 'server/tasks.js']) {
     assert.doesNotMatch(read(file), /外来引进我国的果品/, file + ' must not inline the sentence');
   }
 });
@@ -101,7 +101,7 @@ test('the Guoling search page refuses foreign fruit and still finds world-layer 
   let definition;
   global.Page = value => { definition = value; };
   global.wx = { getStorageSync: () => undefined, setStorageSync() {}, showToast() {}, navigateTo() {} };
-  const file = path.resolve(__dirname, '../miniprogram/pages/search/search.js');
+  const file = path.resolve(__dirname, '../miniprogram/packageMore/search/search.js');
   delete require.cache[require.resolve(file)];
   require(file);
   const page = Object.assign({}, definition, {

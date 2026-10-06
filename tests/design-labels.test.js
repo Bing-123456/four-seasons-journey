@@ -1,4 +1,5 @@
 'use strict';
+const { pageFile } = require('./helpers/page-path');
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -13,7 +14,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 function page(name) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages', name, name + '.js');
+  const file = pageFile(name);
   delete require.cache[require.resolve(file)];
   require(file);
   return Object.assign({}, definition, {
@@ -79,6 +80,6 @@ test('search page drops the EN translation toggle and answers stay Chinese-only'
     assert.equal('answerEn' in search.data, false);
     assert.equal('answerTranslating' in search.data, false);
     assert.equal(typeof search.toggleAnswerEn, 'undefined');
-    assert.doesNotMatch(fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/search/search.wxml'), 'utf8'), /en-toggle|toggleAnswerEn|fn_show_en/);
+    assert.doesNotMatch(fs.readFileSync(path.resolve(__dirname, '../miniprogram/packageMore/search/search.wxml'), 'utf8'), /en-toggle|toggleAnswerEn|fn_show_en/);
   }
 });

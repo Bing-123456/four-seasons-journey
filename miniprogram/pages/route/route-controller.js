@@ -71,7 +71,7 @@ module.exports = function createRoutePage(options) {
   },
   openFullRoute: function () {
     const stop = this.data.currentStop;
-    wx.navigateTo({ url: '/pages/route-detail/route-detail' + (stop ? '?stop=' + encodeURIComponent(stop.placeId) : '') });
+    wx.navigateTo({ url: '/packageMore/route-detail/route-detail' + (stop ? '?stop=' + encodeURIComponent(stop.placeId) : '') });
   },
   // 评审 9.28：行程定制统一走分步向导（与 P24 的 openWizard 一致），旧偏好表单不再作为行程入口。
   editProfile: function () { wx.navigateTo({ url: '/packageTrip/pages/trip-wizard/trip-wizard' }); },

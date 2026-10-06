@@ -1,4 +1,5 @@
 'use strict';
+const { pageFile } = require('./helpers/page-path');
 // 果农工作台重构后（P13，「果乡发布站」+ 发布表单）的页面行为测试。
 // 真实加载 seller/index 与 seller/publish 页面，用内存 storage 与 wx.request 桩
 // 返回种子果乡数据，覆盖：我的发布列表、下架、发布表单三步与 AI 润色、编辑模式。
@@ -56,7 +57,7 @@ function mockWx() {
 function makePage(name) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages', name, 'index.js');
+  const file = pageFile(name, 'index');
   if (name === 'publish') {
     // publish 位于 pages/seller/publish/publish.js
     const pf = path.resolve(__dirname, '../miniprogram/pages/seller/publish/publish.js');

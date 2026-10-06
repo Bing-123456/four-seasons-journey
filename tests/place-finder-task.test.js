@@ -10,7 +10,7 @@ let memory, requests, pages, credential, toast;
 const taskId = '12345678-1234-1234-1234-123456789abc';
 function page() {
   let definition; global.Page = value => { definition = value; };
-  const file = require.resolve('../miniprogram/pages/place-finder/place-finder'); delete require.cache[file]; require(file);
+  const file = require.resolve('../miniprogram/packageMore/place-finder/place-finder'); delete require.cache[file]; require(file);
   const instance = Object.assign({}, definition, { data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch); } });
   pages.push(instance); instance.onLoad(); return instance;
 }

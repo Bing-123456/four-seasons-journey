@@ -5,7 +5,7 @@ const path = require('path');
 const targets = [
   'miniprogram/pages/fruit-town/fruit-town.wxss',
   'miniprogram/pages/route/route.wxss',
-  'miniprogram/pages/season-journal/season-journal.wxss',
+  'miniprogram/packageMore/season-journal/season-journal.wxss',
   'miniprogram/pages/seller/index.wxss',
   'miniprogram/pages/seller/publish/publish.wxss'
 ];

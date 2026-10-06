@@ -38,7 +38,7 @@ Page({
   openCategory: function (event) {
     const cat = event.currentTarget.dataset.cat;
     if (!this.data.fruit || !this.data.fruit.categories.some(item => item.cat === cat)) return;
-    wx.navigateTo({ url: '/pages/fruit-note/fruit-note?fruit=' + encodeURIComponent(this._fruitId) + '&cat=' + encodeURIComponent(cat) });
+    wx.navigateTo({ url: '/packageMore/fruit-note/fruit-note?fruit=' + encodeURIComponent(this._fruitId) + '&cat=' + encodeURIComponent(cat) });
   },
   toggleFavorite: function (event) {
     const id = event.currentTarget.dataset.id;

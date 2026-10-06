@@ -112,7 +112,7 @@ Page({
     return { title: i18n.t('home_share_title'), path: '/pages/index/index' };
   },
 
-  openSearch: function () { wx.navigateTo({ url: '/pages/search/search' }); },
+  openSearch: function () { wx.navigateTo({ url: '/packageMore/search/search' }); },
   changeFeature: function (event) {
     const current = Number(event.detail.current);
     if (Number.isInteger(current) && current >= 0 && current < this.data.forecastPosters.length && current !== this.data.featureIndex) this.setData({ featureIndex: current });

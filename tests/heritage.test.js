@@ -204,7 +204,7 @@ test('mill redraws on interaction without an idle animation loop or leaking mesh
 });
 
 function lessonPage(storageFails) {
-  const filename = path.join(root, 'pages/heritage/index.js');
+  const filename = path.join(root, 'packageMore/heritage/index.js');
   const localRequire = require('node:module').createRequire(filename);
   const calls = { logs: [], positions: [], cameras: [], navigation: [], sources: [] };
   const viewer = {
@@ -278,7 +278,7 @@ test('text fallback is a complete learning path even when device storage fails',
   page.copySource();
   assert.equal(calls.sources[0], heritage.artifacts[0].sourceUrl);
   page.exploreExperience();
-  assert.equal(calls.navigation[0], '/pages/workshop/index?id=guadoujiang');
+  assert.equal(calls.navigation[0], '/packageMore/workshop/index?id=guadoujiang');
 });
 
 test('camera selection rejects unknown names and retired exhibit URLs return to the documented mill', () => {

@@ -1,4 +1,5 @@
 'use strict';
+const { pageFile } = require('./helpers/page-path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -10,7 +11,7 @@ const original = { wx: global.wx, Page: global.Page, parse: service.parseProfile
 function page(name) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages', name, name + '.js');
+  const file = pageFile(name);
   delete require.cache[require.resolve(file)]; require(file);
   return Object.assign({}, definition, { data: JSON.parse(JSON.stringify(definition.data)), setData(patch) { Object.assign(this.data, patch); } });
 }

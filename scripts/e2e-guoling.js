@@ -13,7 +13,7 @@
 // 小程序全局 mock：必须在 require search.js 之前定义。
 global.Page = () => {};
 global.getCurrentPages = () => [];
-const search = require('../miniprogram/pages/search/search.js');
+const search = require('../miniprogram/packageMore/search/search.js');
 const fruitCulture = require('../miniprogram/data/fruit-culture');
 const BASE = process.argv[2] || 'https://guayouji-server-322229-5-1499093335.sh.run.tcloudbase.com';
 const TOKEN = '99fb6493972c19271035cc64ce98d039e4cf55ab0bd1ac86b2004ef8ad5e5539';

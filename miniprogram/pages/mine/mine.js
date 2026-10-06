@@ -103,7 +103,7 @@ Page({
     else this.setData({ farmNextText: '' });
   },
   // ---- 我的资料：头像与昵称编辑移到独立子页面 ----
-  openAccount: function () { wx.navigateTo({ url: '/pages/account/account' }); },
+  openAccount: function () { wx.navigateTo({ url: '/packageMore/account/account' }); },
   enterDemo: function () { this.changeDemo('enterDemo'); },
   exitDemo: function () { this.changeDemo('exitDemo'); },
   resetDemo: function () { this.changeDemo('resetDemo'); },

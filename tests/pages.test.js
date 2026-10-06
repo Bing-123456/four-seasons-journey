@@ -1,4 +1,5 @@
 'use strict';
+const { pageFile } = require('./helpers/page-path');
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -23,7 +24,7 @@ const event = (dataset, value) => ({ currentTarget: { dataset: dataset || {} }, 
 function loadPage(name) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages', name, name + '.js');
+  const file = pageFile(name);
   delete require.cache[require.resolve(file)];
   require(file);
   const page = Object.assign({}, definition, {

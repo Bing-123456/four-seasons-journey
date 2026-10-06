@@ -1,9 +1,10 @@
+const { pageFile } = require('./helpers/page-path');
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('node:path');
-const catalog=require('../miniprogram/data/catalog'),store=require('../miniprogram/lib/store'),core=require('../miniprogram/lib/core'),geo=require('../miniprogram/lib/geo'),graph=require('../miniprogram/pages/graph/graph-model');
+const catalog=require('../miniprogram/data/catalog'),store=require('../miniprogram/lib/store'),core=require('../miniprogram/lib/core'),geo=require('../miniprogram/lib/geo'),graph=require('../miniprogram/packageMore/graph/graph-model');
 const clone=x=>JSON.parse(JSON.stringify(x)), event=id=>({currentTarget:{dataset:{id}}});
 let locationCalls,modals,navigation,memory,settings;
-function page(name){let definition;global.Page=x=>{definition=x};const base=name==='fruit-detail'?'../miniprogram/packageFruit/pages':'../miniprogram/pages';const file=path.resolve(__dirname,base+'/'+name+'/'+name+'.js');delete require.cache[file];require(file);return Object.assign({},definition,{data:clone(definition.data),getTabBar:()=>null,setData(patch){for(const[k,v]of Object.entries(patch)){const parts=k.split('.');let target=this.data;for(const p of parts.slice(0,-1))target=target[p];target[parts.at(-1)]=v;}}});}
+function page(name){let definition;global.Page=x=>{definition=x};const file=name==='fruit-detail'?path.resolve(__dirname,'../miniprogram/packageFruit/pages/'+name+'/'+name+'.js'):pageFile(name);delete require.cache[file];require(file);return Object.assign({},definition,{data:clone(definition.data),getTabBar:()=>null,setData(patch){for(const[k,v]of Object.entries(patch)){const parts=k.split('.');let target=this.data;for(const p of parts.slice(0,-1))target=target[p];target[parts.at(-1)]=v;}}});}
 test.beforeEach(()=>{memory=new Map();locationCalls=[];modals=[];navigation=[];settings={};global.wx={getStorageSync:k=>memory.get(k),setStorageSync:(k,v)=>memory.set(k,clone(v)),removeStorageSync:k=>memory.delete(k),getLocation:o=>locationCalls.push(o),getSetting:o=>o.success({authSetting:settings}),showModal:o=>modals.push(o),navigateTo:o=>navigation.push(o.url),switchTab:o=>navigation.push(o.url),showToast(){}};store.clearAll();});
 test.after(()=>{delete global.wx;delete global.Page;});
 test('four seasons have stable evidence and neither spring nor winter invents navigable orchards',()=>{assert.deepEqual(catalog.seasons.map(s=>s.id),['spring','summer','autumn','winter']);for(const id of ['spring','winter']){const p=catalog.places.find(p=>p.season===id);assert.ok(p);assert.equal(p.routeEligible,false);assert.equal(p.location,null);assert.equal(p.capacity,null);for(const fact of p.factIds)assert.ok(catalog.facts.find(f=>f.id===fact).sourceIds.every(s=>catalog.sources.some(x=>x.id===s)));}assert.match(catalog.facts.find(f=>f.id==='f-apple-storage').text,/不.*冬季采摘/);assert.ok(catalog.seasons.find(s=>s.id==='autumn').cropIds.length>1);});
@@ -19,7 +20,7 @@ test('almanac shows the fruit link graph, retired fact IDs stay hidden and seaso
   const detail=page('fruit-detail');detail.onLoad({fruit:'autumn-pear'});
   assert.equal(detail.data.fruit.name,'秋梨');assert.equal(detail.data.fruit.categories.length,6);
   assert.ok(detail.data.fruit.categories.every(c=>c.detail&&c.detail.length>30),'every category carries the enriched long-form note');
-  detail.openCategory({currentTarget:{dataset:{cat:'folk'}}});assert.equal(navigation.at(-1),'/pages/fruit-note/fruit-note?fruit=autumn-pear&cat=folk');});
+  detail.openCategory({currentTarget:{dataset:{cat:'folk'}}});assert.equal(navigation.at(-1),'/packageMore/fruit-note/fruit-note?fruit=autumn-pear&cat=folk');});
 test('fruit knowledge favorites persist per partition and round-trip',()=>{const p=page('fruit-detail');p.onLoad({fruit:'summer-watermelon'});
   p.toggleFavorite(event('summer-watermelon:folk'));
   assert.ok(store.getKnowledgeFavorites('personal').includes('summer-watermelon:folk'));

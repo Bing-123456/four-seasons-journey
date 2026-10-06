@@ -12,5 +12,5 @@ Page({
   focus(e) { this.setData({focusedId:this.data.focusedId===e.currentTarget.dataset.id?'':e.currentTarget.dataset.id}); },
   open(e) { const id=e.currentTarget.dataset.id; if(catalog.places.some(p=>p.id===id))wx.navigateTo({url:'/pages/culture/culture?id='+encodeURIComponent(id)}); },
   lesson(e) { const p=this.data.graph.places.concat(this.data.graph.venues).find(p=>p.id===e.currentTarget.dataset.id);if(p&&p.lesson)wx.navigateTo({url:p.lesson.url}); },
-  plan() { const p=store.getProfile();p.season=this.data.season;store.saveProfile(p);wx.navigateTo({url:'/pages/profile/profile'}); }
+  plan() { const p=store.getProfile();p.season=this.data.season;store.saveProfile(p);wx.navigateTo({url:'/packageMore/profile/profile'}); }
 });

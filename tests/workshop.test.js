@@ -105,7 +105,7 @@ let calls, storage, failWrites, pageStack;
 function pageController(options) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = require.resolve('../miniprogram/pages/workshop/index');
+  const file = require.resolve('../miniprogram/packageMore/workshop/index');
   delete require.cache[file];
   require(file);
   const page = Object.assign({}, definition, { data: clone(definition.data), setData(value) { Object.assign(this.data, value); } });
@@ -125,7 +125,7 @@ function finish(page) {
 test.beforeEach(() => {
   calls = { navigation: [], back: [], clipboard: [], toasts: [], scroll: [] };
   storage = new Map(); failWrites = false;
-  pageStack = [{ route: 'pages/workshop/index', options: {} }];
+  pageStack = [{ route: 'packageMore/workshop/index', options: {} }];
   global.getCurrentPages = () => pageStack;
   global.wx = {
     getStorageSync: key => storage.get(key),
@@ -170,8 +170,8 @@ test('reading returns to the nearest existing matching note with the correct sta
     { route: 'pages/index/index' },
     { route: 'pages/culture/culture', options: { id: 'summer-kitchen' } },
     originalNote,
-    { route: 'pages/heritage/index', options: { id: 'grain-mill' } },
-    { route: 'pages/workshop/index', options: { id: lesson.id } }
+    { route: 'packageMore/heritage/index', options: { id: 'grain-mill' } },
+    { route: 'packageMore/workshop/index', options: { id: lesson.id } }
   ];
   page.readNote();
   assert.deepEqual(calls.back, [2]);
@@ -188,7 +188,7 @@ test('an unrelated culture page does not intercept the lesson handoff or the mil
   pageStack = [
     { route: 'pages/culture/culture', data: { place: { id: 'summer-field' } }, options: { id: 'summer-kitchen' } },
     { route: 'pages/culture/culture', options: { id: 'autumn-workshop' } },
-    { route: 'pages/workshop/index', options: { id: lesson.id } }
+    { route: 'packageMore/workshop/index', options: { id: lesson.id } }
   ];
   page.readNote();
   assert.deepEqual(calls.back, []);
@@ -196,7 +196,7 @@ test('an unrelated culture page does not intercept the lesson handoff or the mil
   pageStack[0] = { route: 'pages/culture/culture', data: { place: { id: 'summer-kitchen' } } };
   page.openMill();
   assert.deepEqual(calls.back, []);
-  assert.equal(calls.navigation[1], '/pages/heritage/index?id=grain-mill');
+  assert.equal(calls.navigation[1], '/packageMore/heritage/index?id=grain-mill');
 });
 
 test('a failed return keeps the lesson available without stacking a duplicate note', () => {
@@ -204,7 +204,7 @@ test('a failed return keeps the lesson available without stacking a duplicate no
   finish(page);
   pageStack = [
     { route: 'pages/culture/culture', options: { id: 'summer-kitchen' } },
-    { route: 'pages/workshop/index' }
+    { route: 'packageMore/workshop/index' }
   ];
   global.wx.navigateBack = options => options.fail();
   page.readNote();
@@ -223,7 +223,7 @@ test('completion is recorded once, saving is idempotent, and handoff stays attac
   assert.equal(page.data.favorite, true);
   assert.match(page.data.saveStatus, /我的/);
   page.readNote(); page.openMill();
-  assert.deepEqual(calls.navigation, ['/pages/culture/culture?id=summer-kitchen', '/pages/heritage/index?id=grain-mill']);
+  assert.deepEqual(calls.navigation, ['/pages/culture/culture?id=summer-kitchen', '/packageMore/heritage/index?id=grain-mill']);
   page.viewSources();
   assert.equal(page.data.sources.length, 2);
   page.copySource(event({ id: 'S8' }));

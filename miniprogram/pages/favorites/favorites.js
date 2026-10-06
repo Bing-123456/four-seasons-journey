@@ -42,7 +42,7 @@ Page({
     const separator = id.lastIndexOf(':');
     const fruit = id.slice(0, separator), category = id.slice(separator + 1);
     if (separator < 0 || !fruitCulture.findFruit(fruit) || !fruitCulture.CATEGORIES.some(item => item.id === category)) return;
-    wx.navigateTo({ url: '/pages/fruit-note/fruit-note?fruit=' + encodeURIComponent(fruit) + '&cat=' + encodeURIComponent(category) });
+    wx.navigateTo({ url: '/packageMore/fruit-note/fruit-note?fruit=' + encodeURIComponent(fruit) + '&cat=' + encodeURIComponent(category) });
   },
   openPlace: function (event) { wx.navigateTo({ url: '/pages/culture/culture?id=' + encodeURIComponent(event.currentTarget.dataset.id) }); },
   removePlace: function (event) {

@@ -55,7 +55,7 @@ Page({
   copySource: function (event) { const source = (this.data.category.sources || [])[Number(event.currentTarget.dataset.index)]; if (source) wx.setClipboardData({ data: source.url }); },
   goCraftLesson: function () {
     const full = this.data.fruit.seasonId + '-' + this.data.fruit.id;
-    wx.navigateTo({ url: '/pages/craft-lesson/craft-lesson?fruit=' + encodeURIComponent(full) });
+    wx.navigateTo({ url: '/packageMore/craft-lesson/craft-lesson?fruit=' + encodeURIComponent(full) });
   },
   back: function () { wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/calendar/calendar' }) }); },
   noop: function () {}

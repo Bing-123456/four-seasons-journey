@@ -50,12 +50,12 @@ test('rotating stories only show the persimmon harvest for the persimmon story',
       assert.ok(onCloud || onDisk, story.id + ' 必须已打包或已登记为云存储地址');
     }
   }
-  assert.match(read('miniprogram/pages/journal/journal.wxml'), /src="\{\{seasonStory\.illustration\}\}"/);
+  assert.match(read('miniprogram/packageMore/journal/journal.wxml'), /src="\{\{seasonStory\.illustration\}\}"/);
 });
 
 test('the journal page drops the EN toggle and the source-note line, and the story follows the current term', () => {
-  const markup = read('miniprogram/pages/journal/journal.wxml');
-  const controller = read('miniprogram/pages/journal/journal.js');
+  const markup = read('miniprogram/packageMore/journal/journal.wxml');
+  const controller = read('miniprogram/packageMore/journal/journal.js');
   assert.doesNotMatch(markup, /fn_show_en|fn_show_zh|toggleStoryEn/, 'the EN toggle is gone from the journal');
   assert.doesNotMatch(controller, /toggleStoryEn|storyEn|storyTranslating|service\.translate/, 'translation state and calls are removed');
   assert.match(markup, /seasonStory\.text/, 'the story renders the field-story text');

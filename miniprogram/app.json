@@ -6,24 +6,13 @@
     "pages/route/route",
     "pages/mine/mine",
     "pages/favorites/favorites",
-    "pages/profile/profile",
     "pages/culture/culture",
     "pages/heritage/index",
     "pages/workshop/index",
     "pages/companion/companion",
     "pages/seller/index",
     "pages/seller/publish/publish",
-    "pages/season-journal/season-journal",
-    "pages/graph/graph",
-    "pages/search/search",
-    "pages/craft-lesson/craft-lesson",
-    "pages/account/account",
-    "pages/fruit-note/fruit-note",
-    "pages/place-finder/place-finder",
-    "pages/journal/journal",
     "pages/playground/playground",
-    "pages/route-detail/route-detail",
-    "pages/smart-card/smart-card",
     "pages/community/community",
     "pages/community/post",
     "pages/community/detail"
@@ -103,6 +92,24 @@
       "root": "packageTrip",
       "pages": [
         "pages/trip-wizard/trip-wizard"
+      ]
+    },
+    {
+      "root": "packageMore",
+      "pages": [
+        "place-finder/place-finder",
+        "workshop/index",
+        "heritage/index",
+        "profile/profile",
+        "route-detail/route-detail",
+        "account/account",
+        "season-journal/season-journal",
+        "graph/graph",
+        "journal/journal",
+        "craft-lesson/craft-lesson",
+        "fruit-note/fruit-note",
+        "smart-card/smart-card",
+        "search/search"
       ]
     }
   ]

@@ -95,7 +95,7 @@ test('the almanac keeps one screen while its fruit directory explains the favour
   assert.match(detail, /openCategory/, 'directory rows navigate to the dedicated note page');
   assert.equal(JSON.parse(read('miniprogram/pages/calendar/calendar.json')).disableScroll, true);
   assert.doesNotMatch(markup, /selectedFruit|fruit-cat/, 'details stay in their own page');
-  assert.doesNotMatch(read('miniprogram/pages/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
+  assert.doesNotMatch(read('miniprogram/packageMore/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
   assert.match(detail, /'♥' : '♡'/, 'the heart fills in once a note is favourited');
   assert.match(read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxss'), /\.fruit-fav\.is-fav\{color:#D0342C\}/, 'the filled heart is red');
   assert.match(i18n.t('fruit_note_short'), /右上角爱心/, 'the footer note points at the row heart');
@@ -103,7 +103,7 @@ test('the almanac keeps one screen while its fruit directory explains the favour
   assert.match(markup, /L\.guoling_search_title/, 'the entry is titled 果灵搜索');
   assert.equal(i18n.t('guoling_search_title'), '果灵搜索');
   assert.doesNotMatch(markup, /L\.search_local_web/, 'the old subtitle is removed');
-  assert.match(page, /openSearch: function \(\) \{ wx\.navigateTo\(\{ url: '\/pages\/search\/search' \}\)/, 'the entry keeps the original search behaviour');
+  assert.match(page, /openSearch: function \(\) \{ wx\.navigateTo\(\{ url: '\/packageMore\/search\/search' \}\)/, 'the entry keeps the original search behaviour');
 });
 
 test('fruit directory rows use precomputed favourites and open the dedicated note page', () => {

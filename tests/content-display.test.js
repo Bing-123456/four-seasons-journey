@@ -1,4 +1,5 @@
 'use strict';
+const { pageFile, pagePath } = require('./helpers/page-path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -11,7 +12,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 function definition(name, basename = name) {
   let result;
   global.Page = value => { result = value; };
-  const filename = path.resolve(__dirname, '../miniprogram/pages', name, basename + '.js');
+  const filename = pageFile(name, basename);
   delete require.cache[require.resolve(filename)];
   require(filename);
   return result;
@@ -24,7 +25,7 @@ function language(value) {
   i18n.invalidateLang();
 }
 function assertVisibleLabels(page, name, basename = name) {
-  const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages', name, basename + '.wxml'), 'utf8');
+  const markup = fs.readFileSync(pagePath(name, '.wxml', basename), 'utf8');
   for (const key of new Set(Array.from(markup.matchAll(/\bL\.([a-zA-Z0-9_]+)/g), match => match[1]))) {
     assert.equal(typeof page.data.L[key], 'string', name + ' supplies ' + key);
     assert.ok(page.data.L[key].trim(), name + ' displays ' + key);

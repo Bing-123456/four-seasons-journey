@@ -6,7 +6,7 @@
 //     留出集只在最后跑一次验证，防止对评测题过拟合。
 //   - 判据分三层：路由（该本地答复的题不允许打到模型）、must_include（答点必须出现的内容，
 //     拒答题要求出现「素材库里没有」）、forbidden（编造类红词，一票否决）。
-//   - 评测走真实客户端同源路径：检索与上下文组装直接复用 miniprogram/pages/search/search.js
+//   - 评测走真实客户端同源路径：检索与上下文组装直接复用 miniprogram/packageMore/search/search.js
 //     导出的 matchFruits/buildContexts，越界判定复用 data/fruit-scope，与线上 ask() 完全一致。
 //
 // 用法：
@@ -32,7 +32,7 @@ const limit = Number(argOf('--limit', '0'));
 // —— 与线上客户端同源的检索/组装（search.js 底部导出，Page 打桩后 require）——
 global.wx = { getStorageSync: () => undefined, setStorageSync: () => {}, showToast: () => {}, request: () => {} };
 global.Page = () => {};
-const searchPage = require('../miniprogram/pages/search/search');
+const searchPage = require('../miniprogram/packageMore/search/search');
 const fruitScope = require('../miniprogram/data/fruit-scope');
 const farmProverbs = require('../miniprogram/data/farm-proverbs');
 const i18n = require('../miniprogram/lib/i18n');

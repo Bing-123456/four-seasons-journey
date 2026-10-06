@@ -1,3 +1,4 @@
+const { pageFile } = require('./helpers/page-path');
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -10,7 +11,7 @@ const token = 'a'.repeat(64);
 const clone = v => JSON.parse(JSON.stringify(v));
 function page(name) {
   let definition; global.Page = v => { definition = v; };
-  const file = path.resolve(__dirname, '../miniprogram/pages/' + name + '/' + name + '.js');
+  const file = pageFile(name);
   delete require.cache[file]; require(file);
   return Object.assign({}, definition, { data: clone(definition.data), setData(patch) { Object.assign(this.data, patch); }, getTabBar() { return null; } });
 }

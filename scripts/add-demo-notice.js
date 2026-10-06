@@ -5,7 +5,7 @@ const path = require('path');
 const files = [
   'miniprogram/pages/route/route.wxml',
   'miniprogram/pages/fruit-town/fruit-town.wxml',
-  'miniprogram/pages/season-journal/season-journal.wxml',
+  'miniprogram/packageMore/season-journal/season-journal.wxml',
   'miniprogram/pages/seller/index.wxml',
   'miniprogram/pages/seller/publish/publish.wxml'
 ];

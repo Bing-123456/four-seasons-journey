@@ -1,5 +1,6 @@
 const cloudImages = require('../miniprogram/lib/cloud-images');
 'use strict';
+const { pageFile, pagePath } = require('./helpers/page-path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -14,7 +15,7 @@ let calls;
 function loadPage(name, filename) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.resolve(__dirname, '../miniprogram/pages', name, (filename || name) + '.js');
+  const file = pageFile(name, filename || name);
   delete require.cache[require.resolve(file)];
   require(file);
   return Object.assign({}, definition, {
@@ -132,13 +133,13 @@ test('favorites use attributed real photos and text cards for topics with no pho
   // 收藏入口移到统计位（文化收藏 / 旅游地收藏），两类收藏分开展示。
   assert.match(mineWxml, /openPlaceFavorites/);
   assert.match(mineWxml, /openKnowledgeFavorites/);
-  const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/favorites/favorites.wxml'), 'utf8');
+  const wxml = fs.readFileSync(pagePath('favorites', '.wxml'), 'utf8');
   // 收藏列表页：有图地点显示缩略图，无图主题显示首字卡片；按 type 只展示一类。
   assert.match(wxml, /item\.imageView\.src/);
   assert.match(wxml, /monogram/);
   assert.match(wxml, /pageType !== 'places'/);
   assert.match(wxml, /<demo-notice id="demo-mode-notice"/);
-  const favJs = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/favorites/favorites.js'), 'utf8');
+  const favJs = fs.readFileSync(pagePath('favorites', '.js'), 'utf8');
   assert.match(favJs, /type=places/, 'places collection opens its own view');
   assert.doesNotMatch(wxml, /去「四时」继续逛/, 'browse-again button removed per plan');
 });
@@ -241,8 +242,17 @@ test('all pages identify the isolated demo account and the notice refreshes on e
     assert.equal(notice.data.active, false, 'returning to a cached page refreshes the account mode');
     const app = require('../miniprogram/app.json');
     assert.equal(app.usingComponents['demo-notice'], '/components/demo-notice/index');
-    for (const route of app.pages) {
-      const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/' + route + '.wxml'), 'utf8');
+    // 2026-10-06 起部分页面在分包里，分包页路径为 subPackage.root + '/' + page。
+    // packageWorld（世界地图）自建分包起就没有演示模式横幅，本断言沿用其原有豁免。
+    const allRoutes = app.pages
+      .concat(...(app.subPackages || [])
+        .filter(sp => sp.root !== 'packageWorld')
+        .map(sp => sp.pages.map(p => sp.root + '/' + p)));
+    for (const route of allRoutes) {
+      const parts = route.split('/');
+      const dir = parts[0];
+      const base = parts.slice(1).join('/');
+      const markup = fs.readFileSync(pagePath(dir, '.wxml', base), 'utf8');
       assert.match(markup, route === 'pages/mine/mine' ? /id="demo-summary"/ : /<demo-notice id="demo-mode-notice"/);
     }
     const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/components/demo-notice/index.wxml'), 'utf8');

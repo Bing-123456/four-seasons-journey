@@ -1,3 +1,4 @@
+const { pageFile } = require('./helpers/page-path');
 'use strict';
 
 // Integration checks run the actual Page controllers and shared content/store.
@@ -22,7 +23,7 @@ let calls;
 function loadPage(relative) {
   let definition;
   global.Page = value => { definition = value; };
-  const file = path.join(root, 'pages', relative + '.js');
+  const file = pageFile(relative);
   delete require.cache[require.resolve(file)];
   require(file);
   return Object.assign({}, definition, {
@@ -83,8 +84,10 @@ test('every journey fact resolves to a public source and every linked fact belon
 
 test('new classroom pages are importable native routes with page files', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8'));
-  for (const route of ['pages/workshop/index', 'pages/heritage/index']) {
-    assert.ok(manifest.pages.includes(route), route + ' must be registered');
+  // 2026-10-06 起 13 个非 tab 页面迁入 packageMore 分包，主包 pages 与分包 pages 均为合法注册位置。
+  const registered = manifest.pages.concat(...(manifest.subPackages || []).map(sp => sp.pages.map(p => sp.root + '/' + p)));
+  for (const route of ['packageMore/workshop/index', 'packageMore/heritage/index']) {
+    assert.ok(registered.includes(route), route + ' must be registered');
     for (const extension of ['js', 'json', 'wxml', 'wxss']) assert.ok(fs.existsSync(path.join(root, route + '.' + extension)), route + '.' + extension);
   }
 });

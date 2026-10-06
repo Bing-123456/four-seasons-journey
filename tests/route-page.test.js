@@ -113,7 +113,7 @@ test('openTown navigates to fruit-town, openJournal to season-journal', () => {
     subject.openTown({ currentTarget: { dataset: { id: 'town-luochuan' } } });
     assert.equal(calls.navigation.at(-1), '/packageFruit/pages/fruit-town/fruit-town?id=town-luochuan');
     subject.openJournal();
-    assert.equal(calls.navigation.at(-1), '/pages/season-journal/season-journal');
+    assert.equal(calls.navigation.at(-1), '/packageMore/season-journal/season-journal');
   });
 });
 

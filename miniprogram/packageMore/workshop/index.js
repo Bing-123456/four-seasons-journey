@@ -100,7 +100,7 @@ Page({
   },
   skipToReading: function () { this.record('workshop_skip', { count: this.data.step }); this.navigate('/pages/culture/culture?id=' + lesson.placeId); },
   readNote: function () { this.navigate('/pages/culture/culture?id=' + lesson.placeId); },
-  openMill: function () { this.navigate('/pages/heritage/index?id=grain-mill'); },
+  openMill: function () { this.navigate('/packageMore/heritage/index?id=grain-mill'); },
   saveNote: function () {
     this.setData({ error: '', saveStatus: '' });
     try {

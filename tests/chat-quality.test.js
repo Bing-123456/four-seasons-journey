@@ -171,13 +171,13 @@ test('a corrective retry failure degrades to refusal instead of surfacing an err
 // —— 客户端：与问点相关的分块排前，截断保住相关内容 ——
 const read = (...parts) => fs.readFileSync(path.resolve(__dirname, '..', ...parts), 'utf8');
 test('the client orders evidence sections by question relevance before truncation', () => {
-  const markup = read('miniprogram/pages/search/search.js');
+  const markup = read('miniprogram/packageMore/search/search.js');
   assert.match(markup, /function buildContexts\(fruits, question\)/, 'buildContexts 接收问点');
   assert.match(markup, /relevanceScore\(question/, '分块按问点词重合数排序');
   global.wx = global.wx || { getStorageSync: () => undefined, setStorageSync: () => {}, showToast: () => {}, request: () => {} };
   global.Page = global.Page || (() => {});
-  delete require.cache[require.resolve('../miniprogram/pages/search/search')];
-  const search = require('../miniprogram/pages/search/search');
+  delete require.cache[require.resolve('../miniprogram/packageMore/search/search')];
+  const search = require('../miniprogram/packageMore/search/search');
   const fruits = search.matchFruits('菠萝');
   assert.ok(fruits.length >= 1, '问题里的水果仍能命中');
   const contexts = search.buildContexts(fruits, '菠萝和凤梨是什么关系');

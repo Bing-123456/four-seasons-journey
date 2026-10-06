@@ -119,7 +119,7 @@ Page({
     try { result = lib.buildRoute(this.data.wizard); } catch (error) { result = { ok: false, reason: error.message }; }
     if (!result.ok) { this.setData({ generating: false, error: result.reason ? this.data.T.failHeading + '（' + result.reason + '）' : this.data.T.failHeading }); return; }
     this.setData({ generating: false });
-    wx.redirectTo({ url: '/pages/route-detail/route-detail', fail: () => wx.navigateTo({ url: '/pages/route-detail/route-detail' }) });
+    wx.redirectTo({ url: '/packageMore/route-detail/route-detail', fail: () => wx.navigateTo({ url: '/packageMore/route-detail/route-detail' }) });
   },
   noop: function () {}
 });
