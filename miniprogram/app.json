@@ -5,7 +5,6 @@
     "pages/learn/learn",
     "pages/route/route",
     "pages/mine/mine",
-    "pages/news/news",
     "pages/favorites/favorites",
     "pages/culture/culture",
     "pages/companion/companion",
@@ -108,7 +107,8 @@
         "craft-lesson/craft-lesson",
         "fruit-note/fruit-note",
         "smart-card/smart-card",
-        "search/search"
+        "search/search",
+        "news/news"
       ]
     }
   ]
