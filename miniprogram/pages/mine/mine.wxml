@@ -13,7 +13,7 @@
     <view class="group-title">{{L.grp_orchard}}</view>
     <view id="farm-card" class="farm-card">
       <view class="farm-scene">
-        <image class="farm-landscape" src="/assets/illustrations/orchard-garden.jpg" mode="aspectFill" aria-hidden="true"/>
+        <image class="farm-landscape" src="{{cloudOrchard}}" mode="aspectFill" aria-hidden="true"/>
         <view class="farm-ground"></view>
         <view class="farm-plant-view"><farm-plant crop="{{farmCropChoice}}" days="{{farm.totalWatered || 0}}"/></view>
         <view class="farm-can {{watering ? 'is-tilting' : ''}}"></view>

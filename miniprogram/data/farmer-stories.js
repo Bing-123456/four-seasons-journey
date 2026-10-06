@@ -1,4 +1,5 @@
 'use strict';
+const cloudImg = require('../lib/cloud-images');
 
 // 果农故事专栏（P21）：内容按评审附件《果农故事专栏》重写为真实人物故事，
 // 每条含真实人名、「地名｜来源」与两段式乡土叙事（保留附件的「来源：xxx」行）。
@@ -82,8 +83,8 @@ function storiesForSeason(seasonId) {
     if (!story) return null;
     const fruit = culture.findFruit(id);
     const illustration = id === 'autumn-persimmon'
-      ? '/assets/illustrations/farmer-story-scene.jpg'
-      : '/assets/illustrations/farmer-story-care.jpg';
+      ? cloudImg.img('illustrations/farmer-story-scene')
+      : cloudImg.img('illustrations/farmer-story-care');
     return { id, fruit: fruit ? fruit.name : id, name: story.name, place: story.place, text: story.text, illustration, editorialType: 'field-story' };
   }).filter(Boolean);
 }

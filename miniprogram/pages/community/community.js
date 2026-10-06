@@ -4,6 +4,7 @@
 // 帖子图片/头像是云存储 fileID，image 组件可直接渲染 cloud:// 协议。
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
+const cloudImg = require('../../lib/cloud-images');
 const communityApi = require('../../lib/community');
 
 function cloudAvailable() { return communityApi.cloudAvailable(); }
@@ -13,7 +14,7 @@ function callApi(method, path, body) { return communityApi.callApi(method, path,
 function formatRelativeTime(ts) { return communityApi.formatRelativeTime(ts); }
 
 Page({
-  data: { posts: [], loading: true, error: '', myNickname: '', L: {} },
+  data: { posts: [], loading: true, error: '', myNickname: '', L: {}, cloudOrchard: cloudImg.img('illustrations/orchard-garden') },
   onLoad: function () {
     i18n.applyNav('community_title');
     this.setData({ L: i18n.labels(['loading', 'community_empty', 'community_post_title', 'network_error', 'community_offline', 'community_delete_hint', 'community_delete_comment_title', 'community_delete_comment_msg', 'community_delete_post_title', 'community_delete_post_msg', 'community_delete', 'community_cancel', 'community_deleted', 'community_only_self']) });

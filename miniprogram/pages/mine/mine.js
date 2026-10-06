@@ -6,6 +6,7 @@ const farmLib = require('../../lib/farm');
 const farmProverbs = require('../../data/farm-proverbs');
 const companionLib = require('../../lib/companion');
 const i18nL = require('../../lib/i18n');
+const cloudImg = require('../../lib/cloud-images');
 // 农场阶段显示名：lib 返回稳定 key，界面按当前语言取词。
 const STAGE_KEYS = { seedling: 'farm_stage_seedling', sprout: 'farm_stage_sprout', leaf: 'farm_stage_leaf', vine: 'farm_stage_vine', flower: 'farm_stage_flower', fruit: 'farm_stage_fruit' };
 const CROP_KEYS = { watermelon: 'farm_crop_watermelon', strawberry: 'farm_crop_strawberry', apple: 'farm_crop_apple', pear: 'farm_crop_pear', grape: 'farm_crop_grape', kiwi: 'farm_crop_kiwi' };
@@ -47,7 +48,7 @@ Page({
     favorites: [], settings: {}, demoSummary: { active: false }, appLanguage: 'zh',
     farm: { planted: false, stageIndex: 0, stageLabel: '', progress: 0, canWater: false, streak: 0, totalWatered: 0, daysPlanted: 1, cropLabel: '', stageNext: null, wateringsToNext: 0 },
     farmCrops: farmLib.CROPS, farmCropChoice: 'watermelon', farmCropPreview: null, watering: false, proverbVisible: false, proverb: null,
-    avatarPath: '', calendarCells: [], calendarWeekHeaders: [], calendarMonthLabel: '', showCalendar: false, L: {},
+    cloudOrchard: cloudImg.img('illustrations/orchard-garden'), avatarPath: '', calendarCells: [], calendarWeekHeaders: [], calendarMonthLabel: '', showCalendar: false, L: {},
     fontScale: 'normal', fontClass: 'fs-normal', fontOptions: [], fontCopy: {}
   },
   onShareAppMessage: function () {

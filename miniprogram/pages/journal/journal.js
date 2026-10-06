@@ -1,4 +1,5 @@
 const solarTermNotes = require('../../data/solar-term-notes');
+const cloudImg = require('../../lib/cloud-images');
 const farmerStories = require('../../data/farmer-stories');
 const i18n = require('../../lib/i18n');
 Page({
@@ -9,7 +10,7 @@ Page({
     wx.setNavigationBarTitle({ title: en ? 'Seasonal stories' : '节气与故事' });
     const term = solarTermNotes.currentTerm();
     // 故事水果的季节跟随当前节气（评审 9.28②：秋分页不再出现春末的青梅故事）。
-    const story = farmerStories.storyForSeason(term.season) || { text: '', fruit: '', name: '', place: '', illustration: '/assets/illustrations/farmer-story-care.jpg' };
+    const story = farmerStories.storyForSeason(term.season) || { text: '', fruit: '', name: '', place: '', illustration: cloudImg.img('illustrations/farmer-story-care') };
     this.setData({
       L: i18n.labels(['home_news','news_term','news_story','note_verify','collapse_full','expand_full']),
       termNote: en ? Object.assign({}, term, { name: term.enName || term.name, headline: term.enHeadline || term.headline, text: term.enText || term.text }) : term,

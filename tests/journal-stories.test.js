@@ -37,12 +37,17 @@ test('story rotation stays deterministic and empty seasons fall back safely', ()
 });
 
 test('rotating stories only show the persimmon harvest for the persimmon story', () => {
+  const cloudImages = require('../miniprogram/lib/cloud-images');
+  const cloudUrls = Object.keys(cloudImages.CLOUD).map(k => cloudImages.CLOUD[k]).filter(Boolean);
   for (const season of ['spring', 'summer', 'autumn', 'winter']) {
     for (const story of stories.storiesForSeason(season)) {
-      assert.equal(story.illustration, story.id === 'autumn-persimmon'
-        ? '/assets/illustrations/farmer-story-scene.jpg'
-        : '/assets/illustrations/farmer-story-care.jpg');
-      assert.ok(fs.existsSync(path.join(__dirname, '../miniprogram', story.illustration)), story.id + ' has a packaged illustration');
+      const expected = story.id === 'autumn-persimmon' ? 'farmer-story-scene.jpg' : 'farmer-story-care.jpg';
+      // 2026-10-06 起插画走云存储（miniprogram/lib/cloud-images.js），地址为 cloud:// 形态。
+      const url = String(story.illustration);
+      assert.ok(url.indexOf(expected) >= 0, story.id + ' 应引用 ' + expected + '，实际 ' + url);
+      const onCloud = cloudUrls.some(u => u.split('/').pop() === expected);
+      const onDisk = fs.existsSync(path.join(__dirname, '../miniprogram', story.illustration));
+      assert.ok(onCloud || onDisk, story.id + ' 必须已打包或已登记为云存储地址');
     }
   }
   assert.match(read('miniprogram/pages/journal/journal.wxml'), /src="\{\{seasonStory\.illustration\}\}"/);

@@ -1,3 +1,4 @@
+const cloudImages = require('../miniprogram/lib/cloud-images');
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -36,6 +37,23 @@ test.beforeEach(() => {
 });
 test.afterEach(() => { service.parseProfile = original.parse; });
 test.after(() => { global.wx = original.wx; global.Page = original.Page; });
+
+
+// 2026-10-06：12 张大图已移出主包改走云存储（lib/cloud-images.js）。
+// 断言兼容两种形态：cloud:// 云地址（须已登记在 CLOUD 配置里），或本地 /assets 路径（须文件真实存在）。
+function assertImagePackaged(src, label) {
+  if (typeof src === 'string' && src.indexOf('cloud://') === 0) {
+    // 云存储里的文件名是扁平名（如 assets/activity-loquat.jpg），
+    // 而 CLOUD 的键保留原目录结构（如 illustrations/home-carousel/activity-loquat），
+    // 因此按「键的 basename 是否出现在地址里」来匹配。
+    const base = src.split('/').pop().replace(/\.[a-z]+$/i, '');
+    const key = Object.keys(cloudImages.CLOUD).find(k => src.indexOf(k) >= 0 || k.split('/').pop() === base);
+    assert.ok(key, label + ' 应登记在 cloud-images.CLOUD：' + src);
+    assert.ok(/^cloud:\/\//.test(cloudImages.CLOUD[key]), label + ' 的 CLOUD 值应为 cloud:// 地址');
+    return;
+  }
+  assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram', String(src).replace(/^\//, ''))), label + ' packaged');
+}
 
 test('late profile response never replaces a budget edited while parsing', async () => {
   let complete;
@@ -104,7 +122,8 @@ test('favorites use attributed real photos and text cards for topics with no pho
   const page = loadPage('mine'); page.onShow();
   const photoCard = page.data.favorites.find(place => place.id === photographed.id);
   const textCard = page.data.favorites.find(place => place.id === topic.id);
-  assert.equal(photoCard.imageView.src, photographed.image.src);
+  // 2026-10-06 起 mediaFor 会把本地路径换成云存储地址，故比对文件名而非整串路径。
+  assert.equal(String(photoCard.imageView.src).split('/').pop(), String(photographed.image.src).split('/').pop());
   assert.match(photoCard.imageView.credit, /CC BY-SA/);
   assert.equal(textCard.imageView, null);
   assert.equal(textCard.initial, topic.name.slice(0, 1));
@@ -163,13 +182,8 @@ test('campaign illustrations are packaged JPEGs and native titles remain bilingu
   const home = loadPage('index'); home.onShow();
   assert.deepEqual(home.data.forecastPosters.map(item => item.title), ['枇杷熬膏', '青梅封坛', '桑葚果酱']);
   for (const item of home.data.forecastPosters) {
-    const file = path.resolve(__dirname, '../miniprogram', item.image.replace(/^\//, ''));
-    assert.ok(fs.existsSync(file), item.image + ' packaged');
-    const bytes = fs.readFileSync(file);
-    const isWebp = bytes.slice(0, 4).toString() === 'RIFF' && bytes.slice(8, 12).toString() === 'WEBP';
-    const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8;
-    assert.ok(isWebp || isJpeg, item.image + ' must be a valid webp/jpeg illustration');
-    assert.ok(bytes.length > 1000, 'illustration must contain image data');
+    assertImagePackaged(item.image, item.image);
+    assertImagePackaged(item.imageBg, item.imageBg);
     assert.ok(item.description && item.date && item.place);
   }
   const ids = home.data.forecastPosters.map(item => item.id);
@@ -191,8 +205,9 @@ test('live activities never inherit the fruit or date printed on campaign poster
     const home = loadPage('index'); home.refresh();
     await home.loadActivities();
     const activity = home.data.forecastPosters.find(item => item.id === 'live-pear');
-    assert.equal(activity.image, '/assets/illustrations/orchard-garden-banner.jpg');
-    assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram', activity.image.replace(/^\//, ''))), 'activity banner packaged');
+    // 2026-10-06 起横幅改走云存储，故比对文件名而非整串本地路径。
+    assert.equal(String(activity.image).split('/').pop(), 'orchard-garden-banner.jpg');
+    assertImagePackaged(activity.image, 'activity banner');
     assert.equal(activity.title, '秋梨采摘');
     assert.equal(activity.place, '梨园');
     assert.equal(activity.date, '2026-10-01 — 2026-10-03');
@@ -204,7 +219,7 @@ test('live activities never inherit the fruit or date printed on campaign poster
     assert.match(markup, /class="feature-image feature-image-main"[^>]*mode="aspectFit"/);
     for (const poster of home.data.forecastPosters.filter(item => !item.bookable)) {
       assert.ok(poster.imageBg, poster.id + ' has pre-baked background');
-      assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram', poster.imageBg.replace(/^\//, ''))), poster.imageBg + ' packaged');
+      assertImagePackaged(poster.imageBg, poster.imageBg);
     }
   } finally { booking.listActivities = previous; }
 });

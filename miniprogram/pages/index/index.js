@@ -7,6 +7,7 @@ const i18n = require('../../lib/i18n');
 const booking = require('../../lib/booking-service');
 const sellerCore = require('../../lib/seller-core');
 const { mergeActivities } = require('../../lib/home-carousel');
+const cloudImg = require('../../lib/cloud-images');
 
 Page({
   data: { bookingVisible: false, bookingActivity: null, bookingDate: '', bookingPeople: '1', bookingBusy: false, bookingError: '', myBookings: [], featureIndex: 0, featureSideMargin: 28, season: 'summer', forecastPosters: [] },
@@ -61,9 +62,9 @@ Page({
     // 活动信息使用原生文字，插画只负责呈现果物，保证缩放与英文排版可读。
     const L = i18n.labels(['home_news','news_term','news_story','note_verify','resume_text','resume_open','farmer_studio','farmer_studio_sub','home_tagline1','home_brand_welcome','home_tagline2','tab_discover','search_local_web','welcome_title','welcome_caption','welcome_customize','role_title','role_note','role_tourist','role_farmer','role_tourist_desc','role_farmer_desc','collapse_full','expand_full','id_glyph_traveler','id_glyph_farmer','id_search_aria','id_search_title','id_bag_aria','id_bag_title','id_bag_sub','id_bag_go','id_farmer_aria']);
     const forecastPosters = [
-      { id: 'poster-loquat', bookable: false, image: '/assets/illustrations/home-carousel/activity-loquat.jpg', imageBg: '/assets/illustrations/home-carousel/activity-loquat.jpg', title: en ? 'Loquat syrup' : '枇杷熬膏', place: en ? 'Foothill loquat orchard' : '山脚枇杷园', description: en ? 'Freshly picked loquats, slowly simmered into syrup.' : '枇杷采摘，慢熬一盏润心膏。', date: en ? 'Apr 25 · Booking unavailable' : '4月25日 · 活动示例' },
-      { id: 'poster-plum', bookable: false, image: '/assets/illustrations/home-carousel/activity-plum.jpg', imageBg: '/assets/illustrations/home-carousel/activity-plum.jpg', title: en ? 'Green plum preserves' : '青梅封坛', place: en ? 'Hillside plum orchard' : '后山梅子园', description: en ? 'Gather green plums and preserve a little spring.' : '青梅采摘，封存一整个春天。', date: en ? 'May 5 · Booking unavailable' : '5月5日 · 活动示例' },
-      { id: 'poster-mulberry', bookable: false, image: '/assets/illustrations/home-carousel/activity-mulberry.jpg', imageBg: '/assets/illustrations/home-carousel/activity-mulberry.jpg', title: en ? 'Mulberry jam' : '桑葚果酱', place: en ? 'Orchard' : '果园', description: en ? 'Pick mulberries and jar their purple sweetness.' : '桑葚采摘，酿一罐紫红的甜。', date: en ? 'May 15 · Booking unavailable' : '5月15日 · 活动示例' }
+      { id: 'poster-loquat', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-loquat'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-loquat'), title: en ? 'Loquat syrup' : '枇杷熬膏', place: en ? 'Foothill loquat orchard' : '山脚枇杷园', description: en ? 'Freshly picked loquats, slowly simmered into syrup.' : '枇杷采摘，慢熬一盏润心膏。', date: en ? 'Apr 25 · Booking unavailable' : '4月25日 · 活动示例' },
+      { id: 'poster-plum', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-plum'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-plum'), title: en ? 'Green plum preserves' : '青梅封坛', place: en ? 'Hillside plum orchard' : '后山梅子园', description: en ? 'Gather green plums and preserve a little spring.' : '青梅采摘，封存一整个春天。', date: en ? 'May 5 · Booking unavailable' : '5月5日 · 活动示例' },
+      { id: 'poster-mulberry', bookable: false, image: cloudImg.img('illustrations/home-carousel/activity-mulberry'), imageBg: cloudImg.imgBg('illustrations/home-carousel/activity-mulberry'), title: en ? 'Mulberry jam' : '桑葚果酱', place: en ? 'Orchard' : '果园', description: en ? 'Pick mulberries and jar their purple sweetness.' : '桑葚采摘，酿一罐紫红的甜。', date: en ? 'May 15 · Booking unavailable' : '5月15日 · 活动示例' }
     ];
     this.setData({
       L, season: season.id, isEnglish: en,
@@ -79,7 +80,7 @@ Page({
   loadActivities: function () {
     if (store.isDemoMode()) return Promise.resolve();
     const partition = store.capturePartition(); const apiBase = store.getSettings().apiBase;
-    return booking.listActivities().then(result => { if (partition !== store.capturePartition() || apiBase !== store.getSettings().apiBase) return; const real = result.activities.map(item => ({ ...item, bookable: true, image: '/assets/illustrations/orchard-garden-banner.jpg', imageBg: '/assets/illustrations/orchard-garden-banner-bg.jpg', place: item.location, date: item.startDate + ' — ' + item.endDate })); this.setData(mergeActivities(this.data.forecastPosters, this.data.featureIndex, real)); }).catch(() => {});
+    return booking.listActivities().then(result => { if (partition !== store.capturePartition() || apiBase !== store.getSettings().apiBase) return; const real = result.activities.map(item => ({ ...item, bookable: true, image: cloudImg.img('illustrations/orchard-garden-banner'), imageBg: cloudImg.imgBg('illustrations/orchard-garden-banner-bg'), place: item.location, date: item.startDate + ' — ' + item.endDate })); this.setData(mergeActivities(this.data.forecastPosters, this.data.featureIndex, real)); }).catch(() => {});
   },
   openBooking: function (event) {
     const activity = this.data.forecastPosters.find(item => item.id === event.currentTarget.dataset.id);

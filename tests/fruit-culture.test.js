@@ -78,8 +78,13 @@ test('the harvest-event carousel is driven by the four seasons of picking activi
   assert.match(indexJs, /forecastPosters/, 'the carousel shows the three campaign posters');
   assert.doesNotMatch(indexJs, /farmActivities\.ACTIVITIES\.map/, 'activity slides are replaced by posters');
   assert.doesNotMatch(indexJs, /solarTermNotes\.forecasts/, 'the solar-term slides are gone from the carousel');
+  // 2026-10-06：这三张插画已移出主包改走云存储（lib/cloud-images.js），断言兼容两种形态。
+  const cloudImages = require('../miniprogram/lib/cloud-images');
+  const cloudUrls = Object.keys(cloudImages.CLOUD).map(k => cloudImages.CLOUD[k]).filter(Boolean);
   for (const illustration of ['activity-loquat.jpg', 'activity-mulberry.jpg', 'activity-plum.jpg']) {
-    assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/assets/illustrations/home-carousel', illustration)), illustration + ' packaged');
+    const onCloud = cloudUrls.some(url => url.split('/').pop() === illustration);
+    const onDisk = fs.existsSync(path.resolve(__dirname, '../miniprogram/assets/illustrations/home-carousel', illustration));
+    assert.ok(onCloud || onDisk, illustration + ' 必须已打包或已登记为云存储地址');
   }
 });
 

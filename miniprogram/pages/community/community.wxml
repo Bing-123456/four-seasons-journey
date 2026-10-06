@@ -2,7 +2,7 @@
 <view class="page community-page {{fontClass}}">
   <!-- 顶部横幅：米黄底 + 现有果园插画 + 标题（评审 10.5：白底太秃，统一小程序米黄基调） -->
   <view class="community-banner">
-    <image class="community-banner-art" src="/assets/illustrations/orchard-garden.jpg" mode="aspectFill" aria-hidden="true"/>
+    <image class="community-banner-art" src="{{cloudOrchard}}" mode="aspectFill" aria-hidden="true"/>
     <view class="community-banner-copy">
       <view class="community-banner-title serif">{{L.community_title}}</view>
       <view class="community-banner-sub">{{L.community_banner_sub}}</view>
