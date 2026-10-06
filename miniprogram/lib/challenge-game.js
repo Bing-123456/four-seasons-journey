@@ -1,6 +1,6 @@
 'use strict';
 
-// 六艺挑战游戏逻辑：真实三圈转盘（外圈节气锁定为水果生长的节气）+ 情境出题 + 知识卡 + 每日 6 次 + 一大轮。
+// 农事挑战游戏逻辑：真实三圈转盘（外圈节气锁定为水果生长的节气）+ 情境出题 + 知识卡 + 每日 6 次 + 一大轮。
 const QUESTIONS = require('../data/challenge-questions');
 const solar = require('../data/solar-term-notes');
 const media = require('./media-service');
