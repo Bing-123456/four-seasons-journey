@@ -172,17 +172,10 @@ test('9.27 feedback: craft lessons keep real ingredients and a complete 01/02/03
     for (const step of steps) assert.ok(typeof step.text === 'string' && step.text.trim().length > 0, name + ' 步骤文本非空');
     // 文档覆盖的水果：食材为真实三项、03 记收获三段齐全且名称正确
     const doc = craftLessonsDoc[craft.learn.product];
-    if (doc) {
-      assert.equal(craft.learn.ingredients.length, 3, name + ' 文档食材为三项');
-      assert.equal(craft.learn.reflection.length, 3, name + ' 文档03为三段');
-      assert.deepEqual(craft.learn.reflection.map(r => r.name), EXPECTED_REF, name + ' 03三段名称');
-    }
-  }
-  // P17 兜底：8 个文档未覆盖的水果仍保留旧自动生成逻辑（无 reflection）
-  const missing = ['青梅', '桑葚', '樱桃', '枇杷', '香蕉', '芒果', '草莓', '椰枣'];
-  for (const n of missing) {
-    const c = (worldFruit[n] || []).find(x => x.cat === 'craft');
-    assert.equal(c.learn.reflection, undefined, n + ' 缺失项无 reflection');
+    assert.ok(doc, name + ' 的 craftProduct(' + craft.learn.product + ') 已在文档中覆盖');
+    assert.equal(craft.learn.ingredients.length, 3, name + ' 文档食材为三项');
+    assert.equal(craft.learn.reflection.length, 3, name + ' 文档03为三段');
+    assert.deepEqual(craft.learn.reflection.map(r => r.name), EXPECTED_REF, name + ' 03三段名称');
   }
   // P19：季节与内容一致——杨梅（夏至杨梅）、山竹（热带夏季果）归入夏季，且节点图随季节改名
   for (const name of ['杨梅', '山竹']) {
