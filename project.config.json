@@ -31,25 +31,82 @@
   },
   "packOptions": {
     "ignore": [
-      { "type": "file", "value": "guayouji-miniprogram-deploy-*.zip" },
-      { "type": "folder", "value": "cloudrun-deploy-v29" },
-      { "type": "folder", "value": "cloudrun-deploy-v30" },
-      { "type": "folder", "value": "cloudrun-deploy-v31" },
-      { "type": "folder", "value": "cloudrun-deploy-v32" },
-      { "type": "folder", "value": "cloudrun-deploy-v33" },
-      { "type": "folder", "value": "cloudrun-deploy-v35" },
-      { "type": "folder", "value": "cloudrun-deploy-v36" },
-      { "type": "folder", "value": "cloudrun-deploy-v37" },
-      { "type": "folder", "value": "cloudrun-deploy-v38" },
-      { "type": "folder", "value": "cloudrun-deploy-v39" },
-      { "type": "folder", "value": "cloudrun-deploy-v40" },
-      { "type": "folder", "value": "cloudrun-deploy-v41" },
-      { "type": "folder", "value": "guayouji-miniprogram-deploy-20261005" },
-      { "type": "folder", "value": "game-art-upload" },
-      { "type": "folder", "value": "server" },
-      { "type": "folder", "value": "node_modules" },
-      { "type": "folder", "value": "docs" },
-      { "type": "folder", "value": "evaluation" }
+      {
+        "value": "guayouji-miniprogram-deploy-*.zip",
+        "type": "file"
+      },
+      {
+        "value": "cloudrun-deploy-v29",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v30",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v31",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v32",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v33",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v35",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v36",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v37",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v38",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v39",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v40",
+        "type": "folder"
+      },
+      {
+        "value": "cloudrun-deploy-v41",
+        "type": "folder"
+      },
+      {
+        "value": "guayouji-miniprogram-deploy-20261005",
+        "type": "folder"
+      },
+      {
+        "value": "game-art-upload",
+        "type": "folder"
+      },
+      {
+        "value": "server",
+        "type": "folder"
+      },
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": "docs",
+        "type": "folder"
+      },
+      {
+        "value": "evaluation",
+        "type": "folder"
+      }
     ],
     "include": []
   },
