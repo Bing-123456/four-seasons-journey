@@ -27,5 +27,15 @@ module.exports = [
   { id: 'm-jujube-poetry', fruit: '枣', category: '诗词', label: '八月剥枣', source: '公开常识，待权威来源确认' },
   { id: 'm-ougan-origin', fruit: '瓯柑', category: '产地', label: '温州耐藏', source: '公开常识，待权威来源确认' },
   { id: 'm-peach-poetry', fruit: '桃', category: '诗词', label: '园有桃', source: '《诗经》「园有桃」' },
-  { id: 'm-citrus-custom', fruit: '柑橘', category: '民俗', label: '汉代设橘官', source: '《禹贡》列为贡税；汉代设「橘官」' }
+  { id: 'm-citrus-custom', fruit: '柑橘', category: '民俗', label: '汉代设橘官', source: '《禹贡》列为贡税；汉代设「橘官」' },
+  { id: 'm-greenplum-allusion2', fruit: '青梅', category: '典故', label: '望梅止渴', source: '典故「望梅止渴」' },
+  { id: 'm-loquat-history', fruit: '枇杷', category: '历史', label: '项脊轩志树', source: '归有光《项脊轩志》「庭有枇杷树，吾妻死之年所手植也」' },
+  { id: 'm-bayberry-poetry2', fruit: '杨梅', category: '诗词', label: '未若吴越杨梅', source: '宋人「闽广荔枝，西凉葡萄，未若吴越杨梅」' },
+  { id: 'm-litchi-history', fruit: '荔枝', category: '历史', label: '蔡襄荔枝谱', source: '蔡襄《荔枝谱》记 32 品种' },
+  { id: 'm-persimmon-history', fruit: '柿子', category: '历史', label: '两千年栽培', source: '柿子有两千多年栽培历史' },
+  { id: 'm-cherry-history', fruit: '樱桃', category: '历史', label: '史记献宗庙', source: '《史记》孝惠帝取新樱桃献宗庙' },
+  { id: 'm-mulberry-allusion2', fruit: '桑葚', category: '民俗', label: '商汤祷雨桑林', source: '商汤祷雨于桑林传说' },
+  { id: 'm-mulberry-history', fruit: '桑葚', category: '历史', label: '诗经爰求柔桑', source: '《诗经·七月》「爰求柔桑」' },
+  { id: 'm-loquat-custom2', fruit: '枇杷', category: '民俗', label: '立夏尝三鲜', source: '立夏食单「尝三鲜」枇杷与樱桃青梅同席' },
+  { id: 'm-pomelo-custom2', fruit: '柚子', category: '民俗', label: '中秋分甘酸', source: '「中秋柚子圆，阖家分甘酸」' }
 ];
