@@ -21,6 +21,27 @@ Page({
   onShow: function () {
     const me = store.getIdentity() || {};
     this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal', myNickname: me.nickname || i18n.t('traveller') });
+    // 从详情页返回时，若那条帖子在详情页被点赞/评论/删除，只更新对应那一条（不整页刷新、不重置滚动）；
+    // 纯查看返回则连更新都不做，完全保留原位。
+    const app = (typeof getApp === 'function') ? getApp() : null;
+    const dirty = app && app.communityDirty;
+    if (dirty && dirty.id) {
+      app.communityDirty = null;
+      this._enteredDetail = false;
+      const posts = (this.data.posts || []).map(function (p) {
+        if (p._id !== dirty.id) return p;
+        if (dirty.deleted) return null;
+        const next = Object.assign({}, p);
+        if (typeof dirty.liked === 'boolean') next.liked = dirty.liked;
+        if (typeof dirty.likes === 'number') next.likes = dirty.likes;
+        if (Array.isArray(dirty.comments)) next.comments = dirty.comments;
+        return next;
+      }).filter(Boolean);
+      this.setData({ posts: posts });
+      return;
+    }
+    // 纯查看进详情再返回：保留列表与滚动位置，不重新拉取。
+    if (this._enteredDetail) { this._enteredDetail = false; return; }
     this.loadPosts();
   },
   // 未连接云托管（测试/开发环境）时优雅降级，不报错。
@@ -74,7 +95,7 @@ Page({
   // 点帖子卡片进详情页（大图 + 朋友圈式评论区）；点赞/评论按钮用 catchtap 阻止冒泡。
   goDetail: function (event) {
     const id = event.currentTarget.dataset.id;
-    if (id) wx.navigateTo({ url: '/pages/community/detail?id=' + id });
+    if (id) { this._enteredDetail = true; wx.navigateTo({ url: '/pages/community/detail?id=' + id }); }
   },
   goPost: function () { wx.navigateTo({ url: '/pages/community/post' }); },
   // 长按删除评论：仅本人（昵称匹配，且非默认名「旅人」）可删；确认后真实删除并刷新。

@@ -29,7 +29,7 @@ Page({
   loadDetail: function () {
     if (!communityApi.cloudAvailable()) { this.setData({ loading: false, error: i18n.t('community_offline') }); return; }
     this.setData({ loading: true, error: '' });
-    callApi('GET', '/api/community/detail?id=' + encodeURIComponent(this.data.id)).then(res => {
+    return callApi('GET', '/api/community/detail?id=' + encodeURIComponent(this.data.id)).then(res => {
       const post = (res && res.post) || null;
       if (!post) { this.setData({ loading: false, error: i18n.t('community_post_gone') }); return; }
       post.timeText = communityApi.formatRelativeTime(post.createdAt);
@@ -54,7 +54,12 @@ Page({
   toggleLike: function () {
     if (!communityApi.cloudAvailable()) return;
     callApi('POST', '/api/community/like', { id: this.data.id }).then(res => {
-      if (res && typeof res.likes === 'number') this.setData({ likes: res.likes, liked: !!res.liked });
+      if (res && typeof res.likes === 'number') {
+        this.setData({ likes: res.likes, liked: !!res.liked });
+        // 记住这条帖子点赞状态变化，返回列表时同步，但整页不刷新（保留滚动位置）。
+        const app = (typeof getApp === 'function') ? getApp() : null;
+        if (app) app.communityDirty = { id: this.data.id, liked: !!res.liked, likes: res.likes };
+      }
     }).catch(() => wx.showToast({ title: i18n.t('network_error'), icon: 'none' }));
   },
   tapReply: function (event) {
@@ -78,7 +83,11 @@ Page({
       replyTo: this.data.replyTo
     }).then(() => {
       this.setData({ commentValue: '', replyTo: '', sending: false });
-      this.loadDetail();
+      return this.loadDetail();
+    }).then(() => {
+      // 评论刷新后，把最新评论列表带回去同步给列表页（同样不整页刷新）。
+      const app = (typeof getApp === 'function') ? getApp() : null;
+      if (app) app.communityDirty = { id: this.data.id, comments: this.data.comments };
     }).catch(error => {
       this.setData({ sending: false });
       wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' });
@@ -102,7 +111,14 @@ Page({
         if (!res.confirm) return;
         if (!communityApi.cloudAvailable()) return;
         callApi('POST', '/api/community/delete-comment', { id: this.data.id, index: index, nickname: this.data.myNickname })
-          .then(() => { wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' }); this.loadDetail(); })
+          .then(() => {
+            wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' });
+            return this.loadDetail();
+          })
+          .then(() => {
+            const app = (typeof getApp === 'function') ? getApp() : null;
+            if (app) app.communityDirty = { id: this.data.id, comments: this.data.comments };
+          })
           .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
       }
     });
@@ -123,7 +139,13 @@ Page({
         if (!res.confirm) return;
         if (!communityApi.cloudAvailable()) return;
         callApi('POST', '/api/community/delete-post', { id: this.data.id })
-          .then(() => { wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' }); setTimeout(function () { wx.navigateBack(); }, 400); })
+          .then(() => {
+            wx.showToast({ title: i18n.t('community_deleted'), icon: 'none' });
+            // 告诉列表页这条已删除，返回时直接移除（不整页刷新）。
+            const app = (typeof getApp === 'function') ? getApp() : null;
+            if (app) app.communityDirty = { id: this.data.id, deleted: true };
+            setTimeout(function () { wx.navigateBack(); }, 400);
+          })
           .catch(error => wx.showToast({ title: (error && error.message) || i18n.t('network_error'), icon: 'none' }));
       }
     });
