@@ -17,7 +17,7 @@ Page({
     const fruit = fruitCulture.findFruit(fullId);
     const craft = fruit ? (fruit.categories || []).find(item => item.cat === 'craft') : null;
     const learn = craft && craft.learn ? craft.learn : null;
-    if (!learn) { this.setData({ invalid: true, L: i18n.labels(['craft_back']) }); return; }
+    if (!learn) { this.setData({ invalid: true, L: i18n.labels(['craft_empty_title']) }); return; }
     // WXML 绑定用首字图形，提前算好。
     learn.ingredients = (learn.ingredients || []).map(item => Object.assign({}, item, { glyph: (item.name || '·')[0] }));
     // 评审 9.28②：通用模板小标题与各课内容不对应，改为纯序号；青梅酱等自拟标题保留。
@@ -29,7 +29,7 @@ Page({
     this.setData({
       fruit: fruitView, learn, learnView,
       favorite: this.isFav(fruit),
-      L: i18n.labels(['craft_step_ingredients', 'craft_step_craft', 'craft_step_done', 'craft_choose_two', 'craft_next_craft', 'craft_next_done', 'craft_save', 'craft_saved', 'craft_back', 'craft_restart', 'craft_finish_title', 'craft_empty_title', 'craft_steps_title', 'craft_done_note','cl_kicker','cl_title_a','craft_share_community'])
+      L: i18n.labels(['craft_step_ingredients', 'craft_step_craft', 'craft_step_done', 'craft_choose_two', 'craft_next_craft', 'craft_next_done', 'craft_save', 'craft_saved', 'craft_restart', 'craft_finish_title', 'craft_empty_title', 'craft_steps_title', 'craft_done_note','cl_kicker','cl_title_a','craft_share_community'])
     });
   },
   isFav: function (fruit) {
@@ -49,7 +49,6 @@ Page({
       wx.showToast({ title: added ? i18n.t('craft_fav_added') : i18n.t('cal_fav_removed'), icon: 'none' });
     } catch (error) { wx.showToast({ title: error.message || i18n.t('fav_fail'), icon: 'none' }); }
   },
-  back: function () { wx.navigateBack({ delta: 1, fail: () => wx.switchTab({ url: '/pages/calendar/calendar' }) }); },
   shareToCommunity: function () { wx.navigateTo({ url: '/pages/community/community' }); },
   noop: function () {}
 });

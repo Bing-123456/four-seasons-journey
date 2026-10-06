@@ -107,9 +107,10 @@ Page({
     const partition = store.capturePartition(); this.setData({ bookingBusy: true, bookingError: '' });
     return booking.cancel(event.currentTarget.dataset.id).then(() => this.loadMyBookings()).catch(error => { if (partition === store.capturePartition()) this.setData({ bookingError: error.message }); }).finally(() => { if (partition === store.capturePartition()) this.setData({ bookingBusy: false }); });
   },
-  onShareAppMessage: function () {
+  onShareAppMessage: function (event) {
     return { title: i18n.t('home_share_title'), path: '/pages/index/index' };
   },
+
   openSearch: function () { wx.navigateTo({ url: '/pages/search/search' }); },
   changeFeature: function (event) {
     const current = Number(event.detail.current);

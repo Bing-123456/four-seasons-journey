@@ -6,7 +6,7 @@ const WORLD = require('./world-fruit-culture');
 const fruitCulture = require('./fruit-culture');
 const proverbs = require('./farm-proverbs').proverbs;
 
-const CAT_LABELS = { folk: '民俗仪式与节气食俗', history: '历史源流', craft: '传统手工技艺', story: '乡土故事', tools: '传统农具与种植', health: '时令食养文化' };
+const CAT_LABELS = { folk: '民俗仪式与节气食俗', history: '历史源流', craft: '传统手工技艺', story: '乡土故事', tools: '古法种植经验', health: '时令食养文化' };
 const CAT_ORDER = ['folk', 'history', 'craft', 'story', 'tools', 'health'];
 
 const native = new Set();
@@ -158,7 +158,7 @@ const html = `<!DOCTYPE html>
 
 <h2>二、覆盖矩阵（字数 = 该维度 导语+正文 总字数）</h2>
 <table>
-<thead><tr><th>水果</th><th>季节</th><th>民俗仪式与节气食俗</th><th>历史源流</th><th>传统手工技艺</th><th>乡土故事</th><th>传统农具与种植</th><th>时令食养文化</th><th>合计</th></tr></thead>
+<thead><tr><th>水果</th><th>季节</th><th>民俗仪式与节气食俗</th><th>历史源流</th><th>传统手工技艺</th><th>乡土故事</th><th>古法种植经验</th><th>时令食养文化</th><th>合计</th></tr></thead>
 <tbody>
 ${matrixRows}
 </tbody>

@@ -151,6 +151,15 @@ function createServer(options = {}) {
         if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
         send(200, await community.comment(await readBody(request, 4096))); return;
       }
+      if (path === '/api/community/nickname-exists' && request.method === 'GET') {
+        const query = Object.fromEntries(new URL(request.url, 'http://localhost').searchParams);
+        send(200, await community.nicknameExists(typeof query.nickname === 'string' ? query.nickname : '', communityOpenid())); return;
+      }
+      if (path === '/api/community/rename' && request.method === 'POST') {
+        if (!rateAllowed(request)) throw new InputError('操作过于频繁，请稍后再试', 'rate_limited', 429);
+        const body = await readBody(request, 256);
+        send(200, await community.rename(body.oldNickname, body.newNickname, communityOpenid())); return;
+      }
       if (/^\/api\/(booking-clients|booking-activities|booking-summary|bookings)(\/|$)/.test(path)) {
         if (!auth.inspect(request).authenticated) throw new InputError('服务连接已过期', 'unauthorized', 401);
         if (!rateAllowed(request, request.method === 'GET')) throw new InputError('请求过于频繁', 'rate_limited', 429);

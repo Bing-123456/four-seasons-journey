@@ -47,6 +47,21 @@ function createSdkStub() {
     }),
     orderBy: () => collection,
     limit: () => collection,
+    where: (query) => {
+      const matched = () => Array.from(docs.entries()).filter(([id, doc]) => {
+        return Object.entries(query).every(([k, v]) => doc[k] === v);
+      });
+      const filtered = {
+        orderBy: () => filtered, limit: () => filtered,
+        get: async () => ({ data: matched().map(([id, doc]) => Object.assign({ _id: id }, clone(doc))) }),
+        update: async (data) => {
+          let n = 0;
+          for (const [, doc] of matched()) { for (const [key, value] of Object.entries(data)) doc[key] = clone(value); n++; }
+          return { updated: n };
+        }
+      };
+      return filtered;
+    },
     get: async () => ({ data: Array.from(docs.entries()).map(([id, doc]) => Object.assign({ _id: id }, clone(doc))) })
   };
   const app = {
@@ -194,4 +209,55 @@ test('detail 返回单帖（含 liked 打标与图片 https），不存在时 40
   assert.equal(result.post.likes, 1);
   assert.match(result.post.image, /^https:\/\//);
   await assert.rejects(() => service.detail('missing-id-999', ''), error => error.status === 404);
+});
+
+test('nicknameExists：他人已用的名字返回 exists=true，自己的历史名不算占用', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: 'B 的帖', nickname: '小冰' }, 'openid-B');
+  // 自己（openid-A）曾用「小冰」发过帖，但改名查重应排除自己
+  await service.publish({ imageFileId: FILE_ID, text: 'A 的旧帖', nickname: '小冰' }, 'openid-A');
+  const taken = await service.nicknameExists('小冰', 'openid-A');
+  assert.equal(taken.exists, true, '其他用户已用「小冰」，应判占用');
+  const free = await service.nicknameExists('没人用过的名字', 'openid-A');
+  assert.equal(free.exists, false);
+});
+
+test('nicknameExists：默认名「旅人」与空名豁免，不报占用', async () => {
+  const service = makeService(createSdkStub());
+  assert.deepEqual(await service.nicknameExists('旅人', 'openid-A'), { exists: false });
+  assert.deepEqual(await service.nicknameExists('', 'openid-A'), { exists: false });
+});
+
+test('rename：把我的所有帖子与历史评论的旧昵称统一改成新名', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  // A 用旧名「冰冰」发了帖并评论
+  await service.publish({ imageFileId: FILE_ID, text: 'A 的帖', nickname: '冰冰' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  await service.comment({ id: id, text: 'A 的评论', nickname: '冰冰' }, 'openid-A');
+  // B 的帖也带评论，但评论者不是 A（昵称不同），不应被误改
+  await service.publish({ imageFileId: FILE_ID, text: 'B 的帖', nickname: 'B' }, 'openid-B');
+  const idB = Array.from(stub.docs.keys())[1];
+  await service.comment({ id: idB, text: 'B 自己评', nickname: 'B' }, 'openid-B');
+  const result = await service.rename('冰冰', '小冰', 'openid-A');
+  assert.deepEqual(result, { ok: true });
+  // A 的帖子昵称已更新
+  assert.equal(stub.docs.get(id).nickname, '小冰');
+  // A 的评论昵称已更新
+  assert.equal(stub.docs.get(id).comments[0].nickname, '小冰');
+  // B 的帖子与评论不受影响
+  assert.equal(stub.docs.get(idB).nickname, 'B');
+  assert.equal(stub.docs.get(idB).comments[0].nickname, 'B');
+});
+
+test('rename：无 openid（本地调试）或新名等同旧名/默认名时安全跳过', async () => {
+  const stub = createSdkStub();
+  const service = makeService(stub);
+  await service.publish({ imageFileId: FILE_ID, text: '帖', nickname: '冰冰' }, 'openid-A');
+  const id = Array.from(stub.docs.keys())[0];
+  assert.deepEqual(await service.rename('冰冰', '冰冰', 'openid-A'), { skipped: true, reason: 'noop' });
+  assert.deepEqual(await service.rename('冰冰', '旅人', 'openid-A'), { skipped: true, reason: 'noop' });
+  assert.deepEqual(await service.rename('冰冰', '小冰', ''), { skipped: true, reason: 'no_openid' });
+  assert.equal(stub.docs.get(id).nickname, '冰冰', '跳过的改名不应改动帖子');
 });

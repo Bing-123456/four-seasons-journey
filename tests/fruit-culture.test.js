@@ -172,7 +172,7 @@ test('9.27 feedback: craft lessons keep unique step titles and real ingredients,
     assert.equal(hit.seasonId, 'summer', name + ' 归入夏季');
     assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/assets/fruit-art', hit.fullId + '.jpg')), hit.fullId + ' 节点图已就位');
   }
-  // P19：山竹「传统农具与种植」讲种植农艺，不再写开果刀
+  // P19：山竹「古法种植经验」讲种植农艺，不再写开果刀
   const mangosteen = fruitCulture.findFruitByName('山竹').fruit;
   const tools = mangosteen.categories.find(category => category.cat === 'tools');
   assert.match(tools.text, /荫棚|嫁接|高枝剪/);

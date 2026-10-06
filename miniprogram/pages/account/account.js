@@ -6,6 +6,7 @@
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
 const cropMath = require('../../lib/crop-math');
+const community = require('../../lib/community');
 
 Page({
   data: { avatarPath: '', nicknameInput: '', saving: false, cropping: false, cropImage: '', disp: null, frame: null, L: {} },
@@ -134,11 +135,38 @@ Page({
   },
   // ---- 昵称 ----
   nicknameChange: function (event) { this.setData({ nicknameInput: event.detail.value }); },
+  // 保存昵称：先问后端「新名是否被人占用」→ 占用则弹窗拦截且不改；否则本地保存并触发历史发言改名。
   saveNickname: function () {
     if (this.data.saving) return;
+    const page = this;
+    const raw = (this.data.nicknameInput || '').trim();
+    const oldNickname = store.getIdentity().nickname || '';
+    // 空名 / 默认名「旅人」/ 没变化：直接保存，不查重也不触发历史改写（避免默认名互相冲突）。
+    if (!raw || raw === '旅人' || raw === oldNickname) { this.commitNickname(raw, ''); return; }
     this.setData({ saving: true });
+    community.callApi('GET', '/api/community/nickname-exists?nickname=' + encodeURIComponent(raw))
+      .then(function (res) {
+        if (res && res.exists) {
+          page.setData({ saving: false });
+          wx.showModal({ title: '昵称重复', content: '该昵称已被其他果友使用，请换一个', showCancel: false });
+          return;
+        }
+        page.commitNickname(raw, oldNickname);
+      })
+      .catch(function () {
+        // 查重接口异常：保守起见仍允许本地保存，但不触发历史改写（避免误覆盖）。
+        page.commitNickname(raw, '');
+      });
+  },
+  // 本地保存昵称；若提供了旧昵称，则异步把历史帖子/评论里的旧名改成新名（失败不打断本地保存）。
+  commitNickname: function (raw, oldNickname) {
+    const page = this;
     try {
-      store.saveIdentity({ nickname: this.data.nicknameInput });
+      store.saveIdentity({ nickname: raw });
+      if (oldNickname) {
+        community.callApi('POST', '/api/community/rename', { oldNickname: oldNickname, newNickname: raw })
+          .catch(function () { /* 历史改写失败不打断：本地已保存成功 */ });
+      }
       wx.showToast({ title: i18n.t('profile_saved'), icon: 'success' });
     } catch (error) { wx.showToast({ title: error.message || i18n.t('save_fail_retry'), icon: 'none' }); }
     this.setData({ saving: false });

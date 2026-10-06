@@ -1,5 +1,5 @@
-page{height:100%;overflow:hidden;background:#F5F5F7}
-.home-screen{height:100vh;overflow:hidden;padding:0 34rpx calc(132rpx + env(safe-area-inset-bottom));display:flex;flex-direction:column;box-sizing:border-box}
+page{background:#F5F5F7}
+.home-screen{min-height:100vh;padding:0 34rpx calc(132rpx + env(safe-area-inset-bottom));display:flex;flex-direction:column;box-sizing:border-box}
 .home-demo{flex-shrink:0;margin:0 -32rpx}.home-heading{display:flex;align-items:center;justify-content:space-between;gap:20rpx;padding:22rpx 0 16rpx;flex-shrink:0}.heading-copy{min-width:0}.home-brand{font-size:calc(48rpx * var(--fs-scale, 1));font-weight:750;letter-spacing:-1.5rpx;color:#1D1D1F;line-height:1.25;margin-top:7rpx}
 .home-search{display:flex;align-items:center;gap:13rpx;padding:14rpx 20rpx;border-radius:18rpx;background:#E9E9ED;color:#86868B;font-size:calc(25rpx * var(--fs-scale, 1));flex-shrink:0;line-height:1.4}.search-symbol{font-size:calc(38rpx * var(--fs-scale, 1));line-height:34rpx;color:#6E6E73}.search-go{margin-left:auto;font-size:calc(32rpx * var(--fs-scale, 1))}
 .feature-region{flex-shrink:0;display:flex;flex-direction:column;padding-top:20rpx;margin:0 -34rpx}
@@ -16,10 +16,7 @@ page{height:100%;overflow:hidden;background:#F5F5F7}
 .home-brand{white-space:nowrap}.heading-actions{flex-shrink:0}
 .feature-dots{display:flex;justify-content:center;align-items:center;height:38rpx;flex-shrink:0}.feature-dot-hit{height:100%;min-width:30rpx;display:flex;align-items:center;justify-content:center}.feature-dot{width:8rpx;height:8rpx;border-radius:50%;background:#D4D4D8;transition:width .2s ease,background .2s ease}.feature-dot.active{background:#454548;width:20rpx;border-radius:5rpx}
 
-/* 10.2 / P01②：下方两个板块与上方三张照片同宽（用负边距抵消页面左右留白，与 .feature-region
-   对齐）、同为横版卡片；背景图按需求移除，改为纯色卡片，文字随之改用深色。 */
-.home-shortcuts{display:flex;flex-direction:column;gap:16rpx;flex-shrink:0;margin:16rpx -34rpx 0;padding:0 34rpx}.shortcut-card{position:relative;min-width:0;height:140rpx;border-radius:28rpx;overflow:hidden;background:#EEEADF}.journal-shortcut{background:#E3EBDE}.profile-shortcut{background:#F0EADA}.shortcut-text{position:absolute;left:26rpx;right:22rpx;bottom:24rpx;color:#293E30}.shortcut-text>text{font-size:calc(18rpx * var(--fs-scale, 1));opacity:.75;line-height:1.4}.shortcut-text>view{font-size:calc(26rpx * var(--fs-scale, 1));font-weight:650;line-height:1.35;margin-top:7rpx;display:flex;justify-content:space-between;align-items:center;gap:6rpx}
-@media(max-height:600px){.home-heading{padding-top:12rpx;padding-bottom:10rpx}.home-brand{font-size:calc(42rpx * var(--fs-scale, 1))}.shortcut-card{height:120rpx}.feature-region{padding-top:14rpx}}
+@media(max-height:600px){.home-heading{padding-top:12rpx;padding-bottom:10rpx}.home-brand{font-size:calc(42rpx * var(--fs-scale, 1))}.feature-region{padding-top:14rpx}}
 .welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: #F7F5ED; display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: none; }
 .welcome-center { text-align: center; padding: 35rpx; max-width: 100%; box-sizing: border-box; }
 .welcome-title { font-size: calc(44rpx * var(--fs-scale, 1)); color: #234B3C; margin: 24rpx 0 16rpx; overflow-wrap: anywhere; }

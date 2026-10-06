@@ -1,8 +1,10 @@
-import os, zipfile
+import os, sys, zipfile
 
 ROOT = r"C:\Users\Lenovo\WorkBuddy\2026-09-29-21-33-32\four-seasons-journey-main"
-TOP = "guayouji-miniprogram-deploy-20261003"   # 解压后顶层文件夹名
-OUT = os.path.join(ROOT, "guayouji-miniprogram-deploy-20261003.zip")
+# 版本号必须递增、绝不复用（项目铁律）：传入参数形如 20261006-v4。
+VERSION = sys.argv[1] if len(sys.argv) > 1 else "20261006-v4"
+TOP = "guayouji-miniprogram-deploy-" + VERSION   # 解压后顶层文件夹名
+OUT = os.path.join(ROOT, TOP + ".zip")
 
 include = [
     ("project.config.json", os.path.join(ROOT, "project.config.json")),

@@ -234,7 +234,59 @@ function createCommunityService(options = {}) {
     } catch (error) { throw toInputError(error, '评论失败，请稍后再试'); }
   }
 
-  return { list, detail, publish, like, comment, COLLECTION };
+  // 查重：这个名字是否已被「其他」用户占用（自己的历史名不算占用）。
+  // 帖子带 openid，可据此排除自己；默认名「旅人」与空名豁免，避免人人默认名互相冲突。
+  async function nicknameExists(candidate, openid) {
+    const name = cleanText(candidate, MAX_NICKNAME);
+    const key = typeof openid === 'string' ? openid.trim().slice(0, 64) : '';
+    if (!name || name === '旅人' || !key) return { exists: false };
+    try {
+      const app = await getApp();
+      await ensureCollection(app);
+      const db = app.database();
+      const res = await db.collection(COLLECTION).where({ nickname: name }).limit(50).get();
+      const rows = (res.data || []).map(r => unwrapRow(r));
+      const taken = rows.some(r => (r.openid || '') !== '' && (r.openid || '') !== key);
+      return { exists: taken };
+    } catch (error) { throw toInputError(error, '昵称校验失败'); }
+  }
+
+  // 批量改名：把「我」发过的所有帖子、以及历史评论里的旧昵称统一换成新昵称。
+  // 帖子靠 openid 认主，全量改昵称（覆盖所有历史名，无需逐一代换）；
+  // 评论当初没存 openid，只能按「即时旧昵称」匹配改写（不同用户恰好同名会有极小概率误改，已确认接受）。
+  async function rename(oldNickname, newNickname, openid) {
+    const key = typeof openid === 'string' ? openid.trim().slice(0, 64) : '';
+    const next = cleanText(newNickname, MAX_NICKNAME);
+    const prev = cleanText(oldNickname, MAX_NICKNAME);
+    if (!key) return { skipped: true, reason: 'no_openid' };           // 本地调试无身份，安全跳过
+    if (!next || next === '旅人' || next === prev) return { skipped: true, reason: 'noop' };
+    try {
+      const app = await getApp();
+      await ensureCollection(app);
+      const db = app.database();
+      // 帖子：靠 openid 认主，全量改昵称（无论历史叫过什么，一律统一为新名）。
+      await db.collection(COLLECTION).where({ openid: key }).update({ nickname: next });
+      // 评论：无 openid，按即时旧昵称逐帖改写（局限：仅覆盖上一次改名前的昵称）。
+      if (prev) {
+        const res = await db.collection(COLLECTION).orderBy('createdAt', 'desc').limit(300).get();
+        const rows = (res.data || []).map(r => unwrapRow(r));
+        for (const row of rows) {
+          const comments = Array.isArray(row.comments) ? row.comments : [];
+          let changed = false;
+          for (const c of comments) {
+            if (c && typeof c.nickname === 'string' && c.nickname === prev) { c.nickname = next; changed = true; }
+          }
+          if (changed) {
+            const fixed = Object.assign({}, row); delete fixed._id; fixed.data = null; // 顺带清旧包裹字段
+            await db.collection(COLLECTION).doc(row._id).update({ comments: comments });
+          }
+        }
+      }
+      return { ok: true };
+    } catch (error) { throw toInputError(error, '昵称同步失败'); }
+  }
+
+  return { list, detail, publish, like, comment, nicknameExists, rename, COLLECTION };
 }
 
 module.exports = { createCommunityService, cleanText, isFileId, unwrapRow, COLLECTION, MAX_TEXT, MAX_NICKNAME };

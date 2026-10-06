@@ -3,6 +3,5 @@
   "enablePullDownRefresh": false,
   "usingComponents": {
     "companion-view": "/components/companion-view/companion-view"
-  },
-  "disableScroll": true
+  }
 }

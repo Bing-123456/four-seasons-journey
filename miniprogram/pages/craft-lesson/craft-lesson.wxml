@@ -1,5 +1,5 @@
 <demo-notice id="demo-mode-notice"/>
-<view wx:if="{{invalid}}" class="page empty"><view class="page-title serif">{{L.craft_empty_title}}</view><button class="button" bindtap="back">{{L.craft_back}}</button></view>
+<view wx:if="{{invalid}}" class="page empty"><view class="page-title serif">{{L.craft_empty_title}}</view></view>
 <view wx:elif="{{fruit}}" class="page craft-page {{fontClass}}">
   <view class="craft-kicker">{{fruit.seasonName}} · {{L.cl_kicker}}</view>
   <view class="craft-title serif">{{L.cl_title_a}}{{learn.product}}</view>
