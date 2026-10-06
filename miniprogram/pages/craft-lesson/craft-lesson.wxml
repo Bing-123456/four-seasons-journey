@@ -9,6 +9,7 @@
 
   <view wx:if="{{step === 0}}" class="craft-chapter">
     <view class="craft-heading serif">{{L.craft_choose_two}}</view>
+    <view wx:if="{{learnView.ingredientLead}}" class="craft-lead">{{learnView.ingredientLead}}</view>
     <view class="craft-ingredients">
       <view wx:for="{{learnView.ingredients}}" wx:key="glyph" class="craft-ingredient">
         <view class="craft-ingredient-art serif">{{item.glyph}}</view>
@@ -23,6 +24,7 @@
 
   <view wx:elif="{{step === 1}}" class="craft-chapter">
     <view class="craft-heading serif">{{learnView.steps.length}} {{L.craft_steps_title}}</view>
+    <view wx:if="{{learnView.stepLead}}" class="craft-lead">{{learnView.stepLead}}</view>
     <view wx:for="{{learnView.steps}}" wx:key="index" class="craft-step">
       <view class="craft-step-no">{{index + 1}}</view>
       <view class="craft-step-body"><view wx:if="{{item.title}}" class="craft-step-title">{{item.title}}</view><view class="craft-step-text">{{item.text}}</view></view>
@@ -32,7 +34,16 @@
 
   <view wx:else class="craft-chapter">
     <view class="craft-heading serif">{{L.craft_finish_title}}</view>
-    <view class="craft-summary">{{learnView.intro}}{{L.craft_done_note}}</view>
+    <view wx:if="{{learnView.reflection.length}}">
+      <view wx:if="{{learnView.reflectionLead}}" class="craft-lead">{{learnView.reflectionLead}}</view>
+      <view class="craft-steps">
+        <view wx:for="{{learnView.reflection}}" wx:key="index" class="craft-step">
+          <view class="craft-step-no">{{index + 1}}</view>
+          <view class="craft-step-body"><view wx:if="{{item.name}}" class="craft-step-title">{{item.name}}</view><view class="craft-step-text">{{item.detail}}</view></view>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="craft-summary">{{learnView.intro}}{{L.craft_done_note}}</view>
     <button class="button craft-next" bindtap="saveKnowledge">{{favorite ? L.craft_saved : L.craft_save}}</button>
     <button class="button-secondary craft-next" bindtap="restart">{{L.craft_restart}}</button>
     <!-- 评审 10.5：分享按钮颜色与「已收藏」一致（墨绿实心底），原先误用次级样式 -->

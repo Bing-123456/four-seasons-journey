@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const fruitCulture = require('../miniprogram/data/fruit-culture');
 const worldFruit = require('../miniprogram/data/world-fruit-culture');
+const craftLessonsDoc = require('../miniprogram/data/craft-lessons-doc');
 const activities = require('../miniprogram/data/farm-activities');
 const i18n = require('../miniprogram/lib/i18n');
 
@@ -156,15 +157,32 @@ test('the rewritten six-dimension notes match their titles and run longer than t
   assert.ok(chars / total >= 110, 'the rewritten library averages longer paragraphs than the 2026-09 baseline');
 });
 
-test('9.27 feedback: craft lessons keep unique step titles and real ingredients, seasons match content', () => {
-  // P17：食材不含「清洁器具」（安全提示并入食材卡说明）；任意水果步骤小标题不重复
+test('9.27 feedback: craft lessons keep real ingredients and a complete 01/02/03, seasons match content', () => {
+  // 手艺小课堂内容现取自用户文档（craftLessonsDoc），按 craftProduct 索引：
+  // 01 认食材=三项真实食材（主料/辅料/文化小知识）、02 学手艺=编号步骤、03 记收获=三段反思。
+  const EXPECTED_REF = ['反思与延伸', '动手实践', '收藏与分享'];
   for (const [name, categories] of Object.entries(worldFruit)) {
     const craft = (categories || []).find(category => category.cat === 'craft');
     if (!craft || !craft.learn) continue;
+    // P17 兜底/文档均不应出现「清洁器具」占位食材
     assert.equal(craft.learn.ingredients.some(item => item.name === '清洁器具'), false, name + ' 食材不含清洁器具');
-    const titles = craft.learn.steps.map(step => step.title);
-    assert.equal(new Set(titles).size, titles.length, name + ' 步骤小标题唯一');
-    for (const step of craft.learn.steps) assert.ok(step.title && step.text.endsWith('。'), name + ' 步骤完整');
+    // 步骤为编号文本，非空且至少一步
+    const steps = craft.learn.steps;
+    assert.ok(Array.isArray(steps) && steps.length >= 1, name + ' 至少一步');
+    for (const step of steps) assert.ok(typeof step.text === 'string' && step.text.trim().length > 0, name + ' 步骤文本非空');
+    // 文档覆盖的水果：食材为真实三项、03 记收获三段齐全且名称正确
+    const doc = craftLessonsDoc[craft.learn.product];
+    if (doc) {
+      assert.equal(craft.learn.ingredients.length, 3, name + ' 文档食材为三项');
+      assert.equal(craft.learn.reflection.length, 3, name + ' 文档03为三段');
+      assert.deepEqual(craft.learn.reflection.map(r => r.name), EXPECTED_REF, name + ' 03三段名称');
+    }
+  }
+  // P17 兜底：8 个文档未覆盖的水果仍保留旧自动生成逻辑（无 reflection）
+  const missing = ['青梅', '桑葚', '樱桃', '枇杷', '香蕉', '芒果', '草莓', '椰枣'];
+  for (const n of missing) {
+    const c = (worldFruit[n] || []).find(x => x.cat === 'craft');
+    assert.equal(c.learn.reflection, undefined, n + ' 缺失项无 reflection');
   }
   // P19：季节与内容一致——杨梅（夏至杨梅）、山竹（热带夏季果）归入夏季，且节点图随季节改名
   for (const name of ['杨梅', '山竹']) {

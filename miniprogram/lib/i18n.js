@@ -125,7 +125,7 @@ const dict = {
   learn_make_prefix: ['点击学习制作', 'Learn to make '],
   learn_make_suffix: ['', ''],
   craft_page_title: ['手艺小课堂', 'Craft Lesson'],
-  craft_step_ingredients: ['认食材', 'Ingredients'],
+  craft_step_ingredients: ['认食材与工具', 'Ingredients & Tools'],
   craft_step_craft: ['学手艺', 'Craft steps'],
   craft_step_done: ['记收获', 'Done'],
   craft_choose_two: ['认识这道手艺的主要食材', 'Key ingredients of this craft'],

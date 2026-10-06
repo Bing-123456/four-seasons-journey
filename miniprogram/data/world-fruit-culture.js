@@ -1,4 +1,5 @@
 'use strict';
+const CRAFT_LESSON_DOC = require('./craft-lessons-doc');
 
 // 2026-09-26 评审修改（P22）：42 种水果全部按「民俗仪式与节气食俗 / 历史源流 / 传统手工技艺 /
 // 老农口述乡土故事 / 古法种植经验 / 时令食养文化」六维重写，正文与小标题一一对应。
@@ -449,6 +450,41 @@ const PROFILES = {
   }
 };
 
+// 手艺小课堂 01/02/03：文档内容优先（CRAFT_LESSON_DOC，按 craftProduct 索引），
+// 无文档（如青梅酱等 8 个缺失项）则用旧自动生成逻辑兜底。
+function buildCraftLearn(p, fallbackName) {
+  const doc = CRAFT_LESSON_DOC[p.craftProduct];
+  const autoSteps = (function () {
+    const sentences = p.craft.split('。').filter(Boolean);
+    const defaults = ['准备与辨认', '处理与制作', '观察与记录', '保存与分享', '完成与检查'];
+    if (Array.isArray(p.craftTitles) && p.craftTitles.length === sentences.length) {
+      return sentences.map((text, i) => ({ title: p.craftTitles[i], text: text + '。' }));
+    }
+    const steps = sentences.slice(0, defaults.length - 1).map((text, i) => ({ title: defaults[i], text: text + '。' }));
+    const tail = sentences.slice(defaults.length - 1).map(text => text + '。').join('');
+    if (tail) steps.push({ title: defaults[4], text: tail });
+    return steps;
+  })();
+  if (doc) {
+    return {
+      product: p.craftProduct,
+      intro: '观察原料、处理与成品的变化。',
+      ingredientLead: doc.ingredientLead || '',
+      ingredients: doc.ingredients || [],
+      stepLead: doc.stepLead || '',
+      steps: (doc.steps || []).map(function (text) { return { title: '', text: text }; }),
+      reflectionLead: doc.reflectionLead || '',
+      reflection: doc.reflection || []
+    };
+  }
+  return {
+    product: p.craftProduct,
+    intro: '观察原料、处理与成品的变化。',
+    ingredients: [{ name: fallbackName, detail: '完整清洁、适合本次处理的食用原料；处理前洗净果面，刀具与热源由成人把关' }],
+    steps: autoSteps
+  };
+}
+
 const IDS = ['folk', 'history', 'craft', 'story', 'tools', 'health'];
 const WORLD = {};
 Object.keys(PROFILES).forEach(name => {
@@ -463,23 +499,7 @@ Object.keys(PROFILES).forEach(name => {
     editorialType: cat === 'story' ? 'creative-story' : cat === 'folk' ? 'food-culture' : 'knowledge',
     sourceNote: cat === 'story' ? '项目原创；人物与情节为虚构，不代表真人采访。' : cat === 'folk' ? '日常饮食观察与文化解读，地方习惯因地而异。' : '来源仅支持注明范围，家常体验由项目编辑整理。',
     sources: cat === 'story' || cat === 'folk' ? [] : cat === 'craft' ? (/果酱|馅$|枣泥|山楂糕/.test(p.craftProduct) ? [SOURCES.jam] : []) : [facts],
-    ...(cat === 'craft' ? { learn: {
-      product: p.craftProduct, intro: '观察原料、处理与成品的变化。',
-      ingredients: [{ name, detail: '完整清洁、适合本次处理的食用原料；处理前洗净果面，刀具与热源由成人把关' }],
-      // 步骤小标题：PROFILES 可用 craftTitles 逐句显式指定；默认按句序套用五段标题，
-      // 更多句子并入末段「完成与检查」，保证序号连续、小标题不重复且与内容对应。
-      steps: (function () {
-        const sentences = p.craft.split('。').filter(Boolean);
-        const defaults = ['准备与辨认', '处理与制作', '观察与记录', '保存与分享', '完成与检查'];
-        if (Array.isArray(p.craftTitles) && p.craftTitles.length === sentences.length) {
-          return sentences.map((text, i) => ({ title: p.craftTitles[i], text: text + '。' }));
-        }
-        const steps = sentences.slice(0, defaults.length - 1).map((text, i) => ({ title: defaults[i], text: text + '。' }));
-        const tail = sentences.slice(defaults.length - 1).map(text => text + '。').join('');
-        if (tail) steps.push({ title: defaults[4], text: tail });
-        return steps;
-      })()
-    } } : {})
+    ...(cat === 'craft' ? { learn: buildCraftLearn(p, name) } : {})
   }));
 });
 module.exports = WORLD;

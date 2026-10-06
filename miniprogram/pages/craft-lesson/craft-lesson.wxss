@@ -22,6 +22,8 @@
 .craft-step-body{flex:1;min-width:0}
 .craft-step-title{font-size:calc(27rpx * var(--fs-scale, 1));font-weight:600;line-height:1.6;color:#2E4A38}
 .craft-step-text{font-size:calc(25rpx * var(--fs-scale, 1));color:#6B7A60;line-height:1.85;margin-top:10rpx}
+.craft-lead{font-size:calc(24rpx * var(--fs-scale, 1));color:#74816A;line-height:1.9;margin-bottom:22rpx}
+.craft-steps{margin-bottom:26rpx}
 .craft-summary{font-size:calc(25rpx * var(--fs-scale, 1));color:#68745F;line-height:1.9;margin-bottom:26rpx}
 .craft-page .craft-next{width:100%;margin:18rpx 0 0}
 .craft-page .leave-link{width:auto;max-width:100%;margin:24rpx auto 0;padding:14rpx 18rpx;background:transparent;color:#748469;font-size:calc(23rpx * var(--fs-scale, 1));line-height:1.6}
