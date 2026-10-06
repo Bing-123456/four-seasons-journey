@@ -39,3 +39,18 @@ module.exports = [
   { id: 'm-loquat-custom2', fruit: '枇杷', category: '民俗', label: '立夏尝三鲜', source: '立夏食单「尝三鲜」枇杷与樱桃青梅同席' },
   { id: 'm-pomelo-custom2', fruit: '柚子', category: '民俗', label: '中秋分甘酸', source: '「中秋柚子圆，阖家分甘酸」' }
 ];
+
+// 英文模式（2026-10-06）：按 id 从 match-questions-en.js 取label/source 覆盖。
+// 下游 match-game.js 与页面模板全部只读 pair.label / pair.source，无需改动；
+// 英文对照缺失的 id 保留中文原值，不会出现空白。
+const EN = require('./match-questions-en');
+function pickLang(list) {
+  let en = false;
+  try { en = require('../lib/i18n').getLang() === 'en'; } catch (e) { en = false; }
+  if (!en) return list;
+  return list.map(item => {
+    const t = EN[item.id];
+    return t ? Object.assign({}, item, { label: t.label, source: t.source }) : item;
+  });
+}
+module.exports = pickLang(module.exports);

@@ -157,3 +157,20 @@ module.exports = [
   { id: "c-kumquat-courtesy", term: "小雪", fruit: "金桔", category: "管护", situation: "金桔挂树越冬，最怕什么？", options: [{ text: "冻害，耐寒但也要防冻", correct: true }, { text: "夏季日灼", correct: false }, { text: "秋季台风", correct: false }, { text: "春季晚霜", correct: false }], knowledgePoints: ["金桔挂树越冬怕冻害","金桔耐寒但也要防冻","融安金桔有近 300 年种植史"] },
   { id: "c-kumquat-disaster", term: "小雪", fruit: "金桔", category: "灾害", situation: "金桔挂树越冬，最怕什么？", options: [{ text: "冻害", correct: true }, { text: "夏季日灼", correct: false }, { text: "秋季台风", correct: false }, { text: "春季晚霜", correct: false }], knowledgePoints: ["金桔挂树越冬怕冻害","金桔耐寒但也要防冻","融安金桔有近 300 年种植史"] }
 ];
+
+// 英文模式（2026-10-06）：按 id 从 challenge-questions-en.js 覆盖 situation / options /
+// knowledgePoints，options 的 text 逐条替换而保留 correct 标记。下游 challenge-game.js
+// 与页面模板照旧只读原字段，无需改动；英文对照缺失的 id 保留中文，不会出现空白。
+const EN_Q = require('./challenge-questions-en');
+function pickLang(list) {
+  let en = false;
+  try { en = require('../lib/i18n').getLang() === 'en'; } catch (e) { en = false; }
+  if (!en) return list;
+  return list.map(item => {
+    const t = EN_Q[item.id];
+    if (!t) return item;
+    const options = (item.options || []).map((opt, i) => Object.assign({}, opt, { text: (t.o && t.o[i]) || opt.text }));
+    return Object.assign({}, item, { situation: t.s || item.situation, options, knowledgePoints: t.k || item.knowledgePoints });
+  });
+}
+module.exports = pickLang(module.exports);

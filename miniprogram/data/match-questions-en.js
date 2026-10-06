@@ -1,0 +1,40 @@
+// 文脉连连 · 英文对照（2026-10-06）
+// 按素材 id 索引 label / source 的英文；渲染层 match-game.js 在英文模式下取 en.label / en.source。
+// 缺失该id 时回退中文，保证数据不完整也不会显示空白。
+module.exports = {
+  'm-litchi-poetry': { label: 'A galloping red dust', source: 'Du Mu, "A galloping red dust, and the consort smiles"' },
+  'm-litchi-origin': { label: 'Zengcheng ancient tribute orchard', source: 'Zengcheng, Guangdong (cultivated for 1,600 years; national geographical indication since 2012)' },
+  'm-loquat-origin': { label: 'Four centuries of tribute at Tangqi', source: 'Tangqi, Hangzhou (planted since the Sui dynasty; a Tang court tribute)' },
+  'm-loquat-use': { label: 'Loquat syrup for coughs', source: 'Loquat paste and loquat dew used to ease coughs; Bencao Gangmu: "harmonises the stomach and settles qi, clears heat and relieves summer heat"' },
+  'm-bayberry-poetry': { label: 'A jade plate set for you', source: 'Li Bai, "A jade plate of bayberries set before you"' },
+  'm-bayberry-origin': { label: 'Yuyao water chestnut cultivar', source: 'Yuyao water-chestnut bayberry, Xianju Dongkui, Lanxi black charcoal (all national geographical indications)' },
+  'm-peach-custom': { label: 'First of the five fruits', source: 'The Book of Rites lists the peach as "the first of the five fruits"' },
+  'm-cherry-allusion': { label: 'Cherries offered at the ancestral hall', source: 'Book of Rites, Monthly Ordinances: "offer held cherries, presenting them first to the ancestral hall"' },
+  'm-pomegranate-allusion': { label: 'Pomegranate brought from Anxi', source: 'Introduced by Zhang Qian from Anxi (Kingdom of Parthia) in 115 BCE' },
+  'm-pomegranate-origin': { label: 'Ten thousand mu of orchards at Yicheng', source: 'Guanshi Pomegranate Garden, Yicheng, Zaozhuang, Shandong (180,000 mu)' },
+  'm-citrus-use': { label: 'Aged peel becomes medicine', source: 'Green peel, aged peel and citrus pith used in medicine; candied peel and citrus wine' },
+  'm-pomelo-allusion': { label: 'A filial son earns the name Wendan', source: 'The Putian legend of "wendan": the filial Lin Dan of the Qing dynasty, name granted by Emperor Qianlong' },
+  'm-kiwi-poetry': { label: 'Lowlands grow the changchu', source: 'Book of Songs, "The lowlands grow the changchu" (changchu is the kiwifruit)' },
+  'm-persimmon-origin': { label: 'Gongcheng moon-shaped cakes', source: 'Gongcheng moon persimmon, Guangxi (1,500 years of cultivation; the Gongcheng moon persimmon growing system was listed as a key agricultural cultural heritage of China)' },
+  'm-plum-allusion': { label: 'Wine heated to discuss heroes', source: 'The allusions "discussing heroes over warmed wine" and "quenching thirst by thinking of plums"' },
+  'm-hawthorn-use': { label: 'Candied haws on a stick', source: 'Candied haws on sticks, hawthorn cakes and slices, hawthorn wine; used to aid digestion and in medicine' },
+  'm-kumquat-origin': { label: 'Crisp honey kumquat of Rongan', source: 'Rongan kumquat, Guangxi (nearly 300 years; national geographical indication product protection since 2011)' },
+  'm-apricot-allusion': { label: 'The Flying General rides west', source: 'A Western Han legend of General Li Guang campaigning west (the fairy of sweet apricots / the fairy of bitter apricots)' },
+  'm-mulberry-allusion': { label: 'The imperial old mulberry garden', source: 'In the Ming and Qing dynasties white-barked mulberries were imperial tributes; the legend of Liu Xiu enfeoffing a "mulberry king"' },
+  'm-tangerine-origin': { label: 'Four hundred years at Wuzhou', source: 'Wuzhou sugar tangerine, Guangxi (400 years of history; national geographical indication product in 2025)' },
+  'm-jujube-poetry': { label: 'Picking dates in the eighth month', source: 'Common knowledge, pending confirmation from an authoritative source' },
+  'm-ougan-origin': { label: 'Wenzhou ougan keeps well', source: 'Common knowledge, pending confirmation from an authoritative source' },
+  'm-peach-poetry': { label: 'Peaches in the garden', source: 'Book of Songs, "Peaches grow in the garden"' },
+  'm-citrus-custom': { label: 'The Han court appointed a citrus officer', source: 'Listed as tribute tax in the Yu Gong; the Han dynasty established the office of "citrus officer"' },
+  'm-greenplum-allusion2': { label: 'Quenching thirst by thinking of plums', source: 'The old allusion "quenching thirst by thinking of plums"' },
+  'm-loquat-history': { label: 'The loquat tree of Xiangjixuan', source: 'Gui Youguang, Record of Xiangjixuan — "In the courtyard stands a loquat tree, planted by my wife’s own hand in the year she died."' },
+  'm-bayberry-poetry2': { label: 'Not as good as Wu-Yue bayberry', source: 'A Song poet: "Lychees of Minyue and grapes of Xiliang are not as good as bayberries of Wu and Yue"' },
+  'm-litchi-history': { label: "Cai Xiang's Lychee Record", source: "Cai Xiang's Record of Lychees describes 32 varieties" },
+  'm-persimmon-history': { label: 'Two thousand years of cultivation', source: 'The persimmon has more than two thousand years of cultivation history' },
+  'm-cherry-history': { label: 'Cherries offered to the ancestral hall', source: 'Records of the Grand Historian: Emperor Xiaohui took new cherries to offer at the ancestral hall' },
+  'm-mulberry-allusion2': { label: 'King Tang prayed for rain in the mulberry grove', source: 'The legend of King Tang praying for rain in the mulberry grove' },
+  'm-mulberry-history': { label: 'Seeking the soft mulberry leaves', source: 'Book of Songs, "Month Seven": "we seek the soft mulberry leaves"' },
+  'm-loquat-custom2': { label: 'Tasting the three fresh fruits at Lixia', source: 'The Lixia (Start of Summer) table: "tasting the three fresh" places loquat together with cherry and green plum' },
+  'm-pomelo-custom2': { label: 'Sharing the sweet and sour at Mid-Autumn', source: '"At Mid-Autumn the pomelo is round, and the whole family shares its sweet and sour"'
+  }
+};
