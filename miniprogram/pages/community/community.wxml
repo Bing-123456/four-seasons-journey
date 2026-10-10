@@ -9,7 +9,11 @@
     </view>
   </view>
   <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
-  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+  <view wx:elif="{{waking}}" class="state-tip waking">{{L.community_waking}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">
+    <view class="error-text">{{error}}</view>
+    <button class="retry-button" size="mini" bindtap="retryLoad">{{L.community_retry}}</button>
+  </view>
   <view wx:elif="{{!posts.length}}" class="state-tip empty-state">
     <view class="empty-glyph serif" aria-hidden="true">🌾</view>
     <view class="empty-text">{{L.community_empty}}</view>

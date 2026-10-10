@@ -65,9 +65,9 @@ test('the discover page shows one fixed orchard poster plus the handle and the f
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/action-loop['"]\)/, 'index 不再引用 action-loop');
   assert.doesNotMatch(js, /require\(['"]\.\.\/\.\.\/lib\/farmtown-service['"]\)/, 'index 不再引用 farmtown-service');
   assert.doesNotMatch(markup, /home-shortcuts/, '旧入口不应复活');
-  // 海报取图规范（底层 bg 铺满 + 上层清晰主图 + 主图兜底）与四段抽屉。
-  assert.match(markup, /poster-image-bg[^>]*mode="aspectFill"/, '海报底层用 aspectFill 铺满防黑边');
-  assert.match(markup, /poster-image-main[^>]*mode="aspectFit"/, '海报主图用 aspectFit');
+  // 海报取图规范（2026-10-07 第5 轮：一张图 aspectFill 直接铺满，不再用模糊底图垫边）与四段抽屉。
+  assert.match(markup, /poster-image-main[^>]*mode="aspectFill"/, '海报主图用 aspectFill 铺满');
+  assert.doesNotMatch(markup, /poster-image-bg/, '不再有模糊底图层');
   assert.match(markup, /binderror="onPosterError"/, '主图要有加载失败兜底');
   assert.match(markup, /class="poster-handle/, '底部有把手');
   ['season', 'game', 'route', 'news'].forEach((seg, i) => {
@@ -76,8 +76,10 @@ test('the discover page shows one fixed orchard poster plus the handle and the f
   // 四段顺序固定：四时 / 游戏 / 行程 / 快讯
   const order = ['season', 'game', 'route', 'news'].map(s => markup.indexOf('data-seg="' + s + '"'));
   assert.ok(order.every(v => v > 0) && order.every((v, i) => i === 0 || v > order[i - 1]), '四段顺序必须是四时/游戏/行程/快讯');
-  // 快讯页本轮未建，段落不可跳转到不存在的页面
-  assert.match(markup, /drawer-row-static" data-seg="news"/, '快讯段本轮不绑定跳转');
+  // 快讯页已建成（packageMore/news 分包），快讯段必须真的跳过去，不能再是静态占位
+  assert.match(markup, /drawer-row" data-seg="news" bindtap="openDrawerSeg"/, '快讯段必须绑定跳转');
+  assert.doesNotMatch(markup, /drawer-row-static/, '不得再留「变灰不可点」的静态段');
+  assert.match(js, /\/packageMore\/news\/news/, '快讯段的跳转目标是分包快讯页');
 });
 
 test('the discover page does not load learning-payoff data (space below kept blank)', () => {

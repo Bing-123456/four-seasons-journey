@@ -12,8 +12,11 @@ for (const file of files) {
   const ext = path.extname(file);
   if (['.js', '.cjs'].includes(ext)) { execFileSync(process.execPath, ['--check', file]); js++; }
   if (ext === '.json') { JSON.parse(fs.readFileSync(file, 'utf8')); json++; }
-  if (file.includes('/miniprogram/')) {
-    const rel = file.slice(file.indexOf('/miniprogram/') + '/miniprogram/'.length);
+  // 注意：Windows 上路径是反斜杠，必须先把分隔符统一成正斜杠，
+  // 否则这里永远不匹配、主包/分包体积守卫会静默失效（曾一直是 0）。
+  const norm = file.replace(/\\/g, '/');
+  if (norm.includes('/miniprogram/')) {
+    const rel = norm.slice(norm.indexOf('/miniprogram/') + '/miniprogram/'.length);
     const subRoot = rel.split('/')[0];
     if ((appRoots || []).includes(subRoot)) subBytes += fs.statSync(file).size;
     else bytes += fs.statSync(file).size;
@@ -80,7 +83,7 @@ for (const name of pluginDeclared) {
 }
 // 语音输入的兜底链路：客户端调用的接口必须真实存在于 server/app.js：
 // 路由漏写不会让 check 变红，只会让用户点麦克风时静默降级——正是要拦的那类失配。
-const voiceSource = fs.readFileSync(path.join(root, 'miniprogram/lib/speech-input.js'), 'utf8');
+const voiceSource = fs.readFileSync(path.join(root, 'miniprogram/packageMore/lib/speech-input.js'), 'utf8');
 const serverSource = fs.readFileSync(path.join(root, 'server/app.js'), 'utf8');
 for (const match of voiceSource.matchAll(/['"](\/api\/[a-z0-9-]+)['"]/g)) {
   if (!serverSource.includes("'" + match[1] + "'")) throw Error('语音输入调用了 ' + match[1] + '，但 server/app.js 没有对应路由（语音会静默降级）');
@@ -109,11 +112,36 @@ for (const photo of photos) {
   if (!fs.existsSync(file) || fs.statSync(file).size < 1000) throw Error('实拍图片未包含在小程序包内：' + photo.src);
   if (!catalog.media[photo.id] || catalog.media[photo.id].src !== photo.src) throw Error('实拍图片清单与页面资料不一致：' + photo.id);
 }
-for (const file of walk(path.join(root, 'docs')).concat(path.join(root, 'README.md'))) {
+// 文档密钥扫描：docs/ 不存在时跳过（该目录已被 packOptions.ignore 排除，可能不在工作副本里）
+const docsDir = path.join(root, 'docs');
+const docsFiles = fs.existsSync(docsDir) ? walk(docsDir) : [];
+for (const file of docsFiles.concat(path.join(root, 'README.md'))) {
+  if (!fs.existsSync(file)) continue;
   if (['.md', '.json'].includes(path.extname(file)) && /sk-[a-zA-Z0-9]{20,}/.test(fs.readFileSync(file, 'utf8'))) throw Error('文档含疑似密钥：' + path.relative(root, file));
 }
 for (const pkg of app.subPackages || []) for (const page of pkg.pages) {
   for (const ext of ['js', 'json', 'wxml', 'wxss']) if (!fs.existsSync(path.join(root, 'miniprogram', pkg.root, page + '.' + ext))) throw Error('分包页面缺失：' + pkg.root + '/' + page + '.' + ext);
+}
+// UTF-8 BOM 守卫：wxss/wxml 带 BOM 会让微信编译器报 “unexpected \ at pos 1”，整页白屏。
+// （2026-10-09 实际踩过一次：用 PowerShell 写文件会带 BOM，必须拦住。）
+for (const file of files) {
+  if (!file.replace(/\\/g, '/').includes('/miniprogram/')) continue;
+  if (!['.js', '.json', '.wxml', '.wxss', '.wxs'].includes(path.extname(file).toLowerCase())) continue;
+  const buf = fs.readFileSync(file);
+  if (buf.length >= 3 && buf[0] === 0xef && buf[1] === 0xbb && buf[2] === 0xbf) throw Error('小程序文件带 UTF-8 BOM（会导致编译报错/白屏）：' + path.relative(root, file));
+}
+// visitor-flow / weather 被两个分包（packageMore / packageTrip）各用一份 —— 分包之间不能互相引用，
+// 所以必须复制，代价是要防两份漂移：这里逐字节比对，谁改了一份没改另一份就直接报错。
+const mirroredPairs = [
+  ['packageMore/lib/visitor-flow.js', 'packageTrip/lib/visitor-flow.js'],
+  ['packageMore/lib/weather.js', 'packageTrip/lib/weather.js']
+];
+for (const pair of mirroredPairs) {
+  const copies = pair.map(rel => path.join(root, 'miniprogram', rel));
+  if (copies.every(p => fs.existsSync(p))) {
+    const [a, b] = copies.map(p => fs.readFileSync(p, 'utf8'));
+    if (a !== b) throw Error(pair.map(p => path.basename(p)).join(' / ') + ' 的两份副本内容不一致（两个分包必须同步）');
+  }
 }
 if (bytes >= 2 * 1024 * 1024) throw Error('主包超出 2 MB 开发预算，需要拆分子包');
 if (subBytes >= 2 * 1024 * 1024) throw Error('分包超出 2 MB 开发预算');

@@ -17,71 +17,92 @@
   </view>
 </view>
 <view class="home-screen {{fontClass}}">
-  <view class="home-demo"><demo-notice id="demo-mode-notice"/></view>
-  <view class="home-heading"><view class="heading-copy"><view class="home-brand">{{L.tab_discover}}</view></view><view class="heading-actions"><me-entry/></view></view>
-  <!-- 全屏海报：底层 bg（本地小图，只铺满防黑边）+ 上层清晰主图（云存储 fileID）；不再轮播 -->
-  <view id="farming-forecast" class="poster-region">
-    <view class="poster-card">
-      <image class="poster-image poster-image-bg" src="{{poster.imageBg}}" mode="aspectFill" lazy-load="true" aria-hidden="true"/>
-      <image class="poster-image poster-image-main" src="{{poster.image}}" mode="aspectFit" lazy-load="true" binderror="onPosterError" aria-label="{{L.home_poster_title}}"/>
-      <view class="poster-veil" aria-hidden="true"/>
-      <view class="poster-copy"><view class="poster-title">{{L.home_poster_title}}</view></view>
+  <view class="home-demo" style="top:{{navTop}}px"><demo-notice id="demo-mode-notice"/></view>
+
+  <!-- 全屏海报（2026-10-07 第5 轮，按设计稿①②）：
+       照片从屏幕最顶贯到 tabbar 上沿，一张图直接铺满（aspectFill，不再用模糊底图垫边）；
+       标题一行、发现+头像、日期行、主标题、玻璃把手全部浮在照片上。
+       取图走 cloud-images.js 的 orchard-garden-banner（云存储 fileID）。 -->
+  <view id="farming-forecast" class="poster-region" catchtouchmove="noop">
+    <image class="poster-image poster-image-main" src="{{poster.image}}" mode="aspectFill" lazy-load="true" binderror="onPosterError" aria-label="{{L.home_poster_title}}"/>
+    <view class="poster-veil" aria-hidden="true"/>
+
+    <!-- 自定义导航带：标题浮在照片上（这一页 navigationStyle:custom） -->
+    <view class="poster-nav" style="padding-top:{{statusBarHeight}}px">
+      <view class="poster-nav-band"><view class="poster-nav-title">{{L.app_name}}</view></view>
+    </view>
+
+    <!-- 「发现」+头像整行左对齐（右上角让给胶囊按钮），与导航带同高 -->
+    <view class="poster-head" style="top:{{navTop}}px">
+      <view class="heading-copy"><view class="home-brand">{{L.tab_discover}}</view></view>
+      <view class="heading-actions"><me-entry/></view>
+    </view>
+
+    <view class="poster-copy" style="bottom:{{copyBottom}}px">
+      <view class="poster-date">{{termLine}}</view>
+      <view class="poster-title">{{L.home_poster_title}}</view>
+    </view>
+
+    <!-- 底部把手 58px：点按或上滑展开抽屉（展开后由抽屉自带的抓手接管） -->
+    <view wx:if="{{!drawerOpen}}" class="poster-handle" bindtap="toggleDrawer" bindtouchstart="onHandleTouchStart" bindtouchend="onHandleTouchEnd" role="button" aria-label="{{L.drawer_handle}}" aria-expanded="{{drawerOpen}}">
+      <view class="handle-grip"/>
+      <view class="handle-label">{{L.drawer_handle}}</view>
     </view>
   </view>
 
-  <!-- 底部把手 58px：点按或上滑展开抽屉 -->
-  <view class="poster-handle {{drawerOpen ? 'is-open' : ''}}" bindtap="toggleDrawer" role="button" aria-label="{{L.drawer_handle}}" aria-expanded="{{drawerOpen}}">
-    <view class="handle-grip"/>
-    <view class="handle-label">{{L.drawer_handle}}</view>
-    <view class="handle-arrow {{drawerOpen ? 'is-open' : ''}}">›</view>
-  </view>
-
-  <!-- 抽屉：四时 / 游戏 / 行程 / 快讯，四段顺序固定 -->
+  <!-- 抽屉：四时 / 游戏 / 行程 / 快讯，四段顺序固定；四段同一套「标签列 + 标题列 + 右侧 ›」 -->
   <view class="drawer {{drawerOpen ? 'is-open' : ''}}" catchtouchmove="noop">
     <view class="drawer-panel">
-      <view class="drawer-grip-area" bindtap="toggleDrawer"><view class="handle-grip"/></view>
+      <view class="drawer-grip-area" bindtap="toggleDrawer" bindtouchstart="onHandleTouchStart" bindtouchend="onHandleTouchEnd"><view class="handle-grip"/></view>
 
       <view class="drawer-row" data-seg="season" bindtap="openDrawerSeg" role="button">
-        <view class="drawer-row-text">
-          <view class="drawer-tag">{{L.drawer_seg_season}}</view>
+        <view class="drawer-tag">{{L.drawer_seg_season}}</view>
+        <view class="drawer-row-main">
           <view class="drawer-title">{{drawer.season.title}}</view>
           <view class="drawer-sub">{{drawer.season.sub}}</view>
         </view>
         <view class="drawer-arrow">›</view>
       </view>
 
-      <view class="drawer-row" data-seg="game" bindtap="openDrawerGameHub" role="button">
-        <view class="drawer-row-text">
-          <view class="drawer-tag">{{L.drawer_seg_game}}</view>
+      <view class="drawer-row" data-seg="game" bindtap="toggleGameSection" role="button" aria-expanded="{{gameOpen}}">
+        <view class="drawer-tag">{{L.drawer_seg_game}}</view>
+        <view class="drawer-row-main">
           <view class="drawer-title">{{L.drawer_game_title}}</view>
           <view class="drawer-sub">{{drawer.game.sub}}</view>
-          <view class="drawer-games">
-            <view wx:for="{{drawer.game.slots}}" wx:key="key" class="drawer-game" data-game="{{item.key}}" catchtap="openGame" role="button">
-              <view class="drawer-game-no">{{item.no}}</view>
-              <view class="drawer-game-name">{{item.name}}</view>
-              <view class="drawer-game-state">{{item.state}}</view>
-            </view>
-          </view>
         </view>
-        <view class="drawer-arrow">›</view>
+        <!-- 展开时把同一个 › 旋转 90°（不是换 ⌄ 字形），这样与其它 › 严格同列 -->
+        <view class="drawer-arrow{{gameOpen ? ' is-open' : ''}}">›</view>
       </view>
 
+      <!-- 三行游戏与四段同级（不再嵌在缩进列里），这样它们的 › 和四段的 › 落在同一列 -->
+      <block wx:if="{{gameOpen}}">
+        <view wx:for="{{drawer.game.slots}}" wx:key="key" class="drawer-game" data-game="{{item.key}}" catchtap="openGame" role="button">
+          <view class="drawer-game-no">{{item.no}}</view>
+          <view class="drawer-game-name">{{item.name}}</view>
+          <view class="drawer-game-state">{{item.state}}</view>
+          <view wx:if="{{item.chip}}" class="drawer-game-chip">{{item.chip}}</view>
+          <view class="drawer-game-arrow">›</view>
+        </view>
+        <!-- 三条游戏之后补一条分隔虚线（只在展开时存在），与四段之间的虚线同款 -->
+        <view class="drawer-divider"/>
+      </block>
+
       <view class="drawer-row" data-seg="route" bindtap="openDrawerSeg" role="button">
-        <view class="drawer-row-text">
-          <view class="drawer-tag">{{L.drawer_seg_route}}</view>
+        <view class="drawer-tag">{{L.drawer_seg_route}}</view>
+        <view class="drawer-row-main">
           <view class="drawer-title">{{drawer.route.title}}</view>
           <view class="drawer-sub">{{drawer.route.sub}}</view>
         </view>
         <view class="drawer-arrow">›</view>
       </view>
 
-      <view class="drawer-row drawer-row-static" data-seg="news">
-        <view class="drawer-row-text">
-          <view class="drawer-tag">{{L.drawer_seg_news}}</view>
+      <view class="drawer-row" data-seg="news" bindtap="openDrawerSeg" role="button">
+        <view class="drawer-tag">{{L.drawer_seg_news}}</view>
+        <view class="drawer-row-main">
           <view class="drawer-title">{{drawer.news.title}}</view>
           <view class="drawer-sub">{{drawer.news.sub}}</view>
         </view>
-        <view class="drawer-arrow is-dim">›</view>
+        <view class="drawer-arrow">›</view>
       </view>
     </view>
   </view>

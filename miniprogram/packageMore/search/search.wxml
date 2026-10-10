@@ -11,23 +11,22 @@
   </view>
 
   <!-- 消息滚动区 -->
-  <scroll-view class="chat-scroll" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation>
-    <!-- 空态：欢迎 + 推荐问法 + 最近提问 -->
-    <block wx:if="{{!messages.length && !pending}}">
-      <view class="chat-hero">
-        <view class="chat-hero-face"><companion-view config="{{companion}}" size="176" animated="{{true}}"/></view>
-        <view class="chat-hero-name serif">{{L.guoling}}</view>
-        <view class="chat-hero-copy">{{L.chat_welcome}}</view>
-      </view>
-      <view class="chat-suggest">
-        <view class="chat-suggest-title">{{L.chat_suggest_title}}</view>
-        <view wx:for="{{suggestions}}" wx:key="*this" class="suggest-chip" data-word="{{item}}" bindtap="tapRecent">{{item}}</view>
-      </view>
-      <view class="search-section" wx:if="{{recent.length}}">
-        <view class="search-section-head"><text>{{L.search_recent}}</text><text class="search-clear" bindtap="clearRecent">{{L.search_clear}}</text></view>
-        <view class="recent-row"><view wx:for="{{recent}}" wx:key="*this" class="recent-chip" data-word="{{item}}" bindtap="tapRecent">{{item}}</view></view>
-      </view>
-    </block>
+  <scroll-view class="chat-scroll" scroll-y scroll-into-view="{{scrollInto}}" scroll-with-animation bindtap="hideKeyboard">
+    <!-- 开场（果灵自我介绍 + 提示问题 + 最近搜过）：**永远留在聊天记录的最上面**。
+         2026-10-09 用户要求：不管点提示问题还是自己打字，开场都不能消失；
+         聊天多了它会被新消息顶上去，往上滚就能看到（就是普通聊天记录的行为）。 -->
+    <view class="chat-hero">
+      <view class="chat-hero-face"><companion-view config="{{companion}}" size="176" animated="{{true}}"/></view>
+      <view class="chat-hero-name serif">{{L.guoling}}</view>
+      <view class="chat-hero-copy">{{L.chat_welcome}}</view>
+    </view>
+    <!-- 提示问题：问过的就从这一列去掉（依据"最近搜过"那份记录），全问完则整块隐藏 -->
+    <view wx:if="{{suggestionsLeft.length}}" class="chat-suggest">
+      <view class="chat-suggest-title">{{L.chat_suggest_title}}</view>
+      <view wx:for="{{suggestionsLeft}}" wx:key="*this" class="suggest-chip" data-word="{{item}}" bindtap="tapRecent">{{item}}</view>
+    </view>
+    <!-- 「最近搜过 / 清除」这块已按用户要求删掉（2026-10-09）；
+         "问过什么"的记录仍在后台记着，用来把问过的提示问题从上面那列去掉。 -->
 
     <!-- 消息列表 -->
     <block wx:for="{{messages}}" wx:key="id">
@@ -76,7 +75,7 @@
       <text class="voice-icon">🎤</text>
       <view wx:if="{{listening}}" class="voice-pulse"></view>
     </view>
-    <input class="chat-input" value="{{keyword}}" placeholder="{{L.chat_input_hint}}" placeholder-class="chat-placeholder" confirm-type="send" confirm-hold bindinput="onInput" bindconfirm="ask" bindkeyboardheightchange="onKeyboardHeight" cursor-spacing="16" maxlength="60" aria-label="{{L.id_search_aria}}"/>
+    <input class="chat-input" value="{{keyword}}" placeholder="{{L.chat_input_hint}}" placeholder-class="chat-placeholder" confirm-type="send" confirm-hold hold-keyboard="{{true}}" bindinput="onInput" bindconfirm="ask" bindkeyboardheightchange="onKeyboardHeight" cursor-spacing="16" maxlength="60" aria-label="{{L.id_search_aria}}"/>
     <button class="chat-send" bindtap="ask" loading="{{pending}}" disabled="{{pending}}" aria-label="{{L.chat_send}}">{{L.chat_send}}</button>
   </view>
   <view wx:if="{{listening}}" class="listening-tip" style="bottom:{{keyboardHeight ? keyboardHeight + 90 + 'px' : 'calc(130rpx + env(safe-area-inset-bottom))'}}">{{L.chat_listening}}</view>

@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const renderer = require('../miniprogram/components/heritage-viewer/renderer');
-const heritage = require('../miniprogram/data/heritage');
+const heritage = require('../miniprogram/packageMore/data/heritage');
 const mill = require('../miniprogram/components/heritage-viewer/grain-mill');
 const root = path.resolve(__dirname, '../miniprogram');
 

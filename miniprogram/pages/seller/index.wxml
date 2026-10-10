@@ -7,14 +7,37 @@
   <button class="publish-btn" bindtap="publishNew">＋ 发布我的果乡名片</button>
 
   <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
-  <view wx:elif="{{error}}" class="state-tip error">{{error}}</view>
+  <view wx:elif="{{waking}}" class="state-tip">{{L.sl_waking}}</view>
+  <view wx:elif="{{error}}" class="state-tip error">
+    <view>{{error}}</view>
+    <view class="seller-retry" bindtap="retryLoad" role="button">{{L.sl_retry}}</view>
+  </view>
   <block wx:else>
     <view class="section-title">{{L.sl_mine}}</view>
     <view wx:if="{{!myTowns.length}}" class="empty">{{L.sl_empty}}</view>
     <view wx:for="{{myTowns}}" wx:key="id" class="town-card">
       <view class="tc-main">
+        <view class="tc-label">{{L.pub_name}}</view>
         <view class="tc-name">{{item.name}}</view>
         <view class="tc-tag">{{item.term}} · {{item.fruit}}</view>
+      <view wx:if="{{item.region}}" class="tc-label">{{L.sl_region}}</view>
+          <view wx:if="{{item.region}}" class="tc-line">{{item.region}}</view>
+      <view wx:if="{{item.dateText}}" class="tc-line">{{L.sl_date}}：{{item.dateText}}</view>
+      <view wx:if="{{item.address}}" class="tc-label">{{L.sl_address}}</view>
+          <view wx:if="{{item.address}}" class="tc-line">{{item.address}}</view>
+          <view wx:if="{{item.openDateText}}" class="tc-line">{{L.sl_open_date}}：{{item.openDateText}}</view>
+          <view wx:if="{{item.openTimeText}}" class="tc-line">{{L.sl_open_time}}：{{item.openTimeText}}</view>
+      <view wx:if="{{item.experienceList.length}}" class="tc-chips">
+        <text wx:for="{{item.experienceList}}" wx:for-item="exp" wx:key="*this" class="tc-chip">{{exp}}</text>
+      </view>
+      <view wx:if="{{item.intro}}" class="tc-block">
+        <view class="tc-label">{{L.sl_intro}}</view>
+        <view class="tc-intro {{expandedId === item.id ? 'open' : ''}}">{{item.intro}}</view>
+        <text wx:if="{{item.introLong}}" class="tc-more" data-id="{{item.id}}" bindtap="toggleIntro">{{expandedId === item.id ? L.sl_less : L.sl_more}}</text>
+      </view>
+      <view wx:if="{{item.transport}}" class="tc-line">{{L.sl_transport}}：{{item.transport}}</view>
+          <view class="tc-line">微信号：{{item.wechat || '无'}}</view>
+          <view class="tc-line">手机号：{{item.phone || '无'}}</view>
       </view>
       <view class="tc-status {{item.published ? 'on' : 'off'}}">{{item.statusText}}</view>
       <view class="tc-actions">
@@ -24,3 +47,4 @@
     </view>
   </block>
 </view>
+<view class="back-tourist" bindtap="backToTourist" role="button" aria-label="{{L.sl_back_tourist}}">{{L.sl_back_tourist}}</view>

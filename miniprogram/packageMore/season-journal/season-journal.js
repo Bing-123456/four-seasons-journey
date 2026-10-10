@@ -3,7 +3,7 @@
 // 地图点亮已收藏省份 + 果乡列表（按节气排序）+ 生成足迹图（Canvas2D 分享图）。
 const store = require('../../lib/store');
 const farmtown = require('../../lib/farmtown-service');
-const journal = require('../../lib/season-journal');
+const journal = require('../lib/season-journal');
 const solar = require('../../data/solar-term-notes');
 const i18n = require('../../lib/i18n');
 

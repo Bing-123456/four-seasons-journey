@@ -2,5 +2,8 @@
   "navigationBarTitleText": "果乡详情",
   "navigationBarBackgroundColor": "#FFFDF8",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#FFFDF8"
+  "backgroundColor": "#FFFDF8",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

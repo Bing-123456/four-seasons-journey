@@ -1,5 +1,5 @@
 'use strict';
-const cloudImg = require('../lib/cloud-images');
+const cloudImg = require('../../lib/cloud-images');
 
 // 果农故事专栏（P21）：内容按评审附件《果农故事专栏》重写为真实人物故事，
 // 每条含真实人名、「地名｜来源」与两段式乡土叙事（保留附件的「来源：xxx」行）。
@@ -8,7 +8,7 @@ const cloudImg = require('../lib/cloud-images');
 //   柿子→马正旺、梨→李建国、枣→丁太平、瓯柑→叶老伯、金桔→吴叔；
 //   砂糖橘附件 D 无专篇，按评审备选方案采用真实柑橘果农周功寿故事的「柑橘变体」
 //   （人物、地点、农事与来源均忠实原文，仅补一句砂糖橘同属柑橘家族、挂树越冬的过渡说明）。
-const culture = require('./fruit-culture');
+const culture = require('../../data/fruit-culture');
 const IDS = {
   spring: ['spring-plum', 'spring-loquat', 'spring-mulberry'],
   summer: ['summer-peach', 'summer-lychee', 'summer-longan'],

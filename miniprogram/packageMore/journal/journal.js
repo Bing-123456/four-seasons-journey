@@ -1,6 +1,6 @@
 const solarTermNotes = require('../../data/solar-term-notes');
 const cloudImg = require('../../lib/cloud-images');
-const farmerStories = require('../../data/farmer-stories');
+const farmerStories = require('../data/farmer-stories');
 const i18n = require('../../lib/i18n');
 Page({
   onShow: function () { this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' }); },

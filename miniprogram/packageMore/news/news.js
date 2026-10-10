@@ -1,82 +1,51 @@
 const farmtown = require('../../lib/farmtown-service');
 const i18n = require('../../lib/i18n');
+const store = require('../../lib/store');
+const townInfo = require('../../lib/town-info');
 
 // 第 2 轮 · 今日快讯页（依据 mockups/final-design-3pages.html）
-// 只显示「果农今天发布」的果乡名片，最多 2 张；字段严格对应果农表单，不新增任何知识内容。
+// 只显示「果农今天发布」的果乡名片，字段严格对应果农表单，不新增任何知识内容。
+// 2026-10-07：张数上限从写死的 2 改成常量 MAX_CARDS（用户要求「以后快讯要支持多条」）。
+const MAX_CARDS = 20;
+// 发现页抽屉的「快讯」副标题要显示真实条数，而发现页不引 farmtown-service（有测试断言），
+// 所以由本页取数后把「当日条数」写进本机，供发现页读取；跨天自动失效。
+const NEWS_COUNT_KEY = 'guayouji.news.today.';
 
-// 中文水果名 → assets/fruit-art 插画（按季节-水果命名，缺图时回退节气插画）
-const FRUIT_ART = {
-  苹果: 'autumn-apple', 樱桃: 'spring-cherry', 枇杷: 'spring-loquat', 桑葚: 'spring-mulberry',
-  草莓: 'spring-strawberry-w', 葡萄: 'summer-grape-w', 荔枝: 'summer-lychee', 桃: 'summer-peach',
-  杏: 'summer-apricot-w', 杨梅: 'summer-bayberry', 柠檬: 'summer-lemon', 芒果: 'spring-mango',
-  香蕉: 'spring-banana', 菠萝: 'summer-pineapple', 火龙果: 'summer-dragon-fruit',
-  柿子: 'autumn-persimmon', 石榴: 'autumn-pomegranate', 冬枣: 'autumn-winter-jujube-w',
-  柑橘: 'winter-mandarin', 橙子: 'winter-navel-orange', 柚子: 'winter-pomelo-w',
-  佛手柑: 'winter-carambola-w', 红枣: 'autumn-jujube', 山楂: 'autumn-hawthorn',
-  无花果: 'autumn-fig', 猕猴桃: 'autumn-kiwi-w', 甘蔗: 'winter-sugarcane',
-  椰子: 'summer-coconut', 莲雾: 'summer-wampee', 人参果: 'summer-passion-fruit',
-  杨桃: 'winter-starfruit',
-  莲雾果: 'summer-wampee', 金橘: 'winter-kumquat', 橘子: 'winter-tangerine',
-  哈密瓜: 'summer-hami-melon', 椰枣: 'winter-dates-w', 龙眼: 'summer-longan',
-  莽山柑: 'summer-mangosteen'
-};
-// 缺图时按节气回退（仍取自既有 assets/fruit-art，不新增图片）
-const TERM_ART = {
-  春分: 'spring-cherry', 清明: 'spring-cherry', 谷雨: 'spring-plum', 立夏: 'spring-mulberry',
-  小满: 'spring-loquat', 芒种: 'spring-plum', 夏至: 'summer-peach', 小暑: 'summer-grape-w',
-  大暑: 'summer-watermelon', 立秋: 'autumn-fig', 处暑: 'autumn-fig', 白露: 'autumn-persimmon',
-  秋分: 'autumn-persimmon', 寒露: 'autumn-apple', 霜降: 'autumn-apple',
-  立冬: 'winter-mandarin', 小雪: 'winter-mandarin', 大雪: 'winter-tangerine', 冬至: 'winter-kumquat'
-};
-
-function artFor(town) {
-  const byFruit = FRUIT_ART[town.fruit];
-  if (byFruit) return '/assets/fruit-art/' + byFruit + '.jpg';
-  const byTerm = TERM_ART[town.term];
-  return '/assets/fruit-art/' + (byTerm || 'autumn-persimmon') + '.jpg';
-}
+// 插画取图、地区文字、距离改用 lib/town-info.js（与行程页共用同一套规则，2026-10-07 第9 轮抽出）
 
 function today() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
-// 两坐标点的大圆距离（公里）——算法与 pages/route/route.js 保持一致（该页为 Page 模块，无法 import 复用）。
-function haversineKm(a, b) {
-  const R = 6371;
-  const rad = d => d * Math.PI / 180;
-  const dLat = rad(b.latitude - a.latitude);
-  const dLng = rad(b.longitude - a.longitude);
-  const s = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-    + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  return 2 * R * Math.asin(Math.sqrt(s));
+// 把「今天发布了几条」写给发现页抽屉用（写失败只影响那个副标题，不影响本页展示）。
+function writeNewsCount(count, day) {
+  try { wx.setStorageSync(NEWS_COUNT_KEY + store.capturePartition(), { date: day, count: count }); } catch (e) { /* 忽略 */ }
 }
 
 // 组装单张名片：没填的字段一律返回空串，wxml 侧整行不显示，不写「暂无」。
 function toCard(town, origin) {
-  const place = [town.province, town.city, town.county]
-    .filter(Boolean).filter((v, i, arr) => arr.indexOf(v) === i).join('');
-  let distance = '';
-  if (farmtown.validTownLocation(town.location) && origin && Number.isFinite(origin.latitude) && Number.isFinite(origin.longitude)) {
-    const km = haversineKm(origin, town.location);
-    if (Number.isFinite(km)) {
-      distance = i18n.getLang() === 'en'
-        ? (km < 1 ? 'Within 1 km' : km < 100 ? km.toFixed(1) + ' km away' : Math.round(km) + ' km away')
-        : (km < 1 ? '距你 <1 公里' : km < 100 ? '距你 ' + km.toFixed(1) + ' 公里' : '距你 ' + Math.round(km) + ' 公里');
-    }
-  }
+  const place = townInfo.regionLabel(town);
+  const distance = townInfo.distanceLabel(town, origin, farmtown.validTownLocation);
   return {
     id: town.id,
     name: town.name || '',
     termLabel: town.term && town.fruit ? town.term + ' · ' + town.fruit : (town.fruit || town.term || ''),
+    // 果农自填的可去日期；没填就是空串，wxml 侧整行不显示（不出现「暂无」）
+    activityDate: town.activityDate || '',
     experiences: Array.isArray(town.experiences) ? town.experiences.slice(0, 3) : [],
     region: place,
+    wechat: t ? (t.wechat || '') : (town.wechat || ''),
+    phone: t ? (t.phone || '') : (town.phone || ''),
+      address: town.address || '',
+      openDateText: townInfo.windowLabels(town).dateRange,
+      openTimeText: townInfo.windowLabels(town).timeRange,
     distance: distance,
     // 正文优先用润色稿，为空时回退果农原文
     intro: town.polishedDescription || town.description || '',
     transport: town.transport || '',
     contact: town.contact || '',
-    art: artFor(town)
+    art: townInfo.artFor(town)
   };
 }
 
@@ -84,7 +53,7 @@ Page({
   data: { cards: [], loaded: false, empty: false, countLabel: '' },
   onLoad: function () {
     i18n.applyNav('news_page_title');
-    this.setData({ L: i18n.labels(['news_page_title', 'news_subtitle', 'news_empty', 'news_empty_hint', 'news_copy_wechat', 'news_view_card', 'news_plan_ticket']) });
+    this.setData({ L: i18n.labels(['news_page_title', 'news_subtitle', 'news_empty', 'news_empty_hint', 'news_copy_phone', 'news_view_card', 'news_plan_ticket', 'news_activity_date', 'sl_location', 'sl_intro', 'sl_transport', 'sl_contact', 'sl_region', 'sl_address', 'sl_open_date', 'sl_open_time', 'pub_name']) });
     this.load();
   },
   onShow: function () {
@@ -98,12 +67,13 @@ Page({
     const self = this;
     return farmtown.listTowns().then(function (towns) {
       const day = today();
-      const origin = readOrigin();
-      // 只显示「果农今天发布」的名片，按 createdAt 倒序，取最近 2 张。
+      const origin = townInfo.readOrigin();
+      // 只显示「果农今天发布」的名片，按 createdAt 倒序，最多 MAX_CARDS 张。
       const todayTowns = (towns || []).filter(function (t) { return t && t.published !== false && t.createdAt === day; })
         .slice()
         .sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); })
-        .slice(0, 2);
+        .slice(0, MAX_CARDS);
+      writeNewsCount(todayTowns.length, day);
       self.setData({
         cards: todayTowns.map(function (t) { return toCard(t, origin); }),
         loaded: true,
@@ -132,12 +102,4 @@ Page({
   }
 });
 
-// 读取本机已有位置（若用户已授权过）；未授权则距离留空，不弹权限框。
-function readOrigin() {
-  try {
-    const store = require('../../lib/store');
-    const o = store.getProfile && store.getProfile().origin;
-    if (o && Number.isFinite(o.latitude) && Number.isFinite(o.longitude)) return o;
-  } catch (e) { /* 位置不可用时仅隐藏距离，不影响名片展示 */ }
-  return null;
-}
+// 本机位置读取改用 lib/town-info.js 的 readOrigin（未授权时返回 null，距离整行不显示）。

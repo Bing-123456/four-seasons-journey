@@ -23,7 +23,7 @@ module.exports = {
         "strawberry"
       ],
       "featuredPlaceId": "spring-strawberry",
-      "mediaId": "strawberryField",
+      "mediaId": null,
       "heroNote": "草莓园资料图 · 姚家镇故事见下方"
     },
     {
@@ -34,7 +34,7 @@ module.exports = {
       "description": "中牟西瓜栽培与瓜豆酱的有源文化资料。",
       "monthLabel": "夏季文化专题 · 非采摘预报",
       "accent": "#D56652",
-      "mediaId": "zhongmuWatermelon",
+      "mediaId": null,
       "symbol": "夏",
       "months": [
         6,
@@ -54,7 +54,7 @@ module.exports = {
       "description": "河南猕猴桃的农事时间与果乡故事。",
       "monthLabel": "秋季文化专题 · 历史案例",
       "accent": "#A27C35",
-      "mediaId": "xixiaKiwifruit",
+      "mediaId": null,
       "symbol": "秋",
       "months": [
         9,
@@ -86,7 +86,7 @@ module.exports = {
         "apple"
       ],
       "featuredPlaceId": "winter-apple",
-      "mediaId": "lingbaoApple",
+      "mediaId": null,
       "heroNote": "灵宝苹果园实拍 · 冷库与分拣资料见下方"
     }
   ],
@@ -677,27 +677,7 @@ module.exports = {
         "precision": "公开地点参考点，非实测入口",
         "checkedAt": "2026-09-22"
       },
-      "image": {
-        "id": "henanMuseum",
-        "file": "henan-museum-real.jpg",
-        "title": "20210220 Henan Museum - main hall 01.jpg",
-        "caption": "河南博物院主展馆 · 2021年实拍",
-        "src": "/assets/henan-museum-real.jpg",
-        "credit": "Windmemories · CC BY-SA 4.0",
-        "creator": "Windmemories",
-        "creatorUrl": "https://commons.wikimedia.org/wiki/User:Windmemories",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File:20210220_Henan_Museum_-_main_hall_01.jpg",
-        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/70/20210220_Henan_Museum_-_main_hall_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "capturedAt": "2021-02-20 13:43:18",
-        "originalWidth": 1800,
-        "originalHeight": 1200,
-        "edits": "仅等比缩放至1600px并压缩；页面按容器裁切。未生成或改绘主体。",
-        "width": 1600,
-        "height": 1067,
-        "checkedAt": "2026-09-22"
-      },
+      "image": null,
       "routeEligible": true,
       "province": "河南",
       "openingStatus": "当前开放与预约信息请向场馆核实",
@@ -762,27 +742,7 @@ module.exports = {
         "precision": "公开地点参考点，非实测入口",
         "checkedAt": "2026-09-22"
       },
-      "image": {
-        "id": "dahecun",
-        "file": "dahecun-foundations-real.jpg",
-        "title": "20241110 House Foundations of Dahecun Site 01.jpg",
-        "caption": "郑州大河村遗址房基 · 2024年实拍",
-        "src": "/assets/dahecun-foundations-real.jpg",
-        "credit": "Windmemories · CC BY-SA 4.0",
-        "creator": "Windmemories",
-        "creatorUrl": "https://commons.wikimedia.org/wiki/User:Windmemories",
-        "sourceUrl": "https://commons.wikimedia.org/wiki/File:20241110_House_Foundations_of_Dahecun_Site_01.jpg",
-        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/20241110_House_Foundations_of_Dahecun_Site_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-        "license": "CC BY-SA 4.0",
-        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-        "capturedAt": "2024-11-10 11:30:55",
-        "originalWidth": 1800,
-        "originalHeight": 1200,
-        "edits": "仅等比缩放至1600px并压缩；页面按容器裁切。未生成或改绘主体。",
-        "width": 1600,
-        "height": 1067,
-        "checkedAt": "2026-09-22"
-      },
+      "image": null,
       "routeEligible": true,
       "province": "河南",
       "openingStatus": "当前开放与预约信息请向场馆核实",
@@ -897,8 +857,7 @@ module.exports = {
         "S8"
       ],
       "cover": "craft",
-      "address": "河南省郑州市中牟县狼城岗镇青谷堆村 · 文化资料",
-      "mediaId": "doubanjiangRef"
+      "address": "河南省郑州市中牟县狼城岗镇青谷堆村 · 文化资料"
     },
     {
       "demo": false,
@@ -1019,7 +978,7 @@ module.exports = {
       ],
       "cover": "kiwi",
       "address": "河南省郑州市中牟县刁家乡 · 农事资料",
-      "mediaId": "yuanyangRice"
+      "mediaId": null
     },
     {
       "id": "spring-strawberry",
@@ -1059,7 +1018,7 @@ module.exports = {
         "S16"
       ],
       "address": "河南省郑州市中牟县姚家镇 · 文化资料",
-      "mediaId": "strawberryField",
+      "mediaId": null,
       "imageNote": "草莓园资料图（非中牟实景）· 故事以公开资料为准"
     },
     {
@@ -1102,7 +1061,7 @@ module.exports = {
         "autumn",
         "winter"
       ],
-      "mediaId": "lingbaoApple"
+      "mediaId": null
     }
   ],
   "interests": [
@@ -1155,188 +1114,8 @@ module.exports = {
     "origin": null
   },
   "media": {
-    "henanMuseum": {
-      "id": "henanMuseum",
-      "file": "henan-museum-real.jpg",
-      "title": "20210220 Henan Museum - main hall 01.jpg",
-      "caption": "河南博物院主展馆 · 2021年实拍",
-      "src": "/assets/henan-museum-real.jpg",
-      "credit": "Windmemories · CC BY-SA 4.0",
-      "creator": "Windmemories",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/User:Windmemories",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20210220_Henan_Museum_-_main_hall_01.jpg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/70/20210220_Henan_Museum_-_main_hall_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "capturedAt": "2021-02-20 13:43:18",
-      "originalWidth": 1800,
-      "originalHeight": 1200,
-      "edits": "仅等比缩放至1600px并压缩；页面按容器裁切。未生成或改绘主体。",
-      "width": 1600,
-      "height": 1067,
-      "checkedAt": "2026-09-22"
-    },
-    "dahecun": {
-      "id": "dahecun",
-      "file": "dahecun-foundations-real.jpg",
-      "title": "20241110 House Foundations of Dahecun Site 01.jpg",
-      "caption": "郑州大河村遗址房基 · 2024年实拍",
-      "src": "/assets/dahecun-foundations-real.jpg",
-      "credit": "Windmemories · CC BY-SA 4.0",
-      "creator": "Windmemories",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/User:Windmemories",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20241110_House_Foundations_of_Dahecun_Site_01.jpg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/20241110_House_Foundations_of_Dahecun_Site_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "capturedAt": "2024-11-10 11:30:55",
-      "originalWidth": 1800,
-      "originalHeight": 1200,
-      "edits": "仅等比缩放至1600px并压缩；页面按容器裁切。未生成或改绘主体。",
-      "width": 1600,
-      "height": 1067,
-      "checkedAt": "2026-09-22"
-    },
-    "zhongmuWatermelon": {
-      "id": "zhongmuWatermelon",
-      "file": "zhongmu-watermelon-real.jpg",
-      "title": "中牟西瓜获地理标志认定",
-      "caption": "河南中牟 · 西瓜资料图",
-      "credit": "中牟新区发布 · 2025年报道",
-      "creator": "原文未署名摄影者",
-      "creatorUrl": null,
-      "sourceUrl": "https://www.zhongmu.gov.cn/zwyw/9679425.jhtml",
-      "originalUrl": "https://www.zhongmu.gov.cn/u/cms/zhongmu/202510/23112430odig.jpg",
-      "publishedAt": "2025-10-23",
-      "width": 1280,
-      "height": 960,
-      "geography": "河南省郑州市中牟",
-      "subject": "西瓜",
-      "src": "/assets/zhongmu-watermelon-real.jpg",
-      "license": "原页未声明开放许可",
-      "licenseUrl": null,
-      "rightsStatus": "not-declared",
-      "usageScope": "local-prototype-reference",
-      "rightsNote": "用于本地开发资料展示；署名不等于授权，公开发布或商业复用前需取得图片许可或替换为有授权实拍。",
-      "capturedAt": null,
-      "originalWidth": 1280,
-      "originalHeight": 960,
-      "edits": "原始JPEG直接入包；四时页按原始比例展示，保留水印，不使用生成内容或移除标识。",
-      "checkedAt": "2026-09-22"
-    },
-    "xixiaKiwifruit": {
-      "id": "xixiaKiwifruit",
-      "file": "xixia-kiwifruit-real.jpg",
-      "title": "河南南阳：特色产业“丰”景如画",
-      "caption": "河南西峡 · 猕猴桃果园",
-      "credit": "杨大勇 摄 / 中新网 · 2023年报道",
-      "creator": "杨大勇",
-      "creatorUrl": null,
-      "sourceUrl": "https://hn.ifeng.com/c/8TqRDVdGQkN",
-      "originalUrl": "https://x0.ifengimg.com/ucms/2023_41/7F737A803956D0095B6438DD13B7B80C92B096F3_size70_w700_h525.jpg",
-      "publishedAt": "2023-10-13",
-      "width": 700,
-      "height": 525,
-      "geography": "河南省南阳市西峡县",
-      "subject": "猕猴桃果园",
-      "src": "/assets/xixia-kiwifruit-real.jpg",
-      "license": "原页未声明开放许可",
-      "licenseUrl": null,
-      "rightsStatus": "not-declared",
-      "usageScope": "local-prototype-reference",
-      "rightsNote": "用于本地开发资料展示；署名不等于授权，公开发布或商业复用前需取得图片许可或替换为有授权实拍。",
-      "capturedAt": null,
-      "originalWidth": 700,
-      "originalHeight": 525,
-      "edits": "原始JPEG直接入包；四时页按原始比例展示，保留水印，不使用生成内容或移除标识。",
-      "checkedAt": "2026-09-22"
-    },
-    "lingbaoApple": {
-      "checkedAt": "2026-09-22",
-      "edits": "原始JPEG直接入包（950px，未放大）；页面按容器裁切。未生成或改绘主体。",
-      "width": 950,
-      "id": "lingbaoApple",
-      "file": "lingbao-apple-real.jpg",
-      "title": "Ling bao ping guo 01.jpg",
-      "caption": "河南灵宝 · 苹果园实拍",
-      "src": "/assets/lingbao-apple-real.jpg",
-      "credit": "Shdyll · FAL 1.2",
-      "creator": "Shdyll",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/Special:ListFiles/Shdyll",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ling_bao_ping_guo_01.jpg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Ling_bao_ping_guo_01.jpg",
-      "license": "FAL 1.2",
-      "licenseUrl": "https://artlibre.org/licence/lal/en/",
-      "capturedAt": "2005-10-17",
-      "originalWidth": 950,
-      "originalHeight": 713,
-      "height": 713
-    },
-    "yuanyangRice": {
-      "checkedAt": "2026-09-22",
-      "edits": "仅等比缩放至1000px并压缩；页面按容器裁切。未生成或改绘主体。",
-      "width": 1000,
-      "id": "yuanyangRice",
-      "file": "yuanyang-rice-real.jpg",
-      "title": "20210715 Rice farms in Yuanyang County, Henan.jpg",
-      "caption": "河南原阳 · 稻田（农事资料图）",
-      "src": "/assets/yuanyang-rice-real.jpg",
-      "credit": "Windmemories · CC BY-SA 4.0",
-      "creator": "Windmemories",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/User:Windmemories",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20210715_Rice_farms_in_Yuanyang_County,_Henan.jpg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/52/20210715_Rice_farms_in_Yuanyang_County%2C_Henan.jpg",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "capturedAt": "2021-07-15 12:36:40",
-      "originalWidth": 1800,
-      "originalHeight": 1200,
-      "height": 666,
-      "note": "原阳县稻田实拍；用于农事时间主题时为跨县资料图，不代表刁家乡实景。"
-    },
-    "doubanjiangRef": {
-      "checkedAt": "2026-09-22",
-      "edits": "仅等比缩放至1000px并压缩；页面按容器裁切。未生成或改绘主体。",
-      "width": 1000,
-      "id": "doubanjiangRef",
-      "file": "doubanjiang-ref.jpg",
-      "title": "Doubanjiang.jpg",
-      "caption": "豆酱类示意 · 非青谷堆村实拍",
-      "src": "/assets/doubanjiang-ref.jpg",
-      "credit": "Badagnani · CC BY 3.0",
-      "creator": "Badagnani",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/User:Badagnani",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Doubanjiang.jpg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Doubanjiang.jpg",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
-      "capturedAt": "2008-02-08",
-      "originalWidth": 2560,
-      "originalHeight": 1920,
-      "height": 750,
-      "note": "通用豆瓣酱示意照片；青谷堆村瓜豆酱工艺以公开文字资料为准，未声称此图为其产品。"
-    },
-    "strawberryField": {
-      "id": "strawberryField",
-      "file": "strawberry-field-real.jpg",
-      "title": "Strawberry Fields In Carlsbad Ca (120852175).jpeg",
-      "caption": "草莓园资料图",
-      "src": "/assets/strawberry-field-real.jpg",
-      "credit": "Rodrigo.Argenton · CC BY 3.0",
-      "creator": "Rodrigo.Argenton",
-      "creatorUrl": "https://commons.wikimedia.org/wiki/User:Rodrigo.Argenton",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Strawberry_Fields_In_Carlsbad_Ca_(120852175).jpeg",
-      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/da/Strawberry_Fields_In_Carlsbad_Ca_(120852175).jpeg",
-      "license": "CC BY 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
-      "capturedAt": "2015-05-17",
-      "originalWidth": 2048,
-      "originalHeight": 3092,
-      "width": 1080,
-      "height": 1629,
-      "checkedAt": "2026-09-23",
-      "edits": "仅等比缩放至1080px并压缩（JPEG q56）；页面按容器裁切。未生成或改绘主体。",
-      "note": "美国加州草莓田实拍；作为草莓主题资料图使用，不声称中牟实景。"
-    }
+
+
+
   }
 };

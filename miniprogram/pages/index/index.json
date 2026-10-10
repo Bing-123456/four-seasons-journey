@@ -1,7 +1,10 @@
 {
   "navigationBarTitleText": "果物四时记",
+  "navigationStyle": "custom",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "companion-view": "/components/companion-view/companion-view"
+    "companion-view": "/components/companion-view/companion-view",
+    "demo-notice": "/components/demo-notice/index",
+    "me-entry": "/components/me-entry/me-entry"
   }
 }

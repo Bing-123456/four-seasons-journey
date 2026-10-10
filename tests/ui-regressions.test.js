@@ -116,9 +116,14 @@ test('retired tea URL cannot select an undocumented exhibit', () => {
 });
 
 test('favorites use attributed real photos and text cards for topics with no photo', () => {
-  const photographed = catalog.places.find(place => place.image && place.image.src);
   const topic = catalog.places.find(place => place.type === 'topic' && !place.image);
-  assert.ok(photographed && topic);
+  assert.ok(topic);
+  // 2026-10-09：catalog 不再内置实拍图（本地图已全部移除），为了继续守住"有图走缩略图"这条代码路径，
+  // 这里临时给一个可导航地点挂上图片。测试进程独立，不影响其它用例。
+  const photographed = catalog.places.find(place => place.routeEligible) || catalog.places[0];
+  if (!(photographed.image && photographed.image.src)) {
+    photographed.image = { id: 'test-fixture-photo', src: '/assets/test-fixture-photo.jpg', credit: 'Test Fixture · CC BY-SA 4.0' };
+  }
   store.toggleFavorite(photographed.id); store.toggleFavorite(topic.id);
   const page = loadPage('mine'); page.onShow();
   const photoCard = page.data.favorites.find(place => place.id === photographed.id);
@@ -181,12 +186,15 @@ test('slow map opening shows progress, blocks repeated taps and clears on cancel
 
 test('the discover page uses the packaged orchard poster with a bilingual headline', () => {
   const home = loadPage('index'); home.onShow();
-  assert.ok(home.data.poster.image && home.data.poster.imageBg, 'poster takes a clear main image plus a background filler');
+  assert.ok(home.data.poster.image, 'poster takes a clear main image');
+  assert.ok(home.data.poster.imageBg, 'poster keeps a local fallback for load errors');
   assertImagePackaged(home.data.poster.image, home.data.poster.image);
   assertImagePackaged(home.data.poster.imageBg, home.data.poster.imageBg);
   const markup = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/index/index.wxml'), 'utf8');
-  assert.match(markup, /class="poster-image poster-image-bg"[^>]*mode="aspectFill"/, '底层铺满防黑边');
-  assert.match(markup, /class="poster-image poster-image-main"[^>]*mode="aspectFit"/, '主图完整显示');
+  // 2026-10-07 第5 轮：海报改成「一张图 aspectFill 直接铺满」，不再有独立底图层；
+  // imageBg 只作为主图加载失败时的本机兜底值（markup 里不出现）。
+  assert.doesNotMatch(markup, /poster-image-bg/, '不再有独立的模糊底图层');
+  assert.match(markup, /class="poster-image poster-image-main"[^>]*mode="aspectFill"/, '主图 aspectFill 铺满全屏');
   try {
     store.saveSettings({ language: 'en' }); require('../miniprogram/lib/i18n').invalidateLang(); home.refresh();
     assert.match(home.data.L.home_poster_title, /persimmon/i, 'headline is bilingual');
@@ -220,7 +228,10 @@ test('all pages identify the isolated demo account and the notice refreshes on e
     store.exitDemo(); definition.pageLifetimes.show.call(notice);
     assert.equal(notice.data.active, false, 'returning to a cached page refreshes the account mode');
     const app = require('../miniprogram/app.json');
-    assert.equal(app.usingComponents['demo-notice'], '/components/demo-notice/index');
+    // 2026-10-09：不再用 app.json 的「全局自定义组件」（会削弱按需注入），改为各页面自己声明；
+    // 所以这里断言"全局必须没有它"，并由 check-refs 的守卫保证每个用到它的页面都声明了。
+    assert.equal(app.usingComponents && app.usingComponents['demo-notice'], undefined, 'demo-notice 不再全局声明');
+    assert.equal(JSON.parse(fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/mine/mine.json'), 'utf8')).usingComponents['demo-notice'], '/components/demo-notice/index', '页面自己声明 demo-notice');
     // 2026-10-06 起部分页面在分包里，分包页路径为 subPackage.root + '/' + page。
     // packageWorld（世界地图）自建分包起就没有演示模式横幅，本断言沿用其原有豁免。
     const allRoutes = app.pages

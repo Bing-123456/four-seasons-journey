@@ -4,6 +4,7 @@
   "navigationBarTextStyle": "black",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "me-entry": "/components/me-entry/me-entry"
+    "me-entry": "/components/me-entry/me-entry",
+    "demo-notice": "/components/demo-notice/index"
   }
 }

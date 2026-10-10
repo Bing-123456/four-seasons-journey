@@ -10,7 +10,7 @@ const fs = require('node:fs');
 const catalog = require('../miniprogram/data/catalog');
 const core = require('../miniprogram/lib/core');
 const store = require('../miniprogram/lib/store');
-const flow = require('../miniprogram/lib/visitor-flow');
+const flow = require('../miniprogram/packageTrip/lib/visitor-flow');
 const lib = require('../miniprogram/packageTrip/lib/trip-wizard');
 
 const originalWx = global.wx;

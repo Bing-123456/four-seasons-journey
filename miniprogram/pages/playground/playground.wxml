@@ -39,6 +39,17 @@
     </block>
     <block wx:else>
       <view class="quiz-done">{{L.quiz_done}}<text>{{quizScoreLine}}</text></view>
+          <!-- 今天的问答簿（第一轮答完就出现，位置在「再来一轮」上面）-->
+          <view wx:if="{{quizRound < 2}}" class="qlog">
+          <view class="qlog-title">{{L.qlog_title}}</view>
+          <view wx:if="{{!quizLog.length}}" class="qlog-empty">{{L.qlog_empty}}</view>
+          <view wx:for="{{quizLog}}" wx:key="index" class="qlog-row">
+          <view class="qlog-dot {{item.correct ? 'ok' : ''}}"></view>
+          <view class="qlog-q">{{item.text}}</view>
+          <view wx:if="{{item.answer}}" class="qlog-a">{{L.qlog_right}}{{item.answer}}</view>
+                    <view class="qlog-a qlog-src">{{L.qlog_by}}{{item.source || '知识库'}}</view>
+          </view>
+          </view>
       <view wx:if="{{coverflowCards.length}}" class="coverflow-wrap">
         <view class="coverflow-stage {{coverflowDragging ? 'is-dragging' : ''}}"
               bindtouchstart="coverflowTouchStart" bindtouchmove="coverflowTouchMove"
@@ -55,7 +66,21 @@
         </view>
       </view>
       <button wx:if="{{quizRound < 2}}" class="game-button" bindtap="restartQuiz">{{L.quiz_again}}</button>
-      <view wx:else class="quiz-finished">{{L.quiz_finished}}</view>
+      <block wx:else>
+      <view class="quiz-finished">{{L.quiz_finished}}</view>
+          <!-- 今天的问答簿（今日全部答完时出现，位置在「今日问答题已结束」下面）-->
+          <view wx:if="{{quizRound >= 2}}" class="qlog">
+          <view class="qlog-title">{{L.qlog_title}}</view>
+          <view wx:if="{{!quizLog.length}}" class="qlog-empty">{{L.qlog_empty}}</view>
+          <view wx:for="{{quizLog}}" wx:key="index" class="qlog-row">
+          <view class="qlog-dot {{item.correct ? 'ok' : ''}}"></view>
+          <view class="qlog-q">{{item.text}}</view>
+          <view wx:if="{{item.answer}}" class="qlog-a">{{L.qlog_right}}{{item.answer}}</view>
+          
+          <view class="qlog-a qlog-src">{{L.qlog_by}}{{item.source || '知识库'}}</view>
+          </view>
+          </view>
+      </block>
     </block>
   </view>
 
@@ -68,11 +93,13 @@
       <view class="challenge-cards-grid">
         <view wx:for="{{challengeCardRows}}" wx:key="index" class="challenge-card-row">
           <view wx:for="{{item}}" wx:for-item="c" wx:key="sig" class="challenge-card-item">
-            <view class="challenge-card-header">{{c.fruit}} · {{c.term}} · {{c.category}}</view>
+            <view class="challenge-card-header">{{c.term}} · {{c.fruit}} · {{c.category}}</view>
+            <view wx:if="{{c.situation}}" class="challenge-card-q">{{c.situation}}</view>
+            <view wx:if="{{c.answer}}" class="challenge-card-answer">{{L.challenge_card_answer}}{{c.answer}}</view>
             <view class="challenge-card-line"></view>
-            <scroll-view scroll-y class="challenge-card-body">
-              <view wx:for="{{c.points}}" wx:for-item="pt" wx:key="*this" class="challenge-card-point">{{pt}}</view>
-            </scroll-view>
+            <view class="challenge-card-body">
+              <view wx:for="{{c.pointsView}}" wx:for-item="pt" wx:key="index" class="challenge-card-point"><text class="challenge-k-label">{{pt.label}}</text><text class="challenge-k-text">{{pt.text}}</text></view>
+            </view>
           </view>
         </view>
       </view>
@@ -105,6 +132,8 @@
       <!-- 状态 3-7：题目区 -->
       <view wx:if="{{challengeState !== 'idle' && challengeState !== 'spinning'}}" class="challenge-question-area">
         <view class="challenge-situation">{{challenge.situation}}</view>
+        <!-- 提问引导语：只给"题面只是陈述、本身没在提问"的题补一行，紧跟在题面后面 -->
+        <view wx:if="{{challenge.prompt}}" class="challenge-prompt">{{challenge.prompt}}</view>
 
         <!-- 选项：状态 7 隐藏 -->
         <view wx:if="{{challengeState !== 'saved'}}" class="challenge-options">
@@ -125,7 +154,7 @@
         <!-- 知识卡：答对 / 答错 / 保存后均展示 -->
         <view wx:elif="{{challengeKnowledge && (challengeState === 'correct' || challengeState === 'wrong' || challengeState === 'reveal' || challengeState === 'saved')}}" class="challenge-knowledge">
           <view class="challenge-k-title">{{challengeCardTitle}}</view>
-          <view wx:for="{{challengeKnowledge.points}}" wx:key="*this" class="challenge-k-point">{{item}}</view>
+          <view wx:for="{{challengeKnowledge.pointsView}}" wx:key="index" class="challenge-k-point"><text class="challenge-k-label">{{item.label}}</text><text class="challenge-k-text">{{item.text}}</text></view>
           <view class="challenge-k-actions">
             <button wx:if="{{challengeState !== 'saved'}}" class="game-button challenge-mini {{challengeSaving ? 'challenge-saving-btn' : ''}}" bindtap="saveKnowledgeCard" disabled="{{challengeSaving}}">{{challengeSaving ? L.challenge_saving : L.challenge_save_album}}</button>
             <button wx:if="{{challengeState !== 'saved'}}" class="game-button challenge-mini" bindtap="challengeNext">{{L.challenge_next}}</button>
@@ -169,6 +198,21 @@
       <button wx:if="{{matchLeft > 0}}" class="game-button" bindtap="matchRestart">{{L.match_again}}</button>
       <button wx:else class="game-button match-disabled" disabled>{{L.match_exhausted}}</button>
       <view wx:if="{{matchLeft <= 0}}" class="match-day-end">{{L.match_day_end}}</view>
+          <!-- 今日连线图谱（2026-10-08 新增）：一对一行，实线=连对 / 虚线=连错；下面跟果灵讲解词 -->
+          <view wx:if="{{matchDone}}" class="mgraph">
+            <view class="mgraph-title">{{L.mgraph_title}}</view>
+            <view wx:if="{{!matchRoundLog.length}}" class="mgraph-empty">{{L.mgraph_empty}}</view>
+            <view wx:for="{{matchRoundLog}}" wx:key="index" class="mgraph-item">
+              <view class="mgraph-line">
+                <view class="mgraph-node fruit">{{item.fruit}}</view>
+                <view class="mgraph-edge {{item.correct ? 'solid' : 'dash'}}"></view>
+                <view class="mgraph-node label">{{item.label}}</view>
+              </view>
+              <view wx:if="{{item.note}}" class="mgraph-note">{{item.note}}</view>
+      <view class="mgraph-note mgraph-src">据：{{item.source || '知识库'}}</view>
+            </view>
+            <view wx:if="{{matchRoundLog.length}}" class="mgraph-hint">{{L.mgraph_hint}}</view>
+          </view>
     </view>
   </view>
 </view>

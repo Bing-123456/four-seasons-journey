@@ -5,7 +5,7 @@
       <image class="profile-avatar-photo" src="{{avatarPath || '/assets/illustrations/avatar-default.jpg'}}" mode="aspectFill" aria-hidden="true"/>
       <view class="profile-avatar-edit">{{L.account_edit}}</view>
     </view>
-    <view><view class="page-title">{{identity.nickname || L.traveller}}{{L.mine_notes}}</view></view>
+    <view><view class="page-title">{{identity.nickname || L.traveller}}</view></view>
   </view>
 
   <!-- 我的果园 -->

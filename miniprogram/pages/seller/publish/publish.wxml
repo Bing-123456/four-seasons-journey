@@ -1,7 +1,6 @@
 <view class="page publish {{fontClass}}">
   <demo-notice id="demo-mode-notice"/>
   <view class="head">
-    <view class="back-btn" bindtap="goBack" role="button" aria-label="返回">← 返回</view>
     <view class="head-title">发布果乡名片（{{step}}/3）</view>
   </view>
 
@@ -9,15 +8,27 @@
 
   <view wx:if="{{step === 1}}" class="step">
     <label class="label">{{L.pub_name}}</label>
-    <input class="input" model:value="{{form.name}}" maxlength="20" placeholder="如：洛川王大爷苹果园"/>
-    <label class="label">{{L.pub_region}}</label>
+    <view id="field-name"><input class="input {{errors.name ? 'has-error' : ''}}" value="{{form.name}}" bindinput="inputName" maxlength="20" placeholder="如：洛川王大爷苹果园"/></view>
+    <view wx:if="{{errors.name}}" class="field-error">{{errors.name}}</view>
+    <view id="field-region"><label class="label">{{L.pub_region}}</label></view>
     <picker mode="region" value="{{[form.province, form.city, form.county]}}" bindchange="onRegionChange">
       <view class="input picker">{{form.province || '请选择'}} {{form.city}} {{form.county}} ⌄</view>
     </picker>
-    <label class="label">{{L.pub_location}}</label>
-    <view class="input picker location-row {{form.locationName ? '' : 'placeholder'}}" bindtap="chooseLocation">{{form.locationName || '点击选择果乡位置'}} ⌄</view>
+    <label class="label">{{L.pub_address}}</label>
+    <view id="field-address"><input class="input {{errors.address ? 'has-error' : ''}}" value="{{form.address}}" bindinput="inputAddress" maxlength="80" placeholder="{{L.pub_address_ph}}"/>
+        <view wx:if="{{errors.address}}" class="field-error">{{errors.address}}</view></view>
     <label class="label">{{L.pub_fruit}}</label>
-    <input class="input" model:value="{{form.fruit}}" maxlength="10" placeholder="如：苹果"/>
+    <input class="input {{errors.fruit ? 'has-error' : ''}}" value="{{form.fruit}}" bindinput="inputFruit" maxlength="10" placeholder="如：苹果"/>
+    <view wx:if="{{errors.fruit}}" class="field-error">{{errors.fruit}}</view>
+    <label class="label">{{L.pub_date_window}}</label>
+        <view id="field-openDate"><picker mode="date" value="{{form.openDate}}" bindchange="onOpenDate"><view class="input picker">{{form.openDate || L.pub_open_date}} ⌄</view></picker>
+        <view wx:if="{{errors.openDate}}" class="field-error">{{errors.openDate}}</view></view>
+        <picker mode="time" value="{{form.openTime}}" bindchange="onOpenTime"><view class="input picker">{{form.openTime || L.pub_open_time}} ⌄</view></picker>
+        <view wx:if="{{errors.openTime}}" class="field-error">{{errors.openTime}}</view>
+        <view id="field-closeDate"><picker mode="date" value="{{form.closeDate}}" bindchange="onCloseDate"><view class="input picker">{{form.closeDate || L.pub_close_date}} ⌄</view></picker>
+        <view wx:if="{{errors.closeDate}}" class="field-error">{{errors.closeDate}}</view></view>
+        <picker mode="time" value="{{form.closeTime}}" bindchange="onCloseTime"><view class="input picker">{{form.closeTime || L.pub_close_time}} ⌄</view></picker>
+        <view wx:if="{{errors.closeTime}}" class="field-error">{{errors.closeTime}}</view>
     <button class="next" bindtap="next1">{{L.pub_next}}</button>
   </view>
 
@@ -27,11 +38,11 @@
       <text wx:for="{{experiences}}" wx:key="*this" class="exp {{expSelected[item] ? 'on' : ''}}" data-exp="{{item}}" bindtap="toggleExp">{{item}}</text>
     </view>
     <label class="label">{{L.pub_desc}}</label>
-    <textarea class="input area" model:value="{{form.description}}" maxlength="200" placeholder="讲讲你的果园和故事…"/>
-    <label class="label">{{L.pub_transport}}</label>
-    <input class="input" model:value="{{form.transport}}" maxlength="100" placeholder="如：从县城出发约 20 分钟"/>
-    <label class="label">{{L.pub_contact}}</label>
-    <input class="input" model:value="{{form.contact}}" maxlength="50" placeholder="微信号或电话"/>
+    <textarea class="input area" value="{{form.description}}" bindinput="inputDesc" maxlength="200" placeholder="讲讲你的果园和故事…"/>
+        <label class="label">{{L.pub_wechat}}</label>
+        <input class="input" value="{{form.wechat}}" bindinput="inputWechat" maxlength="50" placeholder="微信号"/>
+        <label class="label">{{L.pub_phone}}</label>
+        <input class="input" value="{{form.phone}}" bindinput="inputPhone" maxlength="50" placeholder="手机号"/>
     <button class="next" bindtap="next2">{{L.pub_next}}</button>
     <button class="back-step" data-step="1" bindtap="back">← 上一步</button>
   </view>
@@ -42,6 +53,7 @@
     <button class="polish" loading="{{polishing}}" disabled="{{polishing}}" bindtap="polish">AI 帮我润色</button>
     <label class="label">{{L.pub_polished}}</label>
     <view class="preview polished">{{polishedText || '点击上方按钮，让果灵帮你润色一段温暖的果乡文案'}}</view>
+    <view wx:if="{{polishNote}}" class="polish-note">{{polishNote}}</view>
     <button wx:if="{{polishedText}}" class="back-step" bindtap="polish">{{L.pub_repolish}}</button>
     <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">{{editing ? '保存修改' : '确认发布'}}</button>
     <button class="back-step" data-step="2" bindtap="back">← 上一步</button>

@@ -94,19 +94,25 @@ function createFarmtownService(options = {}) {
     const id = input.id || ('town' + randomBytes(4).toString('hex').replace(/[^a-z]/g, 'a').slice(0, 10));
     const name = text(input.name, '果乡名称', 20);
     const province = text(input.province, '省份', 20);
+  // 2026-10-08 新增：具体位置（果农自己打字的详细地址）+ 开关门日期与时间；全部必填
+  const address = text(input.address, '具体位置', 80);
+  const openDate = text(input.openDate, '开门日期', 20);
+  const openTime = text(input.openTime, '开门时间', 10);
+  const closeDate = text(input.closeDate, '关门日期', 20);
+  const closeTime = text(input.closeTime, '关门时间', 10);
     const city = text(input.city, '城市', 20, true);
     const county = text(input.county, '区县', 20, true);
     const fruit = text(input.fruit, '当季水果', 10);
-    const experiences = arrOf(input.experiences || [], '体验标签', 6, 3, EXPERIENCES);
-    const description = text(input.description, '果乡介绍', 200, true);
-    const transport = text(input.transport, '交通指引', 100, true);
-    const contact = text(input.contact, '联系方式', 50, true);
+    const experiences = arrOf(input.experiences || [], '体验标签', 6, 5, EXPERIENCES);
+    const description = text(input.description, '果乡介绍', 200);
+    const wechat = text(input.wechat, '微信号', 50, true);
+  const phone = text(input.phone, '手机号', 50, true);
     const term = text(input.term, '节气', 6, true) || termForFruit(fruit);
     let location = { latitude: 0, longitude: 0 };
     if (input.location && Number.isFinite(Number(input.location.latitude)) && Number.isFinite(Number(input.location.longitude))) {
       location = { latitude: Number(input.location.latitude), longitude: Number(input.location.longitude) };
     }
-    return { id, name, province, city, county, fruit, experiences, description, transport, contact, term, location };
+    return { id, name, province, city, county, fruit, experiences, description, wechat, phone, term, location, address, openDate, openTime, closeDate, closeTime };
   }
 
   function list(query = {}) {
@@ -154,7 +160,7 @@ function createFarmtownService(options = {}) {
 
   async function polish(body) {
     if (!chat || typeof chat.polish !== 'function') throw new InputError('润色服务未配置', 'model_disabled', 503);
-    const description = text(body.description, '果乡介绍', 200, true);
+    const description = text(body.description, '果乡介绍', 200);
     if (!description) throw new InputError('请先填写果乡介绍', 'invalid_input', 400);
     const term = text(body.term, '节气', 6, true) || termForFruit(body.fruit);
     const fruit = text(body.fruit, '当季水果', 10, true);

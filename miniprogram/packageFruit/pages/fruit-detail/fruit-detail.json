@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "水果手记"
+  "navigationBarTitleText": "水果手记",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

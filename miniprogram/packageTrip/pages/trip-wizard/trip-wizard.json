@@ -1,1 +1,9 @@
-{"navigationBarTitleText":"定制文化行程","navigationBarBackgroundColor":"#F5F5F7","navigationBarTextStyle":"black"}
+{
+  "navigationBarTitleText": "定制文化行程",
+  "navigationBarBackgroundColor": "#F5F5F7",
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index",
+    "me-entry": "/components/me-entry/me-entry"
+  }
+}

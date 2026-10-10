@@ -17,9 +17,9 @@
   ],
   "window": {
     "navigationBarTitleText": "果物四时记",
-    "navigationBarBackgroundColor": "#F5F5F7",
+    "navigationBarBackgroundColor": "#F1E7D6",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#F5F5F7",
+    "backgroundColor": "#F1E7D6",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
@@ -51,7 +51,7 @@
   "sitemapLocation": "sitemap.json",
   "plugins": {
     "WechatSI": {
-      "version": "0.3.5",
+      "version": "0.3.10",
       "provider": "wx069ba97219f66d99"
     }
   },
@@ -59,19 +59,12 @@
   "permission": {
     "scope.userLocation": {
       "desc": "用于显示果园与你的距离"
-    },
-    "scope.record": {
-      "desc": "仅用于果灵搜索的语音提问：点按麦克风开始录音，再点一次结束并转成文字"
     }
   },
   "requiredPrivateInfos": [
     "chooseLocation",
     "getLocation"
   ],
-  "usingComponents": {
-    "demo-notice": "/components/demo-notice/index",
-    "me-entry": "/components/me-entry/me-entry"
-  },
   "subPackages": [
     {
       "root": "packageWorld",

@@ -17,7 +17,19 @@ async function getTown(id) {
   const res = await call('GET', '/api/farmtown/detail?id=' + encodeURIComponent(id));
   return (res && res.town) || null;
 }
-async function myTowns() {
+// 只给"果农工作台"用的加载：云托管缩容到 0 后再访问需要冷启动，
+// 失败一次就等 1.2 秒自动重试一次（最多两次），其它接口不受影响。
+async function myTowns(hooks) {
+  try {
+    return await myTownsOnce();
+  } catch (error) {
+    if (hooks && typeof hooks.onRetry === 'function') { try { hooks.onRetry(); } catch (e) { /* 忽略 */ } }
+    await new Promise(function (resolve) { setTimeout(resolve, 1200); });
+    return myTownsOnce();
+  }
+}
+
+async function myTownsOnce() {
   const res = await call('GET', '/api/farmtown/my');
   return (res && res.towns) || [];
 }
@@ -33,9 +45,40 @@ async function unpublishTown(id) {
   const res = await call('POST', '/api/farmtown/unpublish', { id });
   return (res && res.town) || null;
 }
+// 本地润色兜底：只做"整理"（去空白、收标点、补句号），绝不新增事实、不编故事。
+// 返回 { text, source }：source = 'server'（真 AI）| 'local' | 'local-short'
+function localPolish(description) {
+  const raw = String(description || '').replace(/\s+/g, ' ').trim();
+  if (raw.length < 8) return { text: raw, source: 'local-short' };
+  const text = raw
+    .replace(/[。！？；]{2,}/g, function (m) { return m.charAt(0); })
+    .replace(/[，,]{2,}/g, '，')
+    .replace(/\s*([，。！？；：])/g, '$1');
+  return { text: /[。！？]$/.test(text) ? text : text + '。', source: 'local' };
+}
+
+// 服务端可能用不同字段名返回结果，这里全部兼容；拿到可用文本才算成功
+function pickPolished(res) {
+  if (!res || typeof res !== 'object') return '';
+  const list = [res.polishedText, res.text, res.result, res.content,
+    res.data && res.data.polishedText, res.data && res.data.text, res.data && res.data.result];
+  for (let i = 0; i < list.length; i++) {
+    if (typeof list[i] === 'string' && list[i].trim()) return list[i].trim();
+  }
+  return '';
+}
+
+// 润色：优先真 AI；服务端没给出可用结果时退到本地整理，并如实标注来源（不冒充 AI）
 async function polishDescription(description, fruit) {
-  const res = await call('POST', '/api/farmtown-polish', { description, fruit });
-  return (res && res.polishedText) || description;
+  const fallback = localPolish(description);
+  try {
+    const res = await call('POST', '/api/farmtown-polish', { description, fruit });
+    const text = pickPolished(res);
+    if (text && text !== String(description || '').trim()) return { text: text, source: 'server' };
+    return fallback;
+  } catch (error) {
+    return fallback;
+  }
 }
 
 // 当季水果文化导览：走果灵 /api/chat；失败返回 null，由页面回退知识库静态内容。
@@ -63,5 +106,5 @@ function validTownLocation(location) {
 
 module.exports = {
   listTowns, getTown, myTowns, createTown, updateTown, unpublishTown,
-  polishDescription, cultureText, validTownLocation
+  polishDescription, localPolish, cultureText, validTownLocation
 };

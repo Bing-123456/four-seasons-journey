@@ -3,7 +3,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const catalog = require('../miniprogram/data/catalog');
 const core = require('../miniprogram/lib/core');
-const {buildRoutePresentation, activeMap, buildCatalogMap} = require('../miniprogram/lib/route-presentation');
+const {buildRoutePresentation, activeMap, buildCatalogMap} = require('../miniprogram/packageMore/lib/route-presentation');
 const clone = x => JSON.parse(JSON.stringify(x));
 const place = catalog.places.find(p => p.routeEligible);
 const profile = {...clone(catalog.defaultProfile),date:'2026-09-23',duration:360,origin:{name:place.name,address:place.address,latitude:place.location.latitude,longitude:place.location.longitude,coordinateSystem:'gcj02',source:'catalog'}};

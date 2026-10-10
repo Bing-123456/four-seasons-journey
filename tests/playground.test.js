@@ -75,12 +75,12 @@ test('a replay round uses the unseen question set and never repeats the previous
   const quiz = page(false); quiz.onLoad({ game: 'quiz' }); quiz.onShow();
   const first = quiz.data.quiz.map(question => question.id);
   assert.equal(first.length, 6, '每轮 6 道题');
-  // 10.5 游戏③：西瓜是初始伙伴（已解锁），已解锁的水果不再出题，空位由非定制水果题补齐。
-  assert.equal(first.includes('watermelon-planting'), false, '解锁过的西瓜不再出题');
-  assert.equal(first.includes('watermelon-ripe'), false, '解锁过的西瓜不再出题');
+  // 2026-10-08 用户规则：西瓜是初始伙伴（默认拥有，计数 1/6、答对不弹解锁窗），
+  // 但它的题要出到"答对一次"为止；答对过之后这一格才让给别的水果。
+  assert.equal(first.includes('watermelon-planting') || first.includes('watermelon-ripe'), true, '第一轮必须出西瓜题');
   quiz.restartQuiz();
   const second = quiz.data.quiz.map(question => question.id);
-  assert.equal(first.filter(id => second.includes(id)).length, 0, '评审 9.28：两轮题目完全不同');
+  assert.equal(first.filter(id => second.includes(id)).length, 0, '评审 9.28：两轮题目完全不同（西瓜的两道题也轮换）');
   assert.equal(new Set(quiz.data.quiz.map(q => q.id)).size, 6, '复轮 6 道题 id 各不相同');
   for (const question of quiz.data.quiz) {
     assert.equal(question.options.filter(option => option.correct).length, 1, 'every question keeps exactly one correct option');
@@ -89,7 +89,13 @@ test('a replay round uses the unseen question set and never repeats the previous
   quiz.restartQuiz();
   const third = quiz.data.quiz.map(question => question.id);
   assert.equal(second.filter(id => third.includes(id)).length, 0, '再一轮同样不重复上一轮');
-  assert.notDeepEqual(third, first, 'another replay differs again');
+  // 题库每种水果只有两道题、一轮 6 题 → 第三轮必然与第一轮重合（12 道题已用完，这是设计如此；
+  // 以前第 6 位是随机农谚题才显得不同）。所以这里只断言"相邻两轮不重复" + 第三轮本身合法。
+  assert.equal(new Set(third).size, 6, '第三轮仍是 6 道各不相同的题');
+  // 答对过西瓜题之后：它不再出现在题里（让位给别的水果）
+  require('../miniprogram/lib/store').saveQuizProgress({ starterPassed: true });
+  quiz.restartQuiz();
+  assert.equal(quiz.data.quiz.some(q => q.id.indexOf('watermelon-') === 0), false, '答对过西瓜之后不再出西瓜题');
 });
 
 test('答完两轮后当天再进游戏停在结果页，跨天自动重玩', () => {

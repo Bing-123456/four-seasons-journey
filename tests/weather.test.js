@@ -4,7 +4,7 @@
 // Unit tests stay offline — only the mapping and summarizer are covered here.
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const weather = require('../miniprogram/lib/weather');
+const weather = require('../miniprogram/packageTrip/lib/weather');
 
 test('region picker values map to public city coordinates or honestly to none', () => {
   const zhengzhou = weather.coordsForRegion(['河南省', '郑州市', '中牟县']);

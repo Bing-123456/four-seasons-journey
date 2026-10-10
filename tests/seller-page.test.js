@@ -1,6 +1,6 @@
 'use strict';
 const { pageFile } = require('./helpers/page-path');
-// 果农工作台重构后（P13，「果乡发布站」+ 发布表单）的页面行为测试。
+// 果农工作台重构后（P13，「果农工作台」+ 发布表单）的页面行为测试。
 // 真实加载 seller/index 与 seller/publish 页面，用内存 storage 与 wx.request 桩
 // 返回种子果乡数据，覆盖：我的发布列表、下架、发布表单三步与 AI 润色、编辑模式。
 
@@ -102,7 +102,7 @@ test.beforeEach(() => {
 });
 test.after(() => { global.wx = originalWx; global.Page = originalPage; });
 
-test('果乡发布站 lists my towns with published status and opens publish flows', () => {
+test('果农工作台 lists my towns with published status and opens publish flows', () => {
   const subject = makePage('seller');
   subject.onShow();
   return wait().then(() => {
@@ -147,16 +147,24 @@ test('publish form walks three steps, caps experiences at 3, polishes and submit
   subject.inputName({ detail: { value: '洛川苹果园' } });
   subject.onRegionChange({ detail: { value: ['陕西', '延安市', '洛川县'] } });
   subject.inputFruit({ detail: { value: '苹果' } });
-  subject.chooseLocation();
+    subject.inputAddress({ detail: { value: '洛川县凤栖镇××路8号' } });
+    subject.onOpenDate({ detail: { value: '2026-06-21' } });
+    subject.onOpenTime({ detail: { value: '09:00' } });
+    subject.onCloseDate({ detail: { value: '2026-06-25' } });
+    subject.onCloseTime({ detail: { value: '17:00' } });
   subject.next1();
   assert.equal(subject.data.step, 2);
-  assert.deepEqual(subject.data.form.location, { latitude: 35.76, longitude: 109.43 });
+    assert.equal(subject.data.form.address, '洛川县凤栖镇××路8号');
+    assert.equal(subject.data.form.openTime, '09:00');
+    assert.equal(subject.data.form.closeTime, '17:00');
   subject.toggleExp({ currentTarget: { dataset: { exp: '采摘' } } });
   subject.toggleExp({ currentTarget: { dataset: { exp: '观光' } } });
   subject.toggleExp({ currentTarget: { dataset: { exp: '手作' } } });
-  subject.toggleExp({ currentTarget: { dataset: { exp: '餐饮' } } }); // 第 4 个被拦截
-  assert.equal(subject.data.form.experiences.length, 3);
+  subject.toggleExp({ currentTarget: { dataset: { exp: '餐饮' } } }); // 现在允许最多 5 个（全部可选）
+  assert.equal(subject.data.form.experiences.length, 4);
   subject.inputDesc({ detail: { value: '三代人种苹果，霜降后最甜。' } });
+      subject.inputWechat({ detail: { value: 'guoyuan2026' } });
+      subject.inputPhone({ detail: { value: '13800000000' } });
   subject.next2();
   assert.equal(subject.data.step, 3);
   subject.polish();
@@ -175,6 +183,11 @@ test('publish form in edit mode loads existing town and saves via update', () =>
   const subject = makePage('publish');
   subject.onLoad({ id: 'town-edit' });
   return wait().then(() => {
+      subject.setData({ 'form.address': '洛川县凤栖镇××路8号' });
+      subject.setData({ 'form.openDate': '2026-06-21' });
+      subject.setData({ 'form.openTime': '09:00' });
+      subject.setData({ 'form.closeDate': '2026-06-25' });
+      subject.setData({ 'form.closeTime': '17:00' });
     assert.equal(subject.data.editing, true);
     assert.equal(subject.data.form.name, '洛川王大爷苹果园');
     assert.equal(subject.data.form.fruit, '苹果');

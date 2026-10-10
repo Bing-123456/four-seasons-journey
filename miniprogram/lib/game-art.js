@@ -7,11 +7,11 @@
 // 留空时不渲染背景图，卡片回退到纯色 #EDE6D3（见 learn.wxss .game-entry）。
 module.exports = {
   // 农谚问时背景图：已处理为 ../game-art-upload/quiz.jpg，上传云存储后把 fileID 填到下面
-  quiz: 'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/quiz.jpg.jpg',
+  quiz: '/assets/game-art/quiz.jpg',  // 2026-10-08 换成新的「农谚问答」水彩封面（1200×625 / ≤60KB）。上传新图到云存储 game-art/quiz.jpg.jpg 后，把这行改回：'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/quiz.jpg.jpg'
 
   // 农事转盘背景图：已处理为 ../game-art-upload/challenge.jpg，上传云存储后把 fileID 填到下面
-  challenge: 'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/challenge.jpg.jpg',
+  challenge: '/assets/game-art/challenge.jpg',  // 2026-10-08 换成新的「农事转盘」水彩封面（1080×563 / ≤55KB）。上传新图到云存储 game-art/challenge.jpg.jpg 后，把这行改回：'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/challenge.jpg.jpg'
 
   // 文脉连连背景图：已处理为 ../game-art-upload/match.jpg，上传云存储后把 fileID 填到下面
-  match: 'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/match.jpg.jpg'
+  match: '/assets/game-art/match.jpg',  // 2026-10-08 换成新的「文脉连连」水彩封面（1080×563 / ≤55KB）。上传新图到云存储 game-art/match.jpg.jpg 后，把这行改回：'cloud://prod-d8gw4a7vm69f14375.7072-prod-d8gw4a7vm69f14375-1499093335/game-art/match.jpg.jpg'
 };

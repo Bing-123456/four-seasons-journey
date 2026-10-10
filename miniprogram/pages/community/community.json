@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "果乡社群",
-  "usingComponents": {}
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

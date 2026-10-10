@@ -1,4 +1,4 @@
-const heritage = require('../../data/heritage');
+const heritage = require('../data/heritage');
 const mill = require('../../components/heritage-viewer/grain-mill');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');

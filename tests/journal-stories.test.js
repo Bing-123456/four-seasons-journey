@@ -5,7 +5,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const stories = require('../miniprogram/data/farmer-stories');
+const stories = require('../miniprogram/packageMore/data/farmer-stories');
 
 const read = (...parts) => fs.readFileSync(path.resolve(__dirname, '..', ...parts), 'utf8');
 

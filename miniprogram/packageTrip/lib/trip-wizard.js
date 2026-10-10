@@ -134,7 +134,7 @@ function buildRoute(wizardState) {
   if (!route.ok) return { ok: false, reason: route.reason, profile };
   route.wizard = { fruitTheme: w.fruitTheme, startPoint: w.startPoint, orchard: w.orchard, date: w.date, duration: w.duration, peopleCount: w.peopleCount, preferences: w.preferences.slice(), budget: w.budget, note: w.note };
   store.saveRoute(route);
-  try { require('../../lib/visitor-flow').recordTrip(route); } catch (error) { /* 信号采集失败不影响行程 */ }
+  try { require('./visitor-flow').recordTrip(route); } catch (error) { /* 信号采集失败不影响行程 */ }
   try { store.logEvent('trip_wizard_generate', { season: profile.season, routeId: route.id, count: route.stops.length, mode: 'estimated', ok: true }); } catch (error) { /* 事件记录失败不影响行程 */ }
   return { ok: true, route, profile };
 }

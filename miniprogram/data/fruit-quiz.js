@@ -215,7 +215,12 @@ for (const item of QUIZ) {
 //   2. 定制水果全部解锁后，整轮都是非定制水果的题；非定制题出过的记下来，
 //      全部出过一遍后自动洗牌重来（buildRandomProverbQuestions 池空时重置）。
 //   3. 某种定制水果两题都答错过（一直没解锁）时继续出该水果的题，直到答对解锁为止。
-// 入参：input 可以是 { unlocked, askedIds, askedProverbs }，也兼容旧式的「已出题 id 数组」。
+// 起始水果（2026-10-08 第18 轮 · 用户规则）：西瓜开局就拥有，所以它永远在"已解锁"名单里
+// （计数一开始就是 1/6、答对也不弹「恭喜获得」）；但它的题必须出到"答对一次"为止 ——
+// 之前组题循环会把已解锁的水果整段跳过，西瓜题因此从来没出过。
+const STARTER_FRUIT = 'watermelon';
+
+// 入参：input 可以是 { unlocked, askedIds, askedProverbs, starterPassed, starter }，也兼容旧式的「已出题 id 数组」。
 function buildRound(input, language) {
   const english = language === 'en';
   const options = Array.isArray(input)
@@ -224,9 +229,29 @@ function buildRound(input, language) {
   const unlocked = Array.isArray(options.unlocked) ? options.unlocked : [];
   const askedIds = Array.isArray(options.askedIds) ? options.askedIds : [];
   const askedProverbs = Array.isArray(options.askedProverbs) ? options.askedProverbs : [];
+  const starter = typeof options.starter === 'string' && options.starter ? options.starter : STARTER_FRUIT;
+  const starterPassed = !!options.starterPassed;
   const questions = [];
+  // 0) 起始水果：没答对过就一直占一题；答对过就不再出，这一格让给别的。
+  //    两道题严格轮换：优先没出过的；都出过了就取"上一轮没用过的那道"（askedIds 里最后出现的那个
+  //    就是上一轮用的），这样相邻两轮不会出同一道，也不破坏"两轮题目不重复"的规则。
+  if (!starterPassed) {
+    const starterPool = BY_FRUIT[starter] || [];
+    if (starterPool.length) {
+      const freshStarter = starterPool.find(item => askedIds.indexOf(item.id) === -1);
+      let lastStarter = '';
+      for (let i = askedIds.length - 1; i >= 0; i--) {
+        if (starterPool.some(item => item.id === askedIds[i])) { lastStarter = askedIds[i]; break; }
+      }
+      const pickedStarter = freshStarter
+        || starterPool.filter(item => item.id !== lastStarter)[0]
+        || starterPool[0];
+      questions.push(toQuestion(pickedStarter, 0, english, false));
+    }
+  }
   // 1) 未解锁的定制水果：各出一道（优先没出过的那道，两题轮换）
   for (const fruitId of FRUIT_ORDER) {
+    if (fruitId === starter && !starterPassed) continue; // 起始水果上面已经放进去了
     if (unlocked.indexOf(fruitId) >= 0) continue;
     const pool = BY_FRUIT[fruitId] || [];
     if (!pool.length) continue;
@@ -242,4 +267,37 @@ function buildRound(input, language) {
   }
   return questions;
 }
-module.exports = { QUIZ, unlockQuiz, buildRound, buildRandomProverbQuestions, FRUIT_ORDER, PROVERB_DISTRACTORS };
+// 按 id 取回同一道题（2026-10-08 第17 轮：给「接着打上一局」用）。
+// 定制水果题：选项顺序由 index 决定，传回原来的序号就能还原；
+// 农谚题：首次生成时选项是随机的，所以调用方会用存档里的 flip 位把它摆回原样。
+function findQuestion(id, index, language, flip) {
+  const english = language === 'en';
+  let question = null;
+  const fruitItem = QUIZ.find(function (item) { return item.id === id; });
+  if (fruitItem) {
+    question = toQuestion(fruitItem, index, english, false);
+  } else if (String(id).indexOf('proverb-') === 0) {
+    const raw = String(id).slice('proverb-'.length);
+    const p = proverbById[raw];
+    if (!p) return null;
+    const text = english
+      ? 'What does the proverb “' + p.en + '” mean?'
+      : '关于农谚「' + p.text + '」，正确的理解是？';
+    const correct = english ? firstSentence(p.noteEn) : firstSentence(p.note);
+    const distractor = PROVERB_DISTRACTORS[raw] || null;
+    const wrong = english
+      ? (distractor ? distractor.en : 'It is a rigid national rule every region must follow exactly.')
+      : (distractor ? distractor.zh : '这是全国各地都必须严格照办的硬性农时，不用看当地气候和品种。');
+    question = {
+      id: 'proverb-' + raw, fruit: null, fruitId: undefined, kind: 'proverb',
+      text: text, sourceTitle: p.sourceTitle, sourceUrl: p.sourceUrl,
+      options: [{ label: correct, correct: true }, { label: wrong, correct: false }]
+    };
+  }
+  if (!question) return null;
+  // 存档里的 flip = 正确项是否被摆到了第二位；和现在生成的不一致就翻过来
+  const nowFlip = question.options[0] && question.options[0].correct ? 0 : 1;
+  if ((flip ? 1 : 0) !== nowFlip) question.options = question.options.slice().reverse();
+  return question;
+}
+module.exports = { QUIZ, unlockQuiz, buildRound, buildRandomProverbQuestions, findQuestion, STARTER_FRUIT, FRUIT_ORDER, PROVERB_DISTRACTORS };

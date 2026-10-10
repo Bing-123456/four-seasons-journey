@@ -4,7 +4,7 @@
 // 这份测试锁死几何换算，避免拖动/拉伸时出现框跑出照片、裁出空白等回归。
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const cropMath = require('../miniprogram/lib/crop-math');
+const cropMath = require('../miniprogram/packageMore/lib/crop-math');
 
 const INFO = { width: 1200, height: 800 }; // 横图
 const STAGE = { width: 375, height: 500 };

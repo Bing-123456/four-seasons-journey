@@ -11,7 +11,7 @@
 // 服务端引擎的用例从 `recorder.handlers.onStop` 进入——那是真机上录音器真正回调的入口。
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createSpeechInput, ERROR_COPY } = require('../miniprogram/lib/speech-input');
+const { createSpeechInput, ERROR_COPY } = require('../miniprogram/packageMore/lib/speech-input');
 
 const AUDIO = Buffer.from('ID3\u0003\u0000\u0000\u0000\u0000\u0000\u0000' + 'x'.repeat(64)).toString('base64');
 
@@ -320,7 +320,7 @@ test('every user-facing copy string is present and non-empty', () => {
 test('the module really calls requirePlugin, which justifies the app.json declaration', () => {
   const fs = require('node:fs');
   const path = require('node:path');
-  const source = fs.readFileSync(path.join(__dirname, '../miniprogram/lib/speech-input.js'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../miniprogram/packageMore/lib/speech-input.js'), 'utf8');
   assert.match(source, /requirePlugin\(\s*PLUGIN_NAME\s*\)/, 'the plugin path must stay wired up');
   assert.ok(source.includes('/api/asr'), 'and the server fallback must stay wired up too');
   const app = JSON.parse(fs.readFileSync(path.join(__dirname, '../miniprogram/app.json'), 'utf8'));

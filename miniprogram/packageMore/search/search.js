@@ -14,8 +14,8 @@ const solarTermNotes = require('../../data/solar-term-notes');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
 const media = require('../../lib/media-service');
-const { createSpeechInput } = require('../../lib/speech-input');
-const chatHistory = require('../../lib/chat-history');
+const { createSpeechInput } = require('../lib/speech-input');
+const chatHistory = require('../lib/chat-history');
 
 const RECENT_KEY = 'guoling.search.recent.v1';
 const CAT_LABEL = { folk: 'ans_cat_folk', history: 'ans_cat_history', craft: 'ans_cat_craft', story: 'ans_cat_story', tools: 'ans_cat_tools', health: 'ans_cat_health' };
@@ -407,9 +407,13 @@ function matchedChips(question) {
 
 Page({
   data: { L: {}, keyword: '', recent: [], messages: [], pending: false, pendingStep: 0, pendingSteps: [], scrollInto: '', listening: false, recognizing: false, keyboardHeight: 0,
+    // 提示问题分两份（2026-10-09 用户要求）：
+    //   suggestions     = 全部推荐问法（固定不变）
+    //   suggestionsLeft = 其中"还没问过"的那些 —— 问过的从画面上那列里去掉，全问完就不显示这列
     suggestions: i18n.getLang() === 'en'
       ? ["What's in season right now", "How to pick a good watermelon", "How did watermelon reach China", "Plum vs apricot: what's the difference", "What does Start of Winter mean", "Pineapple vs pineapple fruit"]
       : ['现在吃什么水果当季', '如何挑选西瓜', '西瓜是怎么传入中国的', '李子和杏子有什么区别', '立冬有什么讲究', '凤梨和菠萝是什么关系'],
+    suggestionsLeft: [],
     companion: null,
     // 兼容保留：finishSearch 作为离线兜底引擎，仍写入这些字段（测试与降级路径使用）。
     searching: false, step: 0, steps: [], result: null, answerBlocks: [], thinMaterial: false, matched: [], proverbs: [], terms: [], empty: false, emptyNote: '' },
@@ -417,6 +421,7 @@ Page({
     // 聊天记录只存本机（按账户分区），重新进入自动恢复；服务端不留存。
     this.setData({ recent: readRecent(), messages: chatHistory.load(), L: i18n.labels(['guoling','guoling_intro','search_recent','search_recent_empty','search_clear','search_action','search_thinking','search_step1','search_step2','search_step3','search_no_result','answer_farming','answer_food','answer_extra','answer_tag','search_jump_hint','ask_guoling','side_proverbs','news_term','id_search_aria','chat_input_hint','chat_send','chat_voice','chat_listening','chat_recognizing','chat_thinking','chat_step1','chat_step2','chat_step3','chat_evidence','chat_offline','chat_followups','chat_welcome','chat_clear','chat_clear_confirm','chat_cleared','chat_header_sub','chat_suggest_title']), companion: store.getCompanion(),
       pendingSteps: [i18n.t('chat_step1'), i18n.t('chat_step2'), i18n.t('chat_step3')] });
+    this.refreshSuggestions();
     // 恢复历史后滚到最新一条，避免停在顶部看不到对话。
     if (this.data.messages.length) {
       const self = this;
@@ -426,8 +431,22 @@ Page({
   onShow: function () {
     this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
  this.setData({ companion: store.getCompanion() }); },
+  // 把"问过的推荐问法"从提示列表里去掉（依据就是"最近搜过"那份记录，不新增任何存储）。
+  // 清空最近提问 或 清空对话 之后，记录空了 → 提示问题自动恢复齐全（用户 2026-10-09 选的方案 A）。
+  refreshSuggestions: function () {
+    const asked = Array.isArray(this.data.recent) ? this.data.recent : [];
+    const all = Array.isArray(this.data.suggestions) ? this.data.suggestions : [];
+    this.setData({ suggestionsLeft: all.filter(word => asked.indexOf(word) === -1) });
+  },
   onInput: function (event) { this.setData({ keyword: event.detail.value }); },
-  clearRecent: function () { writeRecent([]); this.setData({ recent: [] }); },
+  // 打字时上下滑聊天记录不收键盘（输入框上开了 hold-keyboard），
+  // 所以"点一下聊天区把键盘收起来"要自己做 —— 用户要求：滑动不收、点空白收（2026-10-09）
+  hideKeyboard: function () {
+    if (typeof wx === 'undefined' || typeof wx.hideKeyboard !== 'function') return;
+    try { wx.hideKeyboard({}); } catch (error) { /* 收不起来也不影响别的 */ }
+  },
+  // 界面上那块「最近搜过 / 清除」已按用户要求删掉；这个方法保留给"清空对话"和自测调用
+  clearRecent: function () { writeRecent([]); this.setData({ recent: [] }); this.refreshSuggestions(); },
   tapRecent: function (event) { const word = event.currentTarget.dataset.word; this.ask(word); },
 
   // 对话发送入口：键盘确认、发送按钮、最近提问、追问建议、语音终稿都走这里。
@@ -442,6 +461,7 @@ Page({
     const recent = [question].concat(readRecent().filter(item => item !== question)).slice(0, 8);
     writeRecent(recent);
     this.setData({ recent });
+    this.refreshSuggestions();   // 问过的推荐问法立刻从提示列表里去掉
     this.appendMessage({ id: uid(), role: 'user', text: question });
     // 境外果品/境外农耕：固定话术本地直接回答，不消耗模型调用，也不编内容。
     // 拒答同时把本土替代果做成可点的追问，给用户指路（2026-10-01 用户反馈）。
@@ -557,7 +577,10 @@ Page({
       success: result => {
         if (!result.confirm) return;
         chatHistory.clear();
-        this.setData({ messages: [], pending: false, scrollInto: '' });
+        // 清空对话 = 从头开始：连"最近搜过"一起清掉，这样被去掉的提示问题会恢复齐全（方案 A）。
+        wx.removeStorageSync(RECENT_KEY);
+        this.setData({ messages: [], recent: [], pending: false, scrollInto: '' });
+        this.refreshSuggestions();
         wx.showToast({ title: i18n.t('chat_cleared'), icon: 'none' });
       }
     });

@@ -1,110 +1,160 @@
 <view class="route-screen {{fontClass}}">
   <demo-notice id="demo-mode-notice"/>
-  <view class="route-head"><view class="route-title serif">{{L.rt_title}}</view></view>
+  <view class="route-head">
+    <view class="route-title serif">{{L.rt_page_title}}</view>
+    <view class="route-head-actions"><me-entry/></view>
+  </view>
 
   <scroll-view scroll-y class="route-scroll">
-    <!-- ① 下一张票 -->
-    <view class="seg-label">{{L.rt_next_ticket}}</view>
-    <view wx:if="{{next}}" class="ticket ticket-next" id="ticket-{{next.id}}">
-      <view class="ticket-head" data-id="{{next.id}}" bindtap="toggleTicket">
-        <view class="ticket-dest">{{next.destName}}</view>
-        <view class="ticket-caret {{expandedId === next.id ? 'is-open' : ''}}">⌄</view>
+    <!-- ① 下一张票：深绿票卡（设计稿第⑤屏） -->
+    <view wx:if="{{next}}" class="ticket-next" id="ticket-{{next.id}}">
+      <view class="tn-top" data-id="{{next.id}}" bindtap="toggleTicket" role="button">
+        <view class="tn-k">{{L.rt_next_ticket}}</view>
+        <view wx:if="{{next.countdown}}" class="tn-chip">{{next.countdown}}</view>
+        <view class="tn-dest">{{next.destName}}</view>
+        <view class="tn-rows">
+          <view class="tn-row"><text class="tn-key">{{L.rt_when}}</text><text class="tn-val">{{next.whenLabel}}</text></view>
+          <view class="tn-row"><text class="tn-key">{{L.rt_how}}</text><text class="tn-val">{{next.transportText}}</text></view>
+        </view>
       </view>
-      <view class="ticket-meta">
-        <view class="ticket-row">{{next.countdown}}</view>
-        <view class="ticket-row">{{next.dateTime}}</view>
-        <view class="ticket-row">{{next.transportText}}</view>
-      </view>
-      <view wx:if="{{expandedId === next.id}}" class="ticket-more">
-        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_find_who}}</view><input class="ticket-input" placeholder="{{L.rt_find_who}}" value="{{next.note}}" data-field="note" bindinput="updateNote"/></view>
-        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_where_is}}</view><view class="ticket-field-text">{{next.destName}}</view></view>
-        <view class="ticket-field"><view class="ticket-field-label">{{L.rt_my_note}}</view><input class="ticket-input" placeholder="{{L.rt_my_note}}" value="{{next.note}}" data-field="note" bindinput="updateNote"/></view>
-      </view>
-      <view class="ticket-actions">
-        <button class="ticket-btn ticket-btn-primary" data-id="{{next.id}}" bindtap="navigateTicket">{{L.rt_navigate}}</button>
-        <button class="ticket-btn" data-id="{{next.id}}" bindtap="stampTicket">{{L.rt_stamp}}</button>
+      <view class="tn-perf"/>
+      <view class="tn-bottom">
+        <!-- ⑦ 点票后在这一页原地长出三块，不跳页 -->
+        <view wx:if="{{expandedId === next.id}}" class="tk-more">
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_find_who}}</view>
+            <view wx:if="{{next.contactLine}}" class="tk-block-x">{{next.contactLine}}</view>
+            <view wx:if="{{next.transportLine}}" class="tk-block-x">{{next.transportLine}}</view>
+            <view wx:if="{{next.expLine}}" class="tk-block-x">{{next.expLine}}</view>
+            <view wx:if="{{next.contact}}" class="ticket-actions" style="margin-top:12rpx">
+              <view class="ticket-btn" data-contact="{{next.contact}}" bindtap="copyContact">{{L.rt_copy_contact}}</view>
+            </view>
+          </view>
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_where_is}}</view>
+            <view class="tk-block-t">{{L.sl_region}}</view>
+            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{next.region}}</text></view>
+            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{next.placeLine}}</text></view>
+            <view wx:if="{{next.address}}" class="tk-block-t">{{L.sl_address}}</view>
+            <view wx:if="{{next.address}}" class="tk-place"><text>{{next.address}}</text></view>
+          </view>
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_my_note}}</view>
+            <input class="ticket-input" value="{{next.note}}" data-id="{{next.id}}" bindinput="updateNote" placeholder="{{L.rt_note_placeholder}}"/>
+          </view>
+        </view>
+        <view class="ticket-actions"><view class="ticket-btn ticket-btn-primary" data-id="{{next.id}}" bindtap="navigateTicket">{{L.rt_navigate_go}}</view></view>
+        <view class="ticket-actions"><view class="ticket-btn" data-id="{{next.id}}" bindtap="stampTicket">{{L.rt_stamp}}</view></view>
       </view>
     </view>
     <view wx:else class="ticket-empty">{{L.rt_no_ticket}}</view>
 
-    <!-- ② 待用的票 -->
+    <!-- ② 待用的票：紧凑单行，点开才展开（设计稿第⑤屏） -->
     <view class="seg-label">{{L.rt_pending_tickets}}</view>
-    <view wx:if="{{pending.length}}">
-      <view wx:for="{{pending}}" wx:key="id" class="ticket ticket-row-card" id="ticket-{{item.id}}">
-        <view class="ticket-head" data-id="{{item.id}}" bindtap="toggleTicket">
-          <view class="ticket-dest ticket-dest-sm">{{item.destName}}</view>
-          <view class="ticket-caret {{expandedId === item.id ? 'is-open' : ''}}">⌄</view>
+    <block wx:if="{{pending.length}}">
+      <view wx:for="{{pending}}" wx:key="id" class="row-ticket {{expandedId === item.id ? 'is-open' : ''}}" id="ticket-{{item.id}}">
+        <view class="rt-main" data-id="{{item.id}}" bindtap="toggleTicket" role="button">
+          <view class="rt-left">
+            <view class="rt-name">{{item.destName}}</view>
+            <view class="rt-sub">{{item.whenLabel}} ｜ {{item.transportText}}</view>
+          </view>
+          <view wx:if="{{item.countdown}}" class="rt-chip">{{item.countdown}}</view>
+          <view class="rt-arrow">{{expandedId === item.id ? '⌃' : '›'}}</view>
         </view>
-        <view class="ticket-meta">
-          <view class="ticket-row">{{item.countdown}}</view>
-          <view class="ticket-row">{{item.dateTime}}</view>
-          <view class="ticket-row">{{item.transportText}}</view>
-        </view>
-        <view wx:if="{{expandedId === item.id}}" class="ticket-more">
-          <view class="ticket-field"><view class="ticket-field-label">{{L.rt_where_is}}</view><view class="ticket-field-text">{{item.destName}}</view></view>
-          <view class="ticket-field"><view class="ticket-field-label">{{L.rt_my_note}}</view><input class="ticket-input" placeholder="{{L.rt_my_note}}" value="{{item.note}}" data-field="note" bindinput="updateNote"/></view>
-        </view>
-        <view class="ticket-actions">
-          <button class="ticket-btn ticket-btn-primary" data-id="{{item.id}}" bindtap="navigateTicket">{{L.rt_navigate}}</button>
-          <button class="ticket-btn" data-id="{{item.id}}" bindtap="stampTicket">{{L.rt_stamp}}</button>
-          <button class="ticket-btn ticket-btn-quiet" data-id="{{item.id}}" bindtap="removeTicket">✕</button>
+        <view wx:if="{{expandedId === item.id}}" class="tk-more">
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_find_who}}</view>
+            <view wx:if="{{item.contactLine}}" class="tk-block-x">{{item.contactLine}}</view>
+            <view wx:if="{{item.transportLine}}" class="tk-block-x">{{item.transportLine}}</view>
+            <view wx:if="{{item.expLine}}" class="tk-block-x">{{item.expLine}}</view>
+            <view wx:if="{{item.contact}}" class="ticket-actions" style="margin-top:12rpx">
+              <view class="ticket-btn" data-contact="{{item.contact}}" bindtap="copyContact">{{L.rt_copy_contact}}</view>
+            </view>
+          </view>
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_where_is}}</view>
+            <view class="tk-block-t">{{L.sl_region}}</view>
+            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{item.region}}</text></view>
+            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{item.placeLine}}</text></view>
+            <view wx:if="{{item.address}}" class="tk-block-t">{{L.sl_address}}</view>
+            <view wx:if="{{item.address}}" class="tk-place"><text>{{item.address}}</text></view>
+          </view>
+          <view class="tk-block">
+            <view class="tk-block-t">{{L.rt_my_note}}</view>
+            <input class="ticket-input" value="{{item.note}}" data-id="{{item.id}}" bindinput="updateNote" placeholder="{{L.rt_note_placeholder}}"/>
+          </view>
+          <view class="ticket-actions">
+            <view class="ticket-btn ticket-btn-primary" data-id="{{item.id}}" bindtap="navigateTicket">{{L.rt_navigate_go}}</view>
+            <view class="ticket-btn" data-id="{{item.id}}" bindtap="stampTicket">{{L.rt_stamp}}</view>
+            <view class="ticket-btn ticket-btn-quiet" data-id="{{item.id}}" bindtap="removeTicket">✕</view>
+          </view>
         </view>
       </view>
-    </view>
+    </block>
     <view wx:else class="ticket-empty">{{L.rt_no_pending}}</view>
 
     <!-- ③ ＋ 排一张票 -->
     <view class="add-ticket" bindtap="openDrawer" role="button">
-      <view class="add-sign">＋</view>
-      <view class="add-text">{{L.rt_add_ticket}}</view>
+      <view class="add-sign">＋</view><view class="add-text">{{L.rt_add_ticket}}</view>
     </view>
 
-    <!-- ④ 存根 -->
+    <!-- ④ 存根：红章「已去过」+ 日期（设计稿第⑤屏） -->
     <view class="seg-label">{{L.rt_stubs}}</view>
-    <view wx:if="{{stubs.length}}">
-      <view wx:for="{{stubs}}" wx:key="id" class="ticket ticket-stub" id="stub-{{item.id}}">
-        <view class="stub-head">
-          <view class="ticket-dest ticket-dest-sm">{{item.destName}}</view>
-          <view class="stamp">{{item.stampedAt}}</view>
-        </view>
-        <view class="ticket-meta">
-          <view class="ticket-row">{{item.dateTime}}</view>
-          <view class="ticket-row">{{item.transportText}}</view>
+    <block wx:if="{{stubs.length}}">
+      <view wx:for="{{stubs}}" wx:key="id" class="stub" id="stub-{{item.id}}">
+        <view class="stub-seal"><text class="seal-a">{{L.rt_visited}}</text><text class="seal-b">{{item.stampShort}}</text></view>
+        <view class="stub-main">
+          <view class="rt-name">{{item.destName}}</view>
+          <view class="rt-sub">{{item.whenLabel}} ｜ {{item.transportText}}</view>
         </view>
       </view>
-    </view>
+    </block>
     <view wx:else class="ticket-empty">{{L.rt_no_stub}}</view>
 
     <view wx:if="{{error}}" class="route-error">{{error}}</view>
   </scroll-view>
 
-  <!-- 排票抽屉：不跳页，背后仍是票夹原样；只问去哪 / 什么时候去 / 怎么去 -->
+  <!-- ⑥ 排票抽屉：不跳页，背后仍是票夹原样；只问 去哪 / 什么时候去 / 怎么去 -->
   <view wx:if="{{drawerOpen}}" class="plan-mask" catchtouchmove="noop" bindtap="closeDrawer">
     <view class="plan-sheet" catchtap="noop">
       <view class="plan-head">
         <view class="plan-title serif">{{L.rt_add_ticket}}</view>
-        <view class="plan-close" bindtap="closeDrawer">✕</view>
+        <view class="plan-head-actions">
+          <view class="plan-save" bindtap="confirmTicket" role="button">{{L.rt_save}}</view>
+          <view class="plan-close" bindtap="closeDrawer" role="button">✕</view>
+        </view>
       </view>
       <scroll-view scroll-y class="plan-scroll">
-        <view class="plan-note">{{L.rt_pool_note}}</view>
-
         <view class="plan-label">{{L.rt_drawer_where}}</view>
-        <view wx:if="{{pool.length}}">
-          <view wx:for="{{pool}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
+        <block wx:if="{{poolPreview.length}}">
+          <view wx:for="{{poolPreview}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
+            <image class="pool-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
             <view class="pool-main">
               <view class="pool-name">{{item.name}}</view>
-              <view wx:if="{{item.termLabel}}" class="pool-term">{{item.termLabel}}</view>
+              <view class="pool-term">{{item.subLine}}</view>
             </view>
             <view class="pool-check">{{draft.destId === item.id ? '✓' : ''}}</view>
           </view>
-        </view>
+          <block wx:if="{{poolExpanded}}">
+            <view wx:for="{{poolRest}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
+              <image class="pool-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
+              <view class="pool-main">
+                <view class="pool-name">{{item.name}}</view>
+                <view class="pool-term">{{item.subLine}}</view>
+              </view>
+              <view class="pool-check">{{draft.destId === item.id ? '✓' : ''}}</view>
+            </view>
+          </block>
+        </block>
+        <view wx:elif="{{poolFailed}}" class="pool-empty">{{L.rt_load_failed}}</view>
         <view wx:else class="pool-empty">{{L.rt_pool_empty}}</view>
-        <view class="pool-all" bindtap="viewAllTowns" role="button">{{L.rt_pool_all}} ›</view>
+        <view class="filter-note">{{L.rt_pool_note}} <text wx:if="{{poolRest.length || poolExpanded}}" class="more" bindtap="togglePool">{{poolExpanded ? L.rt_pool_less : poolMoreLabel}}</text></view>
 
         <view class="plan-label">{{L.rt_drawer_when}}</view>
         <view class="plan-when">
-          <picker mode="date" value="{{draft.date}}" bindchange="onDateChange"><view class="plan-input">{{draft.date || L.rt_calendar}}</view></picker>
-          <picker mode="time" value="{{draft.time}}" bindchange="onTimeChange"><view class="plan-input">{{draft.time || L.rt_clock}}</view></picker>
+          <!-- 日期用 multiSelector 自己给列：列里只有"今天及以后"的年月日（原生 date picker 会把过去的也画出来） -->
+          <view class="plan-input" bindtap="openDateSheet">{{draft.date || L.rt_pick_date}}</view>
+          <view class="plan-input" bindtap="openTimeSheet">{{draft.time || L.rt_pick_time}}</view>
         </view>
 
         <view class="plan-label">{{L.rt_drawer_how}}</view>
@@ -114,11 +164,38 @@
           <view class="transport {{draft.transport === 'public' ? 'is-on' : ''}}" data-value="public" bindtap="pickTransport">{{L.rt_transport_public}}</view>
         </view>
       </scroll-view>
-
       <view class="plan-actions">
-        <button class="ticket-btn" bindtap="closeDrawer">{{L.rt_cancel}}</button>
-        <button class="ticket-btn ticket-btn-primary" bindtap="confirmTicket">{{L.rt_confirm}}</button>
+        <view class="ticket-btn ticket-btn-primary" bindtap="confirmTicket">{{L.rt_confirm}} →</view>
       </view>
     </view>
+  </view>
+</view>
+
+<!-- 自绘日期面板（2026-10-08）：照 iOS 原生样式，取消/确定在顶部，避免被底部 tabBar 压住 -->
+<view wx:if="{{dateSheetOpen}}" class="date-mask" catchtouchmove="noop" bindtap="cancelDateSheet">
+  <view class="date-sheet" catchtap="noop">
+    <view class="date-head">
+      <view class="date-cancel" bindtap="cancelDateSheet">{{L.picker_cancel}}</view>
+      <view class="date-ok" bindtap="confirmDateSheet">{{L.picker_ok}}</view>
+    </view>
+    <picker-view class="date-picker" indicator-class="date-ind" value="{{dateSheetIndex}}" bindchange="onDateSheetChange">
+      <picker-view-column><view wx:for="{{dateRange[0]}}" wx:key="*this" class="date-item">{{item}}</view></picker-view-column>
+      <picker-view-column><view wx:for="{{dateRange[1]}}" wx:key="*this" class="date-item">{{item}}</view></picker-view-column>
+      <picker-view-column><view wx:for="{{dateRange[2]}}" wx:key="*this" class="date-item">{{item}}</view></picker-view-column>
+    </picker-view>
+  </view>
+</view>
+
+<!-- 自绘时间面板（2026-10-08）：与日期面板同款样式（取消 / 确定），时 0-23、分 0-59 每 1 分钟 -->
+<view wx:if="{{timeSheetOpen}}" class="date-mask" catchtouchmove="noop" bindtap="cancelTimeSheet">
+  <view class="date-sheet" catchtap="noop">
+    <view class="date-head">
+      <view class="date-cancel" bindtap="cancelTimeSheet">{{L.picker_cancel}}</view>
+      <view class="date-ok" bindtap="confirmTimeSheet">{{L.picker_ok}}</view>
+    </view>
+    <picker-view class="date-picker" indicator-class="date-ind" value="{{timeSheetIndex}}" bindchange="onTimeSheetChange">
+      <picker-view-column><view wx:for="{{timeRange[0]}}" wx:key="*this" class="date-item">{{item}}</view></picker-view-column>
+      <picker-view-column><view wx:for="{{timeRange[1]}}" wx:key="*this" class="date-item">{{item}}</view></picker-view-column>
+    </picker-view>
   </view>
 </view>

@@ -28,7 +28,8 @@ test('catalog distinguishes public venues, cultural topics and history with sour
       assert.equal(place.type, 'venue'); assert.equal(geo.validLocation(place.location), true);
       assert.ok(place.location.sourceUrl && place.location.checkedAt && place.location.precision);
       assert.equal(place.location.original.coordinateSystem, 'wgs84'); assert.equal(place.location.coordinateSystem, 'gcj02');
-      assert.ok(place.image.sourceUrl && place.image.creator && place.image.licenseUrl);
+      // 2026-10-09：小程序不再内置实拍图（本地图已全部移除），改为"有图才要求署名"。
+      if (place.image) assert.ok(place.image.sourceUrl && place.image.creator && place.image.licenseUrl);
     } else assert.equal(place.location, null, 'reading topics must not masquerade as navigable venues');
   });
   assert.ok(venueIds.length >= 2); assert.ok(catalog.places.some(place => place.type === 'historical'));

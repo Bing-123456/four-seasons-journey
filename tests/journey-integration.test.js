@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const catalog = require('../miniprogram/data/catalog');
 const learning = require('../miniprogram/data/learning');
-const lesson = require('../miniprogram/data/workshop');
+const lesson = require('../miniprogram/packageMore/data/workshop');
 const core = require('../miniprogram/lib/core');
 const store = require('../miniprogram/lib/store');
 

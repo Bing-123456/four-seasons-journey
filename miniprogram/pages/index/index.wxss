@@ -1,83 +1,91 @@
-page{background:#F5F5F7}
-.home-screen{min-height:100vh;padding:0 34rpx calc(132rpx + env(safe-area-inset-bottom));display:flex;flex-direction:column;box-sizing:border-box}
-.home-demo{flex-shrink:0;margin:0 -32rpx}.home-heading{display:flex;align-items:center;justify-content:space-between;gap:20rpx;padding:22rpx 0 16rpx;flex-shrink:0}.heading-copy{min-width:0}.home-brand{font-size:calc(48rpx * var(--fs-scale, 1));font-weight:750;letter-spacing:-1.5rpx;color:#1D1D1F;line-height:1.25;margin-top:7rpx}
-.home-search{display:flex;align-items:center;gap:13rpx;padding:14rpx 20rpx;border-radius:18rpx;background:#E9E9ED;color:#86868B;font-size:calc(25rpx * var(--fs-scale, 1));flex-shrink:0;line-height:1.4}.search-symbol{font-size:calc(38rpx * var(--fs-scale, 1));line-height:34rpx;color:#6E6E73}.search-go{margin-left:auto;font-size:calc(32rpx * var(--fs-scale, 1))}
-.feature-region{flex-shrink:0;display:flex;flex-direction:column;padding-top:20rpx;margin:0 -34rpx}
-/* 卡片宽度与快捷入口整行对齐，高度使用一屏剩余空间。 */
-.feature-swiper{height:410rpx;width:100%}
-.feature-card{height:100%;position:relative;margin:0 5px;border-radius:28rpx;overflow:hidden;background:#133C31;transform:scale(1);transition:transform .28s ease-out}
-.feature-card.is-current{transform:scale(1)}
-.feature-image{position:absolute;width:100%;height:100%;top:0;left:0}
-/* 轮播防黑边：底层预烘焙模糊底图铺满卡片（不依赖运行时 CSS filter，真机可靠），
-   上层海报轻微放大1.045 倍自行填满（左右各裁约 2.2%，实测所有贴边文字距边 ≥3%，安全） */
-.feature-image-bg{transform:scale(1.08)}
-.feature-image-main{z-index:1;transform:scale(1.045)}
-.activity-cover-copy{position:absolute;left:0;right:0;bottom:0;padding:64rpx 30rpx 32rpx;background:linear-gradient(transparent,rgba(19,60,49,.92));color:#FFF;font-size:calc(24rpx * var(--fs-scale, 1));line-height:1.7;overflow-wrap:anywhere}.activity-cover-title{font-size:calc(38rpx * var(--fs-scale, 1));font-weight:700;line-height:1.4;margin-bottom:16rpx}
+/* 发现页是整屏海报，页面本身不许滚动：上滑只用来开抽屉，不能把页面带着往上拖
+   （2026-10-08 用户反馈上滑后会露出下面的空白） */
+page{background: #F5F5F7;overflow:hidden;height:100%}
+/* 2026-10-07（第5 轮）：发现页只剩「全屏海报 + 把手 + 抽屉」，孩子全部绝对定位，
+   所以容器不再需要 flex 与内边距；原先轮播时代的 .feature-* / .activity-cover-copy /
+   .home-search / .home-heading 样式已随 markup 一起删除，不留死样式。 */
 .home-brand{white-space:nowrap}.heading-actions{flex-shrink:0;display:flex;align-items:center;gap:8rpx}
-.feature-dots{display:flex;justify-content:center;align-items:center;height:38rpx;flex-shrink:0}.feature-dot-hit{height:100%;min-width:30rpx;display:flex;align-items:center;justify-content:center}.feature-dot{width:8rpx;height:8rpx;border-radius:50%;background:#D4D4D8;transition:width .2s ease,background .2s ease}.feature-dot.active{background:#454548;width:20rpx;border-radius:5rpx}
 
 /* ===== 第 1 轮 · 发现页：全屏海报 + 58px 把手 + 上滑抽屉 =====
    数值全部取自 mockups/final-design-3pages.html「一、视觉规格」：
    主色 #234B3C / 页底 #F5F5F7 / 米金 #F3E3C8 / 米白 #FFF9DF；
    抽屉段标签 10px、段标题 12.5px、段副标题 10.5px；抽屉顶部圆角 18px；
    把手 58px、抽屉展开约 384px。所有文字沿用 --fs-scale 机制。 */
-/* 海报区高度用视口高度扣掉标题区、把手与底部 tab 安全区，让海报占满剩余空间。
-   2026-10-07：三图轮播改为单张固定海报（不再用 swiper），直接给 .poster-card 高度。 */
-.poster-region{flex-shrink:0;margin:8rpx -34rpx 0;height:calc(100vh - 400rpx - 58px - calc(132rpx + env(safe-area-inset-bottom)))}
-.poster-card{position:relative;width:100%;height:100%;background:#133C31;overflow:hidden}
+/* 2026-10-07（第5 轮）：按设计稿①②把海报改成「全屏铺满」——
+   海报铺满导航栏以下的整页（含把手与抽屉区域），发现/头像/日期行/主标题/把手全部浮在图上；
+   下沿正好接 tabbar 上沿。取图仍是两层：底层本地小图 aspectFill 铺满防黑边 + 上层云存储清晰主图 aspectFit。 */
+.home-screen{position:relative;height:100vh;overflow:hidden;box-sizing:border-box}
+.home-demo{position:absolute;left:32rpx;right:32rpx;z-index:9}
+.poster-region{position:absolute;left:0;right:0;top:0;bottom:calc(112rpx + env(safe-area-inset-bottom));overflow:hidden;background: #133C31}
+/* 一张图直接铺满（aspectFill）：不再有模糊底图垫边，所以海报区上下不会出现糊带 */
 .poster-image{position:absolute;width:100%;height:100%;top:0;left:0}
-/* 底层只用本地小图铺满防黑边（-bg 仅 7KB，糊，仅兜底），上层才是云存储清晰主图 */
-.poster-image-bg{transform:scale(1.08)}
 .poster-image-main{z-index:1}
-/* 压暗层 + 左下角主标题（数值取自 mockups/final-design-3pages.html 的 .veil / .copy） */
+/* 压暗层（数值取自 mockups/final-design-3pages.html 的 .veil） */
 .poster-veil{position:absolute;left:0;right:0;top:0;bottom:0;z-index:2;background:linear-gradient(180deg,rgba(10,26,20,.30) 0%,rgba(10,26,20,.06) 20%,rgba(10,26,20,.12) 42%,rgba(10,26,20,.55) 68%,rgba(8,20,15,.86) 100%)}
-.poster-copy{position:absolute;left:48rpx;right:48rpx;bottom:56rpx;z-index:3}
-.poster-title{font-size:calc(52rpx * var(--fs-scale, 1));font-weight:750;color:#FFF9DF;line-height:1.34;letter-spacing:.4px;text-shadow:0 2rpx 12rpx rgba(0,0,0,.5);white-space:pre-line}
-/* 把手：收起时 58px，展开时贴抽屉下沿 */
-.poster-handle{flex-shrink:0;height:58px;display:flex;align-items:center;justify-content:center;gap:14rpx;background:#234B3C;color:#FFFDF8;border-radius:18px 18px 0 0;box-sizing:border-box;padding:0 17px}
-.poster-handle.is-open{border-radius:0}
-.handle-grip{width:56rpx;height:6rpx;border-radius:3rpx;background:rgba(255,253,248,.34);flex-shrink:0}
-.handle-label{font-size:calc(25rpx * var(--fs-scale, 1));line-height:1.4}
-.handle-arrow{font-size:calc(30rpx * var(--fs-scale, 1));line-height:1;color:rgba(255,253,248,.72);transform:rotate(90deg);transition:transform .26s ease-out}
-.handle-arrow.is-open{transform:rotate(-90deg)}
-/* 抽屉：收起 0，展开约 384px；过渡允许中间态 */
-.drawer{flex-shrink:0;height:0;overflow:hidden;background:#234B3C;transition:height .3s ease-out}
-.drawer.is-open{height:384px}
-.drawer-panel{height:384px;background:#234B3C;border-radius:18px 18px 0 0;padding:0 17px calc(12rpx + env(safe-area-inset-bottom));box-sizing:border-box;overflow-y:auto;display:flex;flex-direction:column}
-.drawer-grip-area{padding:16rpx 0 10rpx;display:flex;justify-content:center;flex-shrink:0}
-.drawer-grip-area .handle-grip{background:rgba(255,253,248,.34)}
-/* 四段共用一套字号、色与缩进，保证视觉完全一致 */
-.drawer-row{display:flex;align-items:flex-start;justify-content:space-between;gap:17px;padding:20rpx 0;border-bottom:1rpx solid rgba(255,253,248,.12);flex-shrink:0}
+/* 自定义导航带：标题浮在照片上（真机上看不清 11px，放大到 15px；比设计稿略大是有意的） */
+.poster-nav{position:absolute;left:0;right:0;top:0;z-index:3;box-sizing:border-box}
+.poster-nav-band{height:44px;display:flex;align-items:center;justify-content:center}
+.poster-nav-title{font-size: calc(28rpx * var(--fs-scale, 1));color:rgba(255,249,223,.72);letter-spacing:.5px}
+/* 顶部一行：发 现（小字米白、字距 2.4px）+ 头像；整行左对齐，与导航带同高、避开右上角胶囊 */
+.poster-head{position:absolute;left:22px;right:22px;height:44px;z-index:3;display:flex;align-items:center;justify-content:flex-start;gap:10px}
+.poster-head .home-brand{font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;letter-spacing:2.4px;color:rgba(255,249,223,.78);line-height:1.4;white-space:nowrap}
+/* 左下角：日期行 + 两行主标题，落在把手上方 140px（数值取自设计稿 .copy） */
+/* 海报文字：抽屉升起时被"顶"上去（bottom 由页面按抽屉真实高度算），与抽屉同速上滑 */
+.poster-copy{position:absolute;left:24px;right:24px;bottom:140px;z-index:3;transition:bottom .3s ease-out}
+.poster-date{font-size: calc(21rpx * var(--fs-scale, 1));color:rgba(255,249,223,.82);letter-spacing:1.6px;line-height:1.6}
+.poster-title{font-size: calc(52rpx * var(--fs-scale, 1));font-weight:750;color: #FFF9DF;line-height:1.34;letter-spacing:.4px;text-shadow:0 2rpx 12rpx rgba(0,0,0,.5);white-space:pre-line;margin-top:8px}
+/* 把手：58px 半透明玻璃条压在图上，距 tabbar 上沿 10px（数值取自设计稿 .handlebar） */
+.poster-handle{position:absolute;left:24px;right:24px;bottom:10px;z-index:4;height:58px;box-sizing:border-box;border-radius:14px;border:1rpx solid rgba(255,249,223,.45);background:rgba(12,26,20,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.handle-grip{width:40px;height:4px;border-radius:2px;background:rgba(255,249,223,.72);flex-shrink:0}
+.handle-label{font-size: calc(23rpx * var(--fs-scale, 1));line-height:1.4;color: #FFF9DF;text-shadow:0 1rpx 8rpx rgba(0,0,0,.5)}
+/* 抽屉：贴 tabbar 上沿升起；高度跟着内容走（设计稿就是内容撑满、底部不留空），动画用 max-height */
+.drawer{position:absolute;left:0;right:0;bottom:calc(112rpx + env(safe-area-inset-bottom));max-height:0;overflow:hidden;z-index:5;background:rgba(9,22,17,.82);border-top:1rpx solid rgba(255,249,223,.28);border-radius:18px 18px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.35);transition:max-height .3s ease-out}
+.drawer.is-open{max-height:78vh}
+/* 底部只留 12rpx：抽屉本身就坐在 tabbar（112rpx + 安全区）之上，
+   这里再算一次 env(safe-area-inset-bottom) 会把安全区算两遍，底部多出一块白（2026-10-08 修） */
+.drawer-panel{max-height:78vh;border-radius:18px 18px 0 0;padding:0 18px 12rpx;box-sizing:border-box;overflow-y:auto;display:flex;flex-direction:column}
+.drawer-grip-area{padding:12rpx 0 8rpx;display:flex;justify-content:center;flex-shrink:0}
+.drawer-grip-area .handle-grip{background:rgba(255,249,223,.6)}
+/* 四段共用一套「标签列 + 标题列 + 右侧 ›」，字号字重严格照设计稿：
+   标签 10px/400 米金、标题 12.5px/700 米白、副标题 10.5px/400 半透明、分隔为虚线 */
+.drawer-row{display:flex;align-items:flex-start;gap:8px;padding:18rpx 0;border-bottom:1rpx dashed rgba(255,249,223,.18);flex-shrink:0}
 .drawer-row:last-child{border-bottom:0}
-.drawer-row-static{opacity:.66}
-.drawer-row-text{flex:1;min-width:0;padding-left:17px}
-.drawer-tag{font-size:calc(20rpx * var(--fs-scale, 1));line-height:1.4;color:#F3E3C8;letter-spacing:.5px}
-.drawer-title{font-size:calc(25rpx * var(--fs-scale, 1));line-height:1.45;color:#FFF9DF;margin-top:6rpx}
-.drawer-sub{font-size:calc(21rpx * var(--fs-scale, 1));line-height:1.5;color:rgba(255,253,248,.62);margin-top:4rpx;overflow-wrap:anywhere}
-.drawer-arrow{flex-shrink:0;font-size:calc(30rpx * var(--fs-scale, 1));line-height:1.4;color:rgba(255,253,248,.6);margin-top:6rpx}
-.drawer-arrow.is-dim{color:rgba(255,253,248,.28)}
-/* 游戏三格：01 / 02 / 03，状态文案（未完成 / 今日已完成 / 已用完） */
-.drawer-games{display:flex;gap:11rpx;margin-top:12rpx}
-.drawer-game{flex:1;min-width:0;background:rgba(255,253,248,.08);border:1rpx solid rgba(255,253,248,.14);border-radius:9px;padding:12rpx 8rpx;text-align:center}
-.drawer-game-no{font-size:calc(20rpx * var(--fs-scale, 1));color:#F3E3C8;line-height:1.3}
-.drawer-game-name{font-size:calc(21rpx * var(--fs-scale, 1));color:#FFF9DF;line-height:1.35;margin-top:4rpx;overflow-wrap:anywhere}
-.drawer-game-state{font-size:calc(18rpx * var(--fs-scale, 1));color:rgba(255,253,248,.6);line-height:1.3;margin-top:4rpx}
+.drawer-tag{flex-shrink:0;width:24px;font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;line-height:1.5;color: #F3E3C8;letter-spacing:.5px}
+.drawer-row-main{flex:1;min-width:0;overflow:hidden}
+.drawer-title{font-size: calc(26rpx * var(--fs-scale, 1));font-weight:700;line-height:1.45;color: #FFF9DF;overflow-wrap:anywhere}
+.drawer-sub{font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;line-height:1.5;color:rgba(255,249,223,.72);margin-top:4rpx;overflow-wrap:anywhere}
+/* 箭头列：固定 20px、居中 —— 四段的 › 与游戏三行的 › 才会落在同一条竖线上；
+   游戏段展开时用同一个 › 旋转 90°，而不是换一个 ⌄ 字形（字形宽度不同就永远对不齐） */
+.drawer-arrow{flex:0 0 20px;text-align:center;font-size: calc(28rpx * var(--fs-scale, 1));line-height:1.4;color:rgba(255,249,223,.82)}
+.drawer-arrow.is-open{transform:rotate(90deg)}
+/* 游戏三行：与四段同级（不再嵌在缩进列里），左侧用内边距对齐标题列（24px 标签 + 8px 间距），
+   这样每行的 › 与四段的 › 落在同一列上；名称列 58→52px、行内间距 8→6px，
+   给"状态文字 + 进行中小标"腾出余量（字号切"大/特大"时也不会把状态挤到截断） */
+.drawer-game{display:flex;align-items:center;gap:6px;padding:8rpx 0;min-width:0}
+/* 展开的三条游戏之后的分隔虚线：与四段之间的虚线同款（展开时才存在） */
+.drawer-divider{height:1rpx;border-top:1rpx dashed rgba(255,249,223,.18);margin:10rpx 0 0}
+.drawer-game-no{flex-shrink:0;width:15px;margin-left:32px;font-size: calc(19rpx * var(--fs-scale, 1));color:rgba(255,249,223,.5);line-height:1.4}
+.drawer-game-name{flex-shrink:0;width:52px;font-size: calc(23rpx * var(--fs-scale, 1));font-weight:700;color: #FFF9DF;line-height:1.4}
+.drawer-game-state{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size: calc(21rpx * var(--fs-scale, 1));color:rgba(255,249,223,.72);line-height:1.4}
+/* 「有进行中的一局」记号（设计稿第②屏 01 行右侧那个小标） */
+.drawer-game-chip{flex-shrink:0;font-size: calc(19rpx * var(--fs-scale, 1));color: #234B3C;background: #F3E3C8;border-radius:6rpx;padding:2rpx 8rpx;line-height:1.5}
+.drawer-game-arrow{flex:0 0 20px;text-align:center;font-size: calc(26rpx * var(--fs-scale, 1));color:rgba(255,249,223,.78)}
 
-@media(max-height:600px){.home-heading{padding-top:12rpx;padding-bottom:10rpx}.home-brand{font-size:calc(42rpx * var(--fs-scale, 1))}.feature-region{padding-top:14rpx}}
+@media(max-height:600px){.poster-head{top:24px}.poster-copy{bottom:118px}.poster-title{font-size: calc(48rpx * var(--fs-scale, 1))}}
 .welcome-overlay { position: fixed; inset: 0; z-index: 10000; background: #F7F5ED; display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: none; }
 .welcome-center { text-align: center; padding: 35rpx; max-width: 100%; box-sizing: border-box; }
-.welcome-title { font-size: calc(44rpx * var(--fs-scale, 1)); color: #234B3C; margin: 24rpx 0 16rpx; overflow-wrap: anywhere; }
-.welcome-caption { font-size: calc(25rpx * var(--fs-scale, 1)); color: #6F7C70; }
+.welcome-title { font-size: calc(48rpx * var(--fs-scale, 1)); color: #234B3C; margin: 24rpx 0 16rpx; overflow-wrap: anywhere; }
+.welcome-caption { font-size: calc(26rpx * var(--fs-scale, 1)); color: #6F7C70; }
 .welcome-customize { margin: 34rpx auto 0; background: #234B3C; color: #FFF9DF; font-size: calc(26rpx * var(--fs-scale, 1)); padding: 22rpx 28rpx; border-radius: 18rpx; line-height: 1.5; width: 100%; max-width: 520rpx; min-width: 0; }
-.welcome-skip { margin: 18rpx auto 0; font-size: calc(25rpx * var(--fs-scale, 1)); color: #6F7C70; text-decoration: underline; text-underline-offset: 6rpx; width: 100%; max-width: 520rpx; text-align: center; }
+.welcome-skip { margin: 18rpx auto 0; font-size: calc(26rpx * var(--fs-scale, 1)); color: #6F7C70; text-decoration: underline; text-underline-offset: 6rpx; width: 100%; max-width: 520rpx; text-align: center; }
 .welcome-brand { position: absolute; bottom: calc(70rpx + env(safe-area-inset-bottom)); font-size: calc(26rpx * var(--fs-scale, 1)); color: #87917B; }
 .role-overlay { position: fixed; inset: 0; background: rgba(14,26,17,.68); z-index: 130; display: flex; align-items: center; justify-content: center; }
 .role-card { width: 630rpx; max-height: 86vh; overflow-y: auto; box-sizing: border-box; background: #F7F5ED; border-radius: 30rpx; padding: 36rpx 30rpx 30rpx; text-align: center; }
 .role-title { font-size: calc(38rpx * var(--fs-scale, 1)); color: #234B3C; margin: 10rpx 0 30rpx; }
-.role-option { display: flex; align-items: center; gap: 22rpx; text-align: left; background: #FFFDF8; border: 1rpx solid #DCE5D0; border-radius: 20rpx; padding: 26rpx; margin-bottom: 18rpx; }
+.role-option { display: flex; align-items: center; gap: 22rpx; text-align: left; background: #FFFDF8; border: 1rpx solid #DCE5D0; border-radius: 28rpx; padding: 26rpx; margin-bottom: 18rpx; }
 .role-glyph { width: 78rpx; height: 88rpx; line-height: 88rpx; text-align: center; background: #EAF0E0; color: #2E4A38; font-size: calc(38rpx * var(--fs-scale, 1)); border-radius: 36rpx 36rpx 10rpx 10rpx; flex-shrink: 0; }
 .role-copy { min-width: 0; }
-.role-name { font-size: calc(30rpx * var(--fs-scale, 1)); color: #2E4A38; }
+.role-name { font-size: calc(28rpx * var(--fs-scale, 1)); color: #2E4A38; }
 .role-desc { font-size: calc(23rpx * var(--fs-scale, 1)); color: #6F7C70; line-height: 1.7; margin-top: 6rpx; }
-.role-note { font-size: calc(22rpx * var(--fs-scale, 1)); color: #788572; margin-top: 16rpx; }
+.role-note { font-size: calc(21rpx * var(--fs-scale, 1)); color: #47634B; margin-top: 16rpx; }
 

@@ -5,7 +5,7 @@
 // 分区隔离（个人/演示互不可见）、损坏数据容错、清空。
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const chatHistory = require('../miniprogram/lib/chat-history');
+const chatHistory = require('../miniprogram/packageMore/lib/chat-history');
 const store = require('../miniprogram/lib/store');
 
 const originalWx = global.wx;

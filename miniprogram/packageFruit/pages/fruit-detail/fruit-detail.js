@@ -1,3 +1,4 @@
+const CN_NUMBERS = ['一', '二', '三', '四', '五', '六'];
 const fruitCulture = require('../../../data/fruit-culture');
 const store = require('../../../lib/store');
 const i18n = require('../../../lib/i18n');
@@ -20,13 +21,13 @@ Page({
     if (wx.setNavigationBarTitle) wx.setNavigationBarTitle({ title: name });
     this.setData({
       invalid: false, L: labels, knowledgeFavorites: favorites,
-      fruit: Object.assign({}, fruit, { name, seasonName: i18n.t('season_name_' + fruit.seasonId), categories: fruit.categories.map(item => {
+      fruit: Object.assign({}, fruit, { name, seasonName: i18n.t('season_name_' + fruit.seasonId), categories: fruit.categories.map((item, index) => {
         const favId = fruit.fullId + ':' + item.cat;
         // 目录页预览：摘要句之外的正文开头，让 01-06 每节内容与重写后的正文同步、对应小标题。
         const body = item.detail && item.detail.startsWith(item.text) ? item.detail.slice(item.text.length).trim() : (item.detail || '');
         const preview = (body || item.text).slice(0, 96) + (body.length > 96 ? '…' : '');
         const labelKey = fruit.world ? ('cat_' + item.cat + '_world') : ('cat_' + item.cat);
-        return Object.assign({}, item, { label: i18n.t(labelKey), favId, fav: favorites.includes(favId), preview });
+        return Object.assign({}, item, { label: i18n.t(labelKey), favId, fav: favorites.includes(favId), preview, num: i18n.getLang() === 'en' ? String(index + 1) : CN_NUMBERS[index] });
       }) })
     });
   },

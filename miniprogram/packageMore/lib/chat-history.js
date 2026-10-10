@@ -6,7 +6,7 @@
 // 职责：消息净化（防脏数据进渲染与提示词）、容量上限（微信单 key 1MB）、
 // 存储异常静默降级——聊天记录丢不了台词本，坏了也不能挡住重新提问。
 
-const store = require('./store');
+const store = require('../../lib/store');
 
 const FIELD = 'chatMessages';
 const MAX_MESSAGES = 100;

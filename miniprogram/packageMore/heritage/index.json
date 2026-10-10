@@ -3,6 +3,7 @@
   "navigationBarBackgroundColor": "#F5F5F7",
   "navigationBarTextStyle": "black",
   "usingComponents": {
-    "heritage-viewer": "/components/heritage-viewer/heritage-viewer"
+    "heritage-viewer": "/components/heritage-viewer/heritage-viewer",
+    "demo-notice": "/components/demo-notice/index"
   }
 }

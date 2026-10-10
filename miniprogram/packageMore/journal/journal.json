@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "节气与故事"
+  "navigationBarTitleText": "节气与故事",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

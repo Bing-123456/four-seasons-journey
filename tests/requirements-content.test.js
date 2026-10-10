@@ -51,15 +51,19 @@ test('quiz pool holds two distinct questions per fruit and replay rounds share n
     assert.equal(second.length,6);
     assert.equal(new Set(second.map(q=>q.id)).size,6,'复轮 6 道题 id 各不相同');
     assert.equal(first.filter(q=>second.some(s=>s.id===q.id)).length,0,'两轮不得有同一道题');
-    // 10.5 游戏③：已解锁的定制水果不再出题，空位由非定制水果（知识库其它水果）的题补齐。
-    const allUnlocked=quiz.buildRound({unlocked:['watermelon','strawberry','apple','pear','grape','kiwi'],askedIds:[]},language);
+    // 10.5 游戏③ + 2026-10-08 用户规则：西瓜默认拥有（计数一开始就是 1/6、答对不弹解锁窗），
+    // 但它的题要出到"答对一次"为止；答对过才把这一格让给别的水果。
+    const allUnlocked=quiz.buildRound({unlocked:['watermelon','strawberry','apple','pear','grape','kiwi'],starterPassed:true,askedIds:[]},language);
     assert.equal(allUnlocked.length,6,'名额由非定制水果题补齐');
-    assert.equal(allUnlocked.every(q=>q.fruitId===undefined),true,'六果全解锁后整轮都是非定制水果的题');
-    // 只解锁一种：剩下五种各出一道 + 一道非定制题
+    assert.equal(allUnlocked.every(q=>q.fruitId===undefined),true,'起始水果答对且六果全解锁后，整轮都是非定制水果的题');
+    // 只解锁西瓜、且西瓜题还没答对：西瓜占一道 + 另外五种各一道
     const partial=quiz.buildRound({unlocked:['watermelon'],askedIds:[]},language);
     assert.equal(partial.length,6);
-    assert.equal(partial.filter(q=>q.fruitId).length,5,'五种未解锁水果各一道');
-    assert.equal(partial.filter(q=>q.fruitId==='watermelon').length,0,'已解锁的西瓜不出题');
+    assert.equal(partial.filter(q=>q.fruitId).length,6,'六种水果各出一道');
+    assert.equal(partial.filter(q=>q.fruitId==='watermelon').length,1,'西瓜题必须出（默认拥有，但还没答对过）');
+    // 答对过之后：西瓜不再出题（这一格让位）
+    const afterStarter=quiz.buildRound({unlocked:['watermelon'],starterPassed:true,askedIds:[]},language);
+    assert.equal(afterStarter.filter(q=>q.fruitId==='watermelon').length,0,'答对过的西瓜不再出题');
   }
 });
 test('farm day boundaries use local dates, including midnight and daylight-saving transitions', () => {

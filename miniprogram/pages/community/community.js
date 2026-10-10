@@ -14,10 +14,10 @@ function callApi(method, path, body) { return communityApi.callApi(method, path,
 function formatRelativeTime(ts) { return communityApi.formatRelativeTime(ts); }
 
 Page({
-  data: { posts: [], loading: true, error: '', myNickname: '', L: {}, cloudOrchard: cloudImg.img('illustrations/orchard-garden') },
+  data: { posts: [], loading: true, error: '', waking: false, myNickname: '', L: {}, cloudOrchard: cloudImg.img('illustrations/orchard-garden') },
   onLoad: function () {
     i18n.applyNav('community_title');
-    this.setData({ L: i18n.labels(['loading', 'community_empty', 'community_post_title', 'network_error', 'community_offline', 'community_delete_hint', 'community_delete_comment_title', 'community_delete_comment_msg', 'community_delete_post_title', 'community_delete_post_msg', 'community_delete', 'community_cancel', 'community_deleted', 'community_only_self']) });
+    this.setData({ L: i18n.labels(['loading', 'community_empty', 'community_post_title', 'network_error', 'community_offline', 'community_waking', 'community_retry', 'community_delete_hint', 'community_delete_comment_title', 'community_delete_comment_msg', 'community_delete_post_title', 'community_delete_post_msg', 'community_delete', 'community_cancel', 'community_deleted', 'community_only_self']) });
   },
   onShow: function () {
     const me = store.getIdentity() || {};
@@ -46,14 +46,16 @@ Page({
     this.loadPosts();
   },
   // 未连接云托管（测试/开发环境）时优雅降级，不报错。
+  retryLoad: function () { this.setData({ error: '', waking: false }); this.loadPosts(); },
   loadPosts: function () {
     if (!cloudAvailable()) { this.setData({ loading: false, error: i18n.t('community_offline') }); return; }
     this.setData({ loading: true, error: '' });
-    callApi('GET', '/api/community/list').then(result => {
+    callApi('GET', '/api/community/list', null, { onRetry: () => this.setData({ waking: true }) }).then(result => {
       const posts = (result && result.posts) || [];
       posts.forEach(p => { p.timeText = formatRelativeTime(p.createdAt); });
       this.setData({ posts: posts, loading: false });
     }).catch(error => {
+      this.setData({ waking: false });
       // 显示服务端具体错误（便于评审排查：数据库/权限问题会带明细，不再是笼统「网络异常」）。
       const message = (error && error.message) || i18n.t('network_error');
       this.setData({ loading: false, error: message });

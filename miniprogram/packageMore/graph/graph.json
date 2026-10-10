@@ -1,1 +1,6 @@
-{"navigationBarTitleText":"风物关系图"}
+{
+  "navigationBarTitleText": "风物关系图",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
+}

@@ -2,8 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const lesson = require('../miniprogram/data/workshop');
-const workshop = require('../miniprogram/lib/workshop');
+const lesson = require('../miniprogram/packageMore/data/workshop');
+const workshop = require('../miniprogram/packageMore/lib/workshop');
 const store = require('../miniprogram/lib/store');
 
 function ingredientsDone() {

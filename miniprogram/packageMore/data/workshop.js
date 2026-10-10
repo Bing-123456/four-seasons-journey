@@ -1,7 +1,7 @@
 'use strict';
 
 // Source-backed cultural reading. These fragments are intentionally not a recipe.
-const catalog = require('./catalog');
+const catalog = require('../../data/catalog');
 const sources = catalog.sources.filter(source => ['S7', 'S8'].includes(source.id)).map(source => Object.assign({}, source, { date: source.publishedAt }));
 
 const ingredients = [

@@ -7,7 +7,8 @@
   <view class="fruit-categories">
     <view wx:for="{{fruit.categories}}" wx:key="cat" id="fruit-cat-{{item.cat}}" class="fruit-cat {{activeCat === item.cat ? 'is-open' : ''}}">
       <view class="fruit-cat-rail" data-cat="{{item.cat}}" bindtap="toggleAccordion" role="button" aria-label="{{item.label}}" aria-expanded="{{activeCat === item.cat}}">
-        <view class="fruit-cat-label">{{item.label}}</view>
+        <view class="category-number">{{item.num}}</view>
+          <view class="fruit-cat-label">{{item.label}}</view>
         <view class="fruit-fav {{item.fav ? 'is-fav' : ''}}" data-id="{{item.favId}}" catchtap="toggleFavorite" role="button" aria-label="{{L.cal_fav_aria}}{{item.label}}">{{item.fav ? '♥' : '♡'}}</view>
       </view>
       <view class="fruit-cat-body">

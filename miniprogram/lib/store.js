@@ -176,6 +176,24 @@ function localDayKey() {
   const pad = value => String(value).length < 2 ? '0' + value : String(value);
   return now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
 }
+// 「当前这一局」的快照（2026-10-08 第17 轮）：让问答能从上次停下的地方接着打，
+// 抽屉里的剩余题数也才能扣掉"这一局已经答掉的题"。老存档没有这个字段 → null，行为与以前一致。
+function normalizeRound(value) {
+  if (!value || typeof value !== 'object') return null;
+  const ids = Array.isArray(value.ids) ? value.ids.filter(function (id) { return typeof id === 'string' && id; }).slice(0, 12) : [];
+  if (!ids.length) return null;
+  const flips = Array.isArray(value.flips) ? value.flips : [];
+  return {
+    no: Math.max(1, Number(value.no) || 1),
+    ids: ids,
+    // 每题一位：0 = 正确项在第一位，1 = 正确项被摆到了第二位（农谚题选项是随机的，靠它还原）
+    flips: ids.map(function (_id, i) { return Number(flips[i]) ? 1 : 0; }),
+    index: Math.max(0, Math.min(ids.length - 1, Number(value.index) || 0)),
+    score: Math.max(0, Number(value.score) || 0),
+    answered: !!value.answered,
+    correct: !!value.correct
+  };
+}
 // today 可注入（默认取本机日期），便于单元测试把「跨天」判定变成纯函数。
 function normalizeQuizProgress(value, today) {
   const refDay = today || localDayKey();
@@ -186,7 +204,11 @@ function normalizeQuizProgress(value, today) {
     // 跨天：当天轮数清零（第二天能重新玩）；出题记录继续保留
     roundsDone: fresh ? 0 : (Number(source.roundsDone) || 0),
     askedIds: Array.isArray(source.askedIds) ? source.askedIds.filter(id => typeof id === 'string').slice(-200) : [],
-    askedProverbs: Array.isArray(source.askedProverbs) ? source.askedProverbs.filter(id => typeof id === 'string').slice(-200) : []
+    askedProverbs: Array.isArray(source.askedProverbs) ? source.askedProverbs.filter(id => typeof id === 'string').slice(-200) : [],
+    // 跨天要丢掉上一局（新的一天重新发题），所以 fresh 时直接给 null
+    round: fresh ? null : normalizeRound(source.round),
+    // 起始水果（西瓜）的题是否答对过：**跨天不重置** —— 用户规则是"没答对就往后面的轮数顺延"
+    starterPassed: !!source.starterPassed
   };
 }
 function getQuizProgress(partition, today) {

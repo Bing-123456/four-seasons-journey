@@ -1,4 +1,4 @@
-.tab-wrap { position: fixed; left: 0; bottom: 0; right: 0; background: #FFFFFF; z-index: 99; border-top: 1rpx solid #E5E5EA; }
+.tab-wrap { position: fixed; left: 0; bottom: 0; right: 0; background: #FFFDF8; z-index: 99; border-top: 1rpx solid #E5E5EA; }
 .tab-bar { height: 112rpx; display: flex; padding: 10rpx 20rpx 8rpx; }
 .tab-item { flex: 1; display: flex; position: relative; flex-direction: column; align-items: center; justify-content: center; color: #7A8772; line-height: 1.6; border-radius: 16rpx; margin: 0 4rpx; }
 .tab-item.active { background: transparent; }

@@ -137,7 +137,7 @@ function readAudio(filePath) {
 // 给用户看的中文，直接用；只有「连不上 / 配对失效」这类传输层文案需要改写——
 // media-service 的兜底文案是给图片场景写的，直接透出会提到「图片服务」。
 function defaultTranscribe(payload) {
-  const media = require('./media-service');
+  const media = require('../../lib/media-service');
   let context;
   try { context = media.capture(); }
   catch (error) { throw new Error(ERROR_COPY.offline); }

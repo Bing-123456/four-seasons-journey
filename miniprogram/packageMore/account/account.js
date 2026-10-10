@@ -5,7 +5,7 @@
 // 四角与四边中点可拉伸；确认后按框的位置从原图裁出 512×512 头像。
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
-const cropMath = require('../../lib/crop-math');
+const cropMath = require('../lib/crop-math');
 const community = require('../../lib/community');
 
 Page({

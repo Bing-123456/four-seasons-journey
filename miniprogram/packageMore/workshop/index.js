@@ -1,7 +1,7 @@
 'use strict';
 
-const lesson = require('../../data/workshop');
-const workshop = require('../../lib/workshop');
+const lesson = require('../data/workshop');
+const workshop = require('../lib/workshop');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
 

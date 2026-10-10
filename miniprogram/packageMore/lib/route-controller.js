@@ -1,8 +1,8 @@
 const catalog = require('../../data/catalog');
 const core = require('../../lib/core');
 const store = require('../../lib/store');
-const presentation = require('../../lib/route-presentation');
-const flow = require('../../lib/visitor-flow');
+const presentation = require('./route-presentation');
+const flow = require('./visitor-flow');
 const learning = require('../../data/learning');
 const i18n = require('../../lib/i18n');
 

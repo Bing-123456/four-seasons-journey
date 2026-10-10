@@ -1,6 +1,6 @@
 'use strict';
 
-const catalog = require('../data/catalog');
+const catalog = require('../../data/catalog');
 const round = number => Math.round(number * 1000000) / 1000000;
 const clone = value => JSON.parse(JSON.stringify(value));
 const MARKER_ICON = '/assets/map-marker.png';

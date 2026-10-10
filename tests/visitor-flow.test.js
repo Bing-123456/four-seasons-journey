@@ -5,12 +5,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const catalog = require('../miniprogram/data/catalog');
-const flow = require('../miniprogram/lib/visitor-flow');
+const flow = require('../miniprogram/packageTrip/lib/visitor-flow');
 
 const originalWx = global.wx;
 let memory;
 const venue = catalog.places[0];
-const cityOfVenue = require('../miniprogram/lib/weather').nearestCity(venue.location);
+const cityOfVenue = require('../miniprogram/packageTrip/lib/weather').nearestCity(venue.location);
 
 function route(id, date, partySize, placeIds) {
   return {

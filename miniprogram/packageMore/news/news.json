@@ -2,5 +2,8 @@
   "navigationBarTitleText": "今日快讯",
   "navigationBarBackgroundColor": "#FFFDF8",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#F5F5F7"
+  "backgroundColor": "#F5F5F7",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

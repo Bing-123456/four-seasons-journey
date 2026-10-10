@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "动态详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

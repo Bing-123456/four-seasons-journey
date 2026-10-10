@@ -2,5 +2,9 @@
   "navigationBarTitleText": "文化行程参考",
   "navigationBarBackgroundColor": "#F5F5F7",
   "navigationBarTextStyle": "black",
-  "disableScroll": false
+  "disableScroll": false,
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index",
+    "me-entry": "/components/me-entry/me-entry"
+  }
 }

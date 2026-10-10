@@ -4,7 +4,7 @@
 // a trip containing a place, we count {place, trip month, party size}. Only
 // anonymous counts are stored — never names, notes or any personal data. The
 // seller's AI prediction page reads this as the local visitor-flow signal.
-const catalog = require('../data/catalog');
+const catalog = require('../../data/catalog');
 const weather = require('./weather');
 const KEY = 'guayouji.visitor-flow.v1';
 const MAX_MONTHS = 6;

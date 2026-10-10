@@ -1,6 +1,9 @@
 {
-  "navigationBarTitleText": "果乡发布站",
+  "navigationBarTitleText": "果农工作台",
   "navigationBarBackgroundColor": "#FFFDF8",
   "navigationBarTextStyle": "black",
-  "backgroundColor": "#FFFDF8"
+  "backgroundColor": "#FFFDF8",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

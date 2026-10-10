@@ -188,4 +188,42 @@ function termsOfMonth(month) {
   return names.map(byName).filter(Boolean);
 }
 
-module.exports = { TERMS, currentTerm, termsOfMonth, byName };
+// 发现页海报的日期行要用「秋分 · 第 15 天 ｜ 距霜降 8 天」。
+// 全部按 TERM_CALENDAR 的公历时段推算，不写死任何数字。
+function termProgress(date) {
+  const now = date ? new Date(date) : new Date();
+  if (!Number.isFinite(now.getTime())) return null;
+  const year = now.getFullYear();
+  const today = new Date(year, now.getMonth(), now.getDate());
+  const DAY = 86400000;
+
+  let cur = null;
+  let next = null;
+  TERM_CALENDAR.forEach(function (item, index) {
+    const start = new Date(year, item.month - 1, item.day);
+    if (today.getTime() >= start.getTime()) {
+      cur = { term: item.term, start: start };
+      const nx = TERM_CALENDAR[index + 1];
+      next = nx ? { term: nx.term, start: new Date(year, nx.month - 1, nx.day) }
+        : { term: TERM_CALENDAR[0].term, start: new Date(year + 1, TERM_CALENDAR[0].month - 1, TERM_CALENDAR[0].day) };
+    }
+  });
+  // 一月初还没到小寒：仍属上一年冬至，下一个节气是当年小寒。
+  if (!cur) {
+    cur = { term: '冬至', start: new Date(year - 1, 11, 22) };
+    next = { term: TERM_CALENDAR[0].term, start: new Date(year, TERM_CALENDAR[0].month - 1, TERM_CALENDAR[0].day) };
+  }
+
+  const curNote = byName(cur.term) || {};
+  const nextNote = byName(next.term) || {};
+  return {
+    name: cur.term,
+    nameEn: curNote.enName || cur.term,
+    dayIndex: Math.round((today.getTime() - cur.start.getTime()) / DAY) + 1,
+    nextName: next.term,
+    nextEn: nextNote.enName || next.term,
+    daysToNext: Math.round((next.start.getTime() - today.getTime()) / DAY)
+  };
+}
+
+module.exports = { TERMS, currentTerm, termsOfMonth, byName, termProgress };

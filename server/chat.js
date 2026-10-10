@@ -551,41 +551,67 @@ function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
     return null;
   }
 
-  // —— 知识库写回：服务端本地文件持久化每题「由来」讲解，下次同题优先读取，缺失才现场生成。
+  // —— 知识库写回：服务端本地文件持久化每题「原因 + 由来」讲解，下次同题优先读取，缺失才现场生成。
+  // 2026-10-09 第23 轮：从"只写由来"升级成"原因 + 由来"两段，缓存值也从单个字符串升级成对象；
+  // 键前面加 v2，老的（单段）缓存自然失效，不会被读成新结构。
   const KB_FILE = path.join(os.tmpdir(), 'guayouji-challenge-knowledge.json');
   function kbLoad() {
     try { const raw = fs.readFileSync(KB_FILE, 'utf8'); const o = JSON.parse(raw); return o && typeof o === 'object' ? o : {}; }
     catch (e) { return {}; }
   }
   function kbSave(obj) { try { fs.writeFileSync(KB_FILE, JSON.stringify(obj, null, 2)); } catch (e) {} }
-  function kbKey(fruit, term, category) { return fruit + '|' + term + '|' + category; }
+  function kbKey(fruit, term, category) { return 'v2|' + fruit + '|' + term + '|' + category; }
   function kbGet(fruit, term, category) {
     const all = kbLoad();
     const v = all[kbKey(fruit, term, category)];
-    return typeof v === 'string' && v ? v : null;
+    if (!v || typeof v !== 'object') return null;
+    const cause = typeof v.cause === 'string' ? v.cause : '';
+    const origin = typeof v.origin === 'string' ? v.origin : '';
+    return (cause || origin) ? { cause: cause, origin: origin } : null;
   }
   function kbSet(fruit, term, category, knowledge) {
-    if (!knowledge) return;
+    if (!knowledge || (!knowledge.cause && !knowledge.origin)) return;
     const all = kbLoad();
-    all[kbKey(fruit, term, category)] = knowledge;
+    all[kbKey(fruit, term, category)] = { cause: knowledge.cause || '', origin: knowledge.origin || '' };
     kbSave(all);
   }
+  // 两段拼成客户端认识的 knowledgePoints（客户端的知识卡就是逐条渲染这个数组）
+  function knowledgePointsOf(knowledge) {
+    const out = [];
+    if (knowledge && knowledge.cause) out.push('原因：' + knowledge.cause);
+    if (knowledge && knowledge.origin) out.push('由来：' + knowledge.origin);
+    return out;
+  }
 
-  // 农事挑战：针对一道「水果 × 困境」题，输出「由来」单段讲解（约60字，4-5行）、果灵寄语。
-  // 优先读知识库（已积累的讲解）；缺失才调 AI 生成并写回。correct 用输入 isCorrect 原样回显。
+  // 农事挑战：针对一道「水果 × 困境」题，输出「原因」+「由来」两段讲解（各约 40-70 字）、果灵寄语。
+  // 优先级（2026-10-09 第24 轮）：随包发布的知识库（miniprogram/data/challenge-explanations.js，按题 id 写好）
+  //   → 本地临时缓存（AI 生成过的）→ 现调 AI。
+  let challengeExplicit = null;
+  try { challengeExplicit = require('../miniprogram/data/challenge-explanations'); } catch (e) { challengeExplicit = null; }
+  function explicitFor(id) {
+    if (!challengeExplicit || !id) return null;
+    const e = challengeExplicit[id];
+    if (!e || (!e.cause && !e.origin)) return null;
+    return { cause: e.cause || '', origin: e.origin || '' };
+  }
   async function challenge(input) {
+    // 知识库是随包发布的静态内容，**先查它**：命中了就不需要模型（模型没配/挂了也能出两段）。
+    const explicit = explicitFor(input.questionId);
+    if (explicit) {
+      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(explicit), elfMessage: '' };
+    }
     if (config.provider === 'disabled' || !config.providerBase) throw new InputError('对话服务未配置', 'model_disabled', 503);
     const cached = kbGet(input.fruit, input.term, input.category);
     if (cached) {
-      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: [cached], elfMessage: '' };
+      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(cached), elfMessage: '' };
     }
-    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「农事挑战」游戏。用户刚回答了一道关于水果在特定节气下农事、民俗、储存、食用、礼节或灾害方面的情境选择题。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的知识库相关段落作答，不编造农事或民俗事实；若知识库段落为空，也需基于公开可靠常识给出有由来的讲解，禁止空泛口号。只输出 JSON：{"correct":true/false,"knowledgePoints":["由来讲解（约60字，可在卡片内自然分成4-5行）"],"elfMessage":"果灵寄语（20-40字）"}。\n要求：\n1. correct 用输入里的 isCorrect 原样回显。\n2. knowledgePoints 只含 1 条，内容为「由来」：讲清这个水果在该节气 / 困境下的历史由来、民俗背景或实际农事起源，约60字，语言连贯、可在卡片内自然分成4-5行展示。绝不复述选项原文，不写空泛口号。\n3. 若知识库段落为空，也请基于公开常识给出有由来的讲解。\n4. elfMessage 保持温暖鼓励，不重复 knowledgePoints 内容。';
+    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「农事挑战」游戏。用户刚回答了一道关于水果在特定节气下农事、民俗、储存、食用、礼节或灾害方面的情境选择题。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的知识库相关段落作答，不编造农事或民俗事实；若知识库段落为空，也需基于公开可靠常识给出讲解，禁止空泛口号。只输出 JSON：{"correct":true/false,"cause":"原因","origin":"由来","elfMessage":"果灵寄语"}。\n要求：\n1. correct 用输入里的 isCorrect 原样回显。\n2. cause 写「原因」：为什么会这样 —— 讲清气候、生理或农事上的道理（为什么这个节气会出现这种困境、为什么这样做才对），约 40-70 字，一段连贯的话，不要分点、不要复述选项原文。\n3. origin 写「由来」：这个讲究或做法从哪来 —— 讲清历史源流、典籍农谚依据、古法或民俗传承，约 40-70 字，一段连贯的话，不要分点、不要复述选项原文，且不要与原因重复。\n4. 材料里确实没有把握的那一段就留空字符串，不要硬编。\n5. elfMessage 保持温暖鼓励（20-40 字），不重复上面两段内容。';
     const user = '节气：' + (input.term || '') + '\n水果：' + (input.fruit || '') + '\n困境类型：' + (input.category || '') + '\n情境：' + (input.situation || '') + '\n用户选择：' + (input.userChoice || '') + '\n是否正确：' + (input.isCorrect ? '是' : '否') + '\n知识库相关段落：\n' + (input.context || '');
     const parsed = parseStructured(await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]));
     if (!parsed) throw new InputError('对话服务返回异常', 'model_invalid_output', 502);
-    const points = Array.isArray(parsed.knowledgePoints) ? parsed.knowledgePoints.map(item => cleanText(item, 90)).filter(Boolean).slice(0, 1) : [];
-    const text = points[0] || '';
-    if (text) kbSet(input.fruit, input.term, input.category, text);
+    const knowledge = { cause: cleanText(parsed.cause, 90), origin: cleanText(parsed.origin, 90) };
+    const points = knowledgePointsOf(knowledge);
+    if (points.length) kbSet(input.fruit, input.term, input.category, knowledge);
     return {
       correct: parsed.correct === true,
       explanation: cleanText(parsed.explanation, 120),

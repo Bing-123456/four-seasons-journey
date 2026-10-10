@@ -36,6 +36,7 @@ function loadState() {
 function shuffle(list) { const a = list.slice(); for (let i = a.length - 1; i > 0; i -= 1) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
 // 同步清空连线画布：用首次 drawLines 缓存的 canvas 节点直接重设尺寸（重设即清空），无需再次 query，避免异步泄漏。
+
 function clearLines(page) {
   const node = page._matchCanvasNode;
   if (!node || !page._matchCanvasRect) return;
@@ -49,12 +50,102 @@ function clearLines(page) {
 
 module.exports = {
   init: function (page) {
+  // ── 今日连线图谱（2026-10-08 新增）────────────────────────────
+  // 只记"今天"的结果：果实名 / 文脉标签 / 对错；跨天不看
+  const LOG_KEY = 'guayouji.match.log.v1';
+  function logToday() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function readLog() {
+  try {
+    const v = wx.getStorageSync(LOG_KEY + '.' + partition());
+    if (v && v.day === logToday() && Array.isArray(v.items)) return v.items;
+  } catch (e) {}
+  return [];
+  }
+  function writeLog(items) {
+  try { wx.setStorageSync(LOG_KEY + '.' + partition(), { day: logToday(), items: items }); } catch (e) {}
+  }
+  page.__loadMatchLog = function () { const items = readLog(); page.setData({ matchLog: items, matchRoundLog: items }); };
+page.__pushMatchLog = function (fruitId, labelId, correct) {
+  try {
+    // 名字从本轮题目里取（page._round：判定时一定还在），绝不事后查 data（那会被重置清空）
+    const pair = (page._round || []).filter(function (p) { return p.id === fruitId; })[0];
+    const fruitName = (pair && pair.fruit) || '';
+    const labelName = (pair && pair.label) || '';
+    // 只保留有效条目：名字不全的一律不记、也不画（杜绝空白行）
+    if (!fruitName || !labelName) return;
+    const items = readLog().slice();
+    items.push({ id: pair.id, fruit: fruitName, label: labelName, correct: !!correct, note: '', source: pair.source || '', round: page.__matchRound || 1 });
+    writeLog(items);
+    page.setData({ matchLog: items });
+  } catch (e) { /* 存不上不影响游戏 */ }
+};
+// 把气泡里那段讲解词（原文）挂到刚记下的这一对上 —— 气泡显示什么就存什么
+page.showBubble = function (type, text) {
+  page.__showBubbleBase(type, text);
+  // 讲解走的是 'success'；第一句是占位「果灵正在讲解…」，跳过它，只存真正的讲解原文
+  if (type === 'success') {
+    const t = String(text || '').trim();
+    if (t && t.indexOf('正在讲解') === -1) page.__attachNote(t);
+  }
+};
+
+page.__attachNote = function (text) {
+  try {
+    const clean = String(text || '').trim();
+    if (!clean) return;
+    const pid = page.__knowledgePairId;
+    const items = readLog().slice();
+    if (!items.length) return;
+    let hit = 0;
+    // 优先挂到"当前正在讲解的那一对"；找不到就退回最后一条（兜底）
+    items.forEach(function (it) { if (pid && it.id === pid) { it.note = clean; hit++; } });
+    if (!hit) items[items.length - 1].note = clean;
+    writeLog(items);
+    page.setData({ matchLog: items });
+  } catch (e) { /* 忽略 */ }
+};
+// 本轮结算：缺讲解的对"静默补查"一次（先显示"果灵正在讲解…"，拿到就替换；失败用知识库原文兜底）
+page.__ensureRoundNotes = function (roundNo) {
+  const items = readLog();
+  const targets = items.filter(function (it) { return (it.round || 1) <= roundNo && !it.note; });
+  if (!targets.length) return;
+  targets.forEach(function (it) { it.note = '果灵正在讲解…'; });
+  writeLog(items);
+  page.setData({ matchRoundLog: items.filter(function (it) { return (it.round || 1) <= roundNo; }) });
+  targets.forEach(function (it) {
+    const cached = (page._matchElfCache || {})[it.id];
+    const fallback = '「' + it.label + '」说的是' + it.fruit + '：' + it.source + '。';
+    function fill(text) {
+      const list = readLog();
+      list.forEach(function (x) { if (x.id === it.id && (x.round || 1) <= roundNo && x.note === '果灵正在讲解…') x.note = text; });
+      writeLog(list);
+      page.setData({ matchRoundLog: list.filter(function (x) { return (x.round || 1) <= roundNo; }) });
+    }
+    if (cached) { fill(cached); return; }
+    let context = null;
+    try { context = media.capture(); } catch (e) { context = null; }
+    if (!context) { fill(fallback); return; }
+    media.request(context, 'POST', '/api/chat', {
+      taskType: 'match', fruit: it.fruit, category: '', label: it.label, isCorrect: true, context: it.source
+    }).then(function (data) {
+      const text = (data && data.knowledge && data.knowledge.length) ? data.knowledge : fallback;
+      fill(text);
+    }).catch(function () { fill(fallback); });
+  });
+};
+// 展示本轮图谱（只本轮 4 对）
+page.__showRoundGraph = function (roundNo) {
+  const items = readLog().filter(function (it) { return (it.round || 1) <= roundNo; });
+  page.setData({ matchRoundLog: items });
+};
+
+  page.__loadMatchLog();
     const self = this;
     const state = loadState();
     page._matchState = state;
 
     // 气泡打字机：逐字显示，成功从上淡入，失败从下「蹦」出，选中为静态提示。
-    page.showBubble = function (type, text) {
+page.__showBubbleBase = function (type, text) {
       page._bubbleTimer && clearInterval(page._bubbleTimer);
       page._bubbleChars = String(text || '').split('');
       page._bubbleIndex = 0;
@@ -134,6 +225,8 @@ module.exports = {
       if (!fruit || !label) return;
       const pair = page._round.find(function (p) { return p.id === fruit; });
       const correct = pair && label === pair.id;
+    // 今日连线图谱：把这一对的结果记进"今天"的记录（实线=对 / 虚线=错）
+    page.__pushMatchLog(fruit, label, correct);
       if (correct) {
         const matched = Object.assign({}, page.data.matchMatched);
         matched[fruit] = true;
@@ -164,6 +257,8 @@ module.exports = {
     }.bind(page);
 
     page.showKnowledge = function (pair, correct) {
+  // 记住当前正在讲解的那一对：后面异步返回的讲解就挂到它身上（按 id，不靠"最近一条"）
+  if (pair && pair.id) page.__knowledgePairId = pair.id;
       // 只解释一次：先显示「正在讲解」，等知识库(AI)返回后显示唯一一段讲解；AI 无返回才用本地原文兜底一次。
       page.showBubble('success', '果灵正在讲解…');
       const cacheKey = pair.id;
@@ -198,6 +293,13 @@ module.exports = {
     };
 
     page.finishRound = function () {
+  // 本轮结算（2026-10-08 新增）：先展示"本轮 4 对"的图谱，再补查缺讲解的条目
+  try {
+    const rn = page.__matchRound || 1;
+    page.__showRoundGraph(rn);
+    page.__ensureRoundNotes(rn);
+    page.__matchRound = rn + 1;   // 下一轮用新编号（本轮的记录保持原编号）
+  } catch (e) { /* 结算失败不影响游戏 */ }
       const st = page._matchState;
       st.playedToday += 1;
       // 持久化最后这局，杀进程重进也能固定显示结束页（4 张配对成功的卡 + 底部讲解）。

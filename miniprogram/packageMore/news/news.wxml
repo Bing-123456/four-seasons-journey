@@ -15,21 +15,31 @@
     <view wx:for="{{cards}}" wx:key="id" class="town-card" id="town-{{item.id}}">
       <image class="town-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
 
+      <view class="town-line">{{L.pub_name}}</view>
       <view class="town-title">{{item.name}}</view>
       <view wx:if="{{item.termLabel}}" class="town-term">{{item.termLabel}}</view>
+      <view wx:if="{{item.activityDate}}" class="town-line town-date">{{L.news_activity_date}} {{item.activityDate}}</view>
 
       <view wx:if="{{item.experiences.length}}" class="town-chips">
         <view wx:for="{{item.experiences}}" wx:for-item="tag" wx:key="*this" class="town-chip">{{tag}}</view>
       </view>
 
-      <view wx:if="{{item.region}}" class="town-line">{{item.region}}</view>
+      <view wx:if="{{item.region}}" class="town-line">{{L.sl_region}}</view>
+        <view wx:if="{{item.region}}" class="town-line">{{item.region}}</view>
+        <view wx:if="{{item.address}}" class="town-line">{{L.sl_address}}</view>
+        <view wx:if="{{item.address}}" class="town-line">{{item.address}}</view>
+        <view wx:if="{{item.openDateText}}" class="town-line">{{L.sl_open_date}}：{{item.openDateText}}</view>
+        <view wx:if="{{item.openTimeText}}" class="town-line">{{L.sl_open_time}}：{{item.openTimeText}}</view>
       <view wx:if="{{item.distance}}" class="town-line town-distance">{{item.distance}}</view>
-      <view wx:if="{{item.intro}}" class="town-intro">{{item.intro}}</view>
-      <view wx:if="{{item.transport}}" class="town-line town-transport">{{item.transport}}</view>
-      <view wx:if="{{item.contact}}" class="town-line town-contact">{{item.contact}}</view>
+      <view wx:if="{{item.intro}}" class="town-line">{{L.sl_intro}}</view>
+        <view wx:if="{{item.intro}}" class="town-intro">{{item.intro}}</view>
+      <view wx:if="{{item.transport}}" class="town-line town-transport">{{L.sl_transport}}：{{item.transport}}</view>
+      <!-- 联系方式：微信号 / 手机号（2026-10-08） -->
+        <view class="town-line">微信号：{{item.wechat || '无'}}</view>
+        <view class="town-line">手机号：{{item.phone || '无'}}</view>
 
       <view class="town-actions">
-        <button wx:if="{{item.contact}}" class="town-btn town-btn-primary" data-contact="{{item.contact}}" bindtap="copyContact">{{L.news_copy_wechat}}</button>
+        <button wx:if="{{item.contact}}" class="town-btn town-btn-primary" data-contact="{{item.contact}}" bindtap="copyContact">{{L.news_copy_phone}}</button>
         <button wx:else class="town-btn town-btn-primary" data-id="{{item.id}}" bindtap="viewCard">{{L.news_view_card}}</button>
         <button class="town-btn" data-id="{{item.id}}" bindtap="planTicket">{{L.news_plan_ticket}}</button>
       </view>

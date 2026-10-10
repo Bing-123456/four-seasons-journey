@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "手艺小课堂"
+  "navigationBarTitleText": "手艺小课堂",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
 }

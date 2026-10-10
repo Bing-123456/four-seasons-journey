@@ -97,7 +97,9 @@ test('the almanac keeps one screen while its fruit directory explains the favour
   assert.doesNotMatch(markup, /selectedFruit|fruit-cat/, 'details stay in their own page');
   assert.doesNotMatch(read('miniprogram/packageMore/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
   assert.match(detail, /'♥' : '♡'/, 'the heart fills in once a note is favourited');
-  assert.match(read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxss'), /\.fruit-fav\.is-fav\{color:#D0342C\}/, 'the filled heart is red');
+  // 2026-10-08 全站视觉统一：原来用的是 #D0342C（规范外的红），已收敛到色板里的赭红 #B96D50。
+  // 断言容忍冒号后的空格（竹简改造时重写过样式，写法不带空格）。
+  assert.match(read('miniprogram/packageFruit/pages/fruit-detail/fruit-detail.wxss'), /\.fruit-fav\.is-fav\{color:\s*#B96D50\}/, 'the filled heart is red');
   assert.match(i18n.t('fruit_note_short'), /右上角爱心/, 'the footer note points at the row heart');
   assert.match(markup, /id="guoling-search"/, 'the search entry closes the almanac');
   assert.match(markup, /L\.guoling_search_title/, 'the entry is titled 果灵搜索');

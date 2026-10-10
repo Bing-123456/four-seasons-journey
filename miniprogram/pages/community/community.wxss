@@ -1,34 +1,60 @@
-page { background: #F7F5ED; }
+page { background: #FBF8F1; }
+/* 容错：唤醒提示与重试按钮（云托管冷启动时给出口，不再是死胡同） */
+.state-tip.waking { color: #6F7C70; }
+.state-tip.error .error-text { font-size: calc(23rpx * var(--fs-scale, 1)); line-height: 1.7; }
+.retry-button { margin-top: 22rpx; background: #234B3C; color: #FFFDF8; font-size: calc(23rpx * var(--fs-scale, 1)); border-radius: 18rpx; padding: 0 34rpx; line-height: 2.4; }
 .community-page { padding: 24rpx 32rpx calc(60rpx + env(safe-area-inset-bottom)); min-height: 0; }
 /* 顶部横幅：横版插画 + 标题（评审 10.5：白底太秃，换米黄基调 + 现有果园插画） */
-.community-banner { position: relative; height: 220rpx; border-radius: 22rpx; overflow: hidden; margin-bottom: 24rpx; box-shadow: 0 4rpx 18rpx rgba(29,37,32,.06); }
+.community-banner { position: relative; height: 220rpx; border-radius: 28rpx; overflow: hidden; margin-bottom: 24rpx; box-shadow: 0 4rpx 18rpx rgba(29,37,32,.06); }
 .community-banner-art { position: absolute; inset: 0; width: 100%; height: 100%; }
 .community-banner-copy { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 20rpx 26rpx; background: linear-gradient(180deg, rgba(247,245,237,0) 30%, rgba(29,37,32,.62) 100%); }
-.community-banner-title { font-size: calc(36rpx * var(--fs-scale, 1)); font-weight: 700; color: #FFFDF8; letter-spacing: 1rpx; }
-.community-banner-sub { font-size: calc(22rpx * var(--fs-scale, 1)); color: rgba(255,253,248,.88); margin-top: 6rpx; }
-.state-tip { color: #6e6e73; font-size: calc(25rpx * var(--fs-scale, 1)); line-height: 1.7; text-align: center; padding: 80rpx 0; }
-.state-tip.error { color: #a43c35; }
+.community-banner-title { font-size: calc(38rpx * var(--fs-scale, 1)); font-weight: 700; color: #FFFDF8; letter-spacing: 1rpx; }
+.community-banner-sub { font-size: calc(21rpx * var(--fs-scale, 1)); color: rgba(255,253,248,.88); margin-top: 6rpx; }
+.state-tip { color: #6F7C70; font-size: calc(26rpx * var(--fs-scale, 1)); line-height: 1.7; text-align: center; padding: 80rpx 0; }
+.state-tip.error { color: #B96D50; }
 .empty-state { padding: 120rpx 40rpx; }
-.empty-glyph { font-size: calc(88rpx * var(--fs-scale, 1)); line-height: 1; margin-bottom: 24rpx; }
-.empty-text { color: #8B948C; }
+.empty-glyph { font-size: calc(52rpx * var(--fs-scale, 1)); line-height: 1; margin-bottom: 24rpx; }
+.empty-text { color: #87917B; }
 .feed-list { display: flex; flex-direction: column; gap: 22rpx; }
-.feed-item { background: #FFFFFF; border-radius: 22rpx; padding: 24rpx 26rpx; box-shadow: 0 4rpx 18rpx rgba(29,37,32,.04); }
+.feed-item { background: #FFFFFF; border-radius: 28rpx; padding: 24rpx 26rpx; box-shadow: 0 4rpx 20rpx rgba(29,37,32,.06); }
 .feed-head { display: flex; align-items: center; gap: 16rpx; margin-bottom: 18rpx; }
 .feed-avatar { width: 72rpx; height: 72rpx; border-radius: 50%; background: #EAF0E0; flex-shrink: 0; }
 .feed-head-copy { min-width: 0; }
 .feed-name { font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; font-weight: 600; line-height: 1.4; }
-.feed-time { font-size: calc(21rpx * var(--fs-scale, 1)); color: #9AA39A; margin-top: 4rpx; }
-.feed-image { width: 100%; height: 360rpx; border-radius: 14rpx; background: #EEEADF; }
-.feed-text { font-size: calc(27rpx * var(--fs-scale, 1)); color: #344B36; line-height: 1.7; margin-top: 14rpx; }
+.feed-time { font-size: calc(21rpx * var(--fs-scale, 1)); color: #87917B; margin-top: 4rpx; }
+.feed-image { width: 100%; height: 360rpx; border-radius: 14rpx; background: #F0ECDE; }
+.feed-text { font-size: calc(26rpx * var(--fs-scale, 1)); color: #2E4A38; line-height: 1.7; margin-top: 14rpx; }
 .feed-actions { display: flex; gap: 30rpx; margin-top: 16rpx; }
-.feed-action { font-size: calc(24rpx * var(--fs-scale, 1)); color: #8B948C; padding: 6rpx 0; }
-.feed-action.on { color: #C0392B; }
-.feed-comments { margin-top: 14rpx; background: #F5F6F3; border-radius: 12rpx; padding: 14rpx 18rpx; }
-.feed-comment { font-size: calc(23rpx * var(--fs-scale, 1)); color: #34403A; line-height: 1.65; padding: 2rpx 0; }
-.fc-name { color: #4F6B45; font-weight: 600; }
-.fc-reply-text { color: #6E7A6F; }
-.fc-text { color: #34403A; }
+.feed-action { font-size: calc(23rpx * var(--fs-scale, 1)); color: #87917B; padding: 6rpx 0; }
+.feed-action.on { color: #B96D50; }
+.feed-comments { margin-top: 14rpx; background: #F5F5F7; border-radius: 12rpx; padding: 14rpx 18rpx; }
+.feed-comment { font-size: calc(23rpx * var(--fs-scale, 1)); color: #1D1D1F; line-height: 1.65; padding: 2rpx 0; }
+.fc-name { color: #47634B; font-weight: 600; }
+.fc-reply-text { color: #47634B; }
+.fc-text { color: #1D1D1F; }
 /* 右下角浮动「+」按钮：墨绿圆底 + 白色加号 */
-.community-fab { position: fixed; right: 32rpx; bottom: calc(48rpx + env(safe-area-inset-bottom)); width: 104rpx; height: 104rpx; border-radius: 50%; background: #234B3C; color: #FFFFFF; font-size: calc(56rpx * var(--fs-scale, 1)); line-height: 104rpx; text-align: center; box-shadow: 0 10rpx 24rpx rgba(35,75,60,.3); z-index: 20; }
+.community-fab { position: fixed; right: 32rpx; bottom: calc(48rpx + env(safe-area-inset-bottom)); width: 104rpx; height: 104rpx; border-radius: 50%; background: #234B3C; color: #FFFFFF; font-size: calc(52rpx * var(--fs-scale, 1)); line-height: 104rpx; text-align: center; box-shadow: 0 4rpx 20rpx rgba(29,37,32,.06); z-index: 20; }
 /* 长按删除提示：浅灰小字，低调不抢视觉 */
-.community-hint { font-size: calc(21rpx * var(--fs-scale, 1)); color: #A8AFA6; padding: 4rpx 4rpx 10rpx; line-height: 1.5; }
+.community-hint { font-size: calc(21rpx * var(--fs-scale, 1)); color: #87917B; padding: 4rpx 4rpx 10rpx; line-height: 1.5; }
+
+/* 社群背景（方向① 宣纸留白 + 淡墨远山）：纯 CSS 渐变绘制，不新增图片、主包 0KB 增长。
+   三层极淡墨色叠出"隐约一层"的远山，固定在屏幕底部，不随列表滚动、不吃点击。 */
+.community-page { position: relative; }
+.community-page::after {
+  content: '';
+  position: fixed; left: 0; right: 0; bottom: 108rpx; height: 150rpx;
+  pointer-events: none; z-index: 1;
+  background:
+    radial-gradient(120% 68% at 8% 104%, rgba(111,124,112,.18), transparent 68%),
+    radial-gradient(130% 60% at 34% 106%, rgba(111,124,112,.15), transparent 70%),
+    radial-gradient(120% 66% at 62% 105%, rgba(111,124,112,.17), transparent 69%),
+    radial-gradient(130% 58% at 92% 106%, rgba(111,124,112,.15), transparent 70%),
+    radial-gradient(120% 80% at 20% 106%, rgba(35,75,60,.16), transparent 70%),
+    radial-gradient(130% 72% at 78% 107%, rgba(35,75,60,.14), transparent 71%);
+}
+
+/* 底色要盖住 app.wxss 里全局 .page 的背景，所以用更高优先级的选择器 */
+.page.community-page { background: #FBF8F1; }
+
+/* 卡片压在远山之上，远山只从卡片之间的缝隙透出来 */
+.feed-item, .community-hint { position: relative; z-index: 2; }

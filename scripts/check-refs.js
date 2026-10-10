@@ -67,6 +67,44 @@ function walkComponents(dir) {
 walkComponents(path.join(base, 'components'));
 walkComponents(path.join(base, 'custom-tab-bar'));
 
+// 2026-10-09：app.json 不再有「全局自定义组件」（改用各页面自己声明，让按需注入真正生效）。
+// 没有全局兜底后，"wxml 用了组件但页面 json 没声明"会直接白屏，所以这里必须抓出来。
+const knownComponents = new Set();
+function collectComponents(map) {
+  if (!map) return;
+  Object.keys(map).forEach(k => knownComponents.add(k));
+}
+collectComponents(require(path.join(base, 'app.json')).usingComponents);
+function collectFromJson(jsonPath) {
+  if (!fs.existsSync(jsonPath)) return;
+  try { collectComponents(JSON.parse(fs.readFileSync(jsonPath, 'utf8')).usingComponents); } catch (e) { /* 上面已报错 */ }
+}
+pageDirs.forEach(dir => collectFromJson(dir + '.json'));
+function walkJson(dir) {
+  if (!fs.existsSync(dir)) return;
+  for (const name of fs.readdirSync(dir)) {
+    const sub = path.join(dir, name);
+    if (!fs.statSync(sub).isDirectory()) continue;
+    collectFromJson(path.join(sub, name + '.json'));
+    walkJson(sub);
+  }
+}
+walkJson(path.join(base, 'components'));
+
+for (const dir of pageDirs) {
+  const wxmlPath = dir + '.wxml';
+  if (!fs.existsSync(wxmlPath)) continue;
+  const wxml = fs.readFileSync(wxmlPath, 'utf8');
+  let declared = {};
+  const jsonPath = dir + '.json';
+  if (fs.existsSync(jsonPath)) { try { declared = JSON.parse(fs.readFileSync(jsonPath, 'utf8')).usingComponents || {}; } catch (e) { declared = {}; } }
+  for (const tag of knownComponents) {
+    if (new RegExp('<' + tag + '[\\s/>]').test(wxml) && !declared[tag]) {
+      problems.push('用到组件页面却没声明: ' + path.relative(base, wxmlPath) + ' 用了 <' + tag + '>，但 ' + path.relative(base, jsonPath) + ' 的 usingComponents 里没有它');
+    }
+  }
+}
+
 // 未声明却用到的插件
 for (const p of usedPlugins) {
   if (!declaredPlugins.some(d => p.indexOf(d) >= 0)) problems.push('代码用了未在 app.json 声明的插件: ' + p);

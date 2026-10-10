@@ -6,6 +6,40 @@ const solar = require('../data/solar-term-notes');
 const media = require('./media-service');
 const store = require('./store');
 const i18n = require('./i18n');
+const fruitCulture = require('../data/fruit-culture');
+const explanations = require('../data/challenge-explanations');
+
+// 海报排版常量（用户 2026-10-09 第 25 轮定稿：变体乙 = 高度贴合内容 + 正文 17px + 标签更大）
+const POSTER = { title: 21, titleLine: 30, gapAfterTitle: 28, body: 17, label: 21, line: 26, pointGap: 14, pad: 22 };
+
+// 题库里的水果名与文化库的名字偶有出入（例：题库写「桃」，文化库叫「桃子」）。
+// 之前直接按名查，查不到就**整块材料没有送出去**（18 道桃题都受影响）。这里补别名。
+const FRUIT_ALIAS = { 桃: '桃子' };
+function fruitEntryFor(name) {
+  const tries = [FRUIT_ALIAS[name], name, name + '子', name + '果'].filter(Boolean);
+  for (let i = 0; i < tries.length; i++) {
+    try {
+      const brief = fruitCulture.findFruitByName(tries[i]);
+      const full = brief && brief.fullId ? fruitCulture.findFruit(brief.fullId) : null;
+      if (full) return full;
+    } catch (e) { /* 换下一个名字再试 */ }
+  }
+  return null;
+}
+
+// 知识卡内容优先级（2026-10-09 第24 轮）：知识库写好的「原因/由来」→ AI → 题目自带的短事实
+// 注意：知识库只有中文文案（英文题库用的是**同一批 id**，键名相同），所以只在中文模式取用，
+// 英文模式仍走 AI / 本地事实，避免英文界面冒出中文讲解。
+function knowledgePointsFromKb(question) {
+  if (!question || !explanations) return null;
+  try { if (i18n.getLang && i18n.getLang() === 'en') return null; } catch (e) { /* 取不到语言就按中文处理 */ }
+  const entry = explanations[question.id];
+  if (!entry) return null;
+  const out = [];
+  if (entry.cause) out.push('原因：' + entry.cause);
+  if (entry.origin) out.push('由来：' + entry.origin);
+  return out.length ? out : null;
+}
 
 const KEY = 'guayouji.challenge.v2';
 const DAILY_LIMIT = 6;
@@ -239,15 +273,47 @@ function showLocked(page) {
   page.setData({
     challengeLocked: true,
     challengeState: 'locked',
-    challengeCards: state.todayCards || [], challengeCardRows: chunk(state.todayCards || [], 2),
+    challengeCards: state.todayCards || [], challengeCardRows: chunk(cardsWithView(state.todayCards || []), 2),
     challengeLeft: 0
   });
+}
+
+// 题面「提问引导语」（2026-10-09 用户要求）：有些题面只是陈述情境（如"小满一阵风雨，青梅幼果直往地上掉。"），
+// 没告诉用户要干什么 —— 这类题在题面**紧跟其后**补一行引导语；本身已经是问句的题不加（避免两句问句打架）。
+// 知识卡的"参考材料"（2026-10-09 第23 轮）：以前只把题目自带的 3 句短事实当成"知识库段落"送给 AI，
+// AI 手里只有这些，只能把它们换句话写 —— 于是卡片看着就是"复述选项"。
+// 现在把真材料一起送过去：
+//   ① 题目情境事实（原样保留，说明这道题在问什么）
+//   ② 该节气的札记（气候物候，讲"原因"要用）
+//   ③ 这道题那个水果的六维文化条目（典籍源流、古法、民俗、食养，讲"由来"要用）
+function knowledgeContext(q) {
+  const parts = [];
+  const facts = (q.knowledgePoints || []).slice(0, 3);
+  if (facts.length) parts.push('【题目情境事实】' + facts.join('；'));
+  try {
+    const term = solar.byName(q.term);
+    if (term) parts.push('【' + q.term + '节气札记】' + (term.headline ? term.headline + '。' : '') + (term.text || ''));
+  } catch (e) { /* 拿不到节气材料就不放 */ }
+  try {
+    const full = fruitEntryFor(q.fruit);
+    if (full && Array.isArray(full.categories)) {
+      const lines = full.categories.map(function (c) { return String((c && (c.detail || c.text)) || '').trim(); }).filter(Boolean);
+      if (lines.length) parts.push('【' + q.fruit + '文化库原文】' + lines.join(' '));
+    }
+  } catch (e) { /* 拿不到文化库就不放 */ }
+  return parts.join('\n');
+}
+
+function promptFor(question) {
+  const situation = String((question && question.situation) || '');
+  if (!situation) return '';
+  return /[？?]/.test(situation) ? '' : i18n.t('challenge_prompt');
 }
 
 function emitQuestion(page, question, spin) {
   page._challengeQuestion = question;
   page.setData({
-    challenge: question,
+    challenge: Object.assign({}, question, { prompt: promptFor(question) }),
     challengeState: 'answering',
     challengeSelected: -1,
     challengeCorrectIndex: question.options.findIndex(function (o) { return o.correct; }),
@@ -255,7 +321,7 @@ function emitQuestion(page, question, spin) {
     challengeLoadingKnowledge: false,
     challengeSaved: false,
     challengeSaving: false,
-    challengeCardTitle: '📖 ' + question.term + question.fruit + question.category,
+    challengeCardTitle: '📖 ' + question.term + ' · ' + question.fruit + ' · ' + question.category,
     'wheel.selectedFruit': question.fruit,
     'wheel.selectedTerm': question.term,
     'wheel.selectedCategory': question.category
@@ -326,7 +392,7 @@ function finishToday(page) {
   page.setData({
     challengeLocked: true,
     challengeState: 'locked',
-    challengeCards: state.todayCards || [], challengeCardRows: chunk(state.todayCards || [], 2),
+    challengeCards: state.todayCards || [], challengeCardRows: chunk(cardsWithView(state.todayCards || []), 2),
     challengeLeft: 0
   });
 }
@@ -355,8 +421,30 @@ function chunk(arr, n) {
   for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
   return out;
 }
+
+// 知识卡的两条是「原因：…」「由来：…」这种"标签+正文"的字符串。
+// 用户 2026-10-09 第 25 轮要求：**标签要比正文更大**，所以把标签单独拆出来给模板渲染：
+//   { label: '原因：', text: '…' }  → 模板里 <text class="challenge-k-label">{{label}}</text>{{text}}
+function splitPoint(point) {
+  const s = String(point == null ? '' : point);
+  const i = s.indexOf('：');
+  if (i <= 0) return { label: '', text: s };
+  return { label: s.slice(0, i + 1), text: s.slice(i + 1) };
+}
+function pointsView(points) { return (points || []).map(splitPoint); }
+// 给知识卡对象补一份"可渲染视图"，points（字符串数组）保持原样（海报/持久化还在用）
+function withPointsView(kb) {
+  if (!kb || !Array.isArray(kb.points)) return kb;
+  return { points: kb.points, pointsView: pointsView(kb.points) };
+}
+// 今日知识卡（2 列网格）同样补一份视图
+function cardsWithView(cards) {
+  return (cards || []).map(function (c) {
+    return Object.assign({}, c, { pointsView: pointsView(c && c.points) });
+  });
+}
 function setCards(page, cards) {
-  page.setData({ challengeCards: cards, challengeCardRows: chunk(cards, 2) });
+  page.setData({ challengeCards: cards, challengeCardRows: chunk(cardsWithView(cards), 2) });
 }
 
 function afterKnowledge(page, q, points, correct) {
@@ -365,7 +453,10 @@ function afterKnowledge(page, q, points, correct) {
   const sig = q.id + ':' + (correct ? '1' : '0');
   const last = st.todayCards[st.todayCards.length - 1];
   if (!last || last.sig !== sig) {
-    st.todayCards.push({ sig: sig, fruit: q.fruit, term: q.term, category: q.category, situation: q.situation, points: points });
+    // 知识卡加「正解」：字母 + 文字都取自题库里 correct: true 的那一项（不编造）
+    const __ans = (q.options || []).filter(function (o) { return o && o.correct; })[0];
+    const __ansText = __ans ? ((__ans.letter ? __ans.letter + '. ' : '') + (__ans.text || '')) : '';
+    st.todayCards.push({ sig: sig, fruit: q.fruit, term: q.term, category: q.category, situation: q.situation, points: points, answer: __ansText });
     if (st.todayCards.length > DAILY_LIMIT) st.todayCards = st.todayCards.slice(-DAILY_LIMIT);
   }
   writeState(st);
@@ -373,6 +464,15 @@ function afterKnowledge(page, q, points, correct) {
 }
 
 module.exports = {
+  // 给自测用：拼一道题的"知识卡参考材料"（真材料：情境事实 + 节气札记 + 水果六维文化库）
+  contextFor: knowledgeContext,
+  // 给自测用：取这道题知识库里写好的「原因 / 由来」（没有则 null）
+  knowledgePointsFor: knowledgePointsFromKb,
+  // 给自测用：标签/正文拆分（「原因：」「由来：」单独渲染成更大字号）与海报高度计算
+  splitPoint: splitPoint,
+  pointsView: pointsView,
+  posterHeight: posterHeight,
+  POSTER: POSTER,
   init: function (page) {
     const state = loadState();
     page._challengeState = state;
@@ -390,16 +490,16 @@ module.exports = {
       page.setData({
         challengeLocked: false,
         challengeState: state.challengeState,
-        challenge: state.challengeData,
+        challenge: Object.assign({}, state.challengeData, { prompt: promptFor(state.challengeData) }),
         challengeSelected: state.challengeSelected != null ? state.challengeSelected : -1,
         challengeCorrectIndex: state.challengeCorrectIndex != null ? state.challengeCorrectIndex : -1,
-        challengeKnowledge: state.challengeKnowledge || null,
+        challengeKnowledge: withPointsView(state.challengeKnowledge) || null,
         challengeSaved: !!state.challengeSaved,
         challengeSaving: false,
         challengeCardTitle: state.challengeCardTitle || '',
         challengeLoadingKnowledge: false,
         challengeLeft: DAILY_LIMIT - state.playedToday,
-        challengeCards: state.todayCards || [], challengeCardRows: chunk(state.todayCards || [], 2),
+        challengeCards: state.todayCards || [], challengeCardRows: chunk(cardsWithView(state.todayCards || []), 2),
         wheelRot: state.wheelRot || { term: 0, fruit: 0, category: 0 },
         wheel: { fruits: FRUITS, terms: WHEEL_TERMS, categories: CATEGORIES, selectedFruit: sel.fruit || '', selectedTerm: sel.term || '', selectedCategory: sel.category || '' }
       });
@@ -468,7 +568,12 @@ module.exports = {
       persist(page);
     }.bind(page);
 
-    // 知识卡：先显示占位，等 AI 一次性返回后定稿（不再中途变内容）。
+    // 知识卡：**知识库优先**（2026-10-09 第24 轮）——
+    // data/challenge-explanations.js 里逐题写好了「原因 / 由来」，有就直接用：
+    //   · 保证每道题都是两段（不再看模型心情）
+    //   · 离线、弱网也有内容
+    //   · 省掉一次模型调用
+    // 知识库里没有这一题时，才走原来的 AI 路径；AI 也拿不到内容才回落到题目自带的短事实。
     page.showKnowledge = function (correct) {
       const q = page._challengeQuestion;
       if (!q) return;
@@ -476,7 +581,15 @@ module.exports = {
       if (!page._elfPoints) page._elfPoints = {};
       const cacheKey = q.id + ':' + (correct ? '1' : '0');
       if (page._elfPoints[cacheKey]) {
-        page.setData({ challengeKnowledge: { points: page._elfPoints[cacheKey] }, challengeLoadingKnowledge: false });
+        page.setData({ challengeKnowledge: { points: page._elfPoints[cacheKey], pointsView: pointsView(page._elfPoints[cacheKey]) }, challengeLoadingKnowledge: false });
+        return;
+      }
+      const fromKb = knowledgePointsFromKb(q);
+      if (fromKb) {
+        page._elfPoints[cacheKey] = fromKb;
+        page.setData({ challengeKnowledge: { points: fromKb, pointsView: pointsView(fromKb) }, challengeLoadingKnowledge: false });
+        afterKnowledge(page, q, fromKb, correct);
+        persist(page);
         return;
       }
       page.setData({ challengeKnowledge: null, challengeLoadingKnowledge: true });
@@ -488,7 +601,7 @@ module.exports = {
       page._elfCache[cacheKey] = true;
       const finish = function (points) {
         page._elfPoints[cacheKey] = points;
-        page.setData({ challengeKnowledge: { points: points }, challengeLoadingKnowledge: false });
+        page.setData({ challengeKnowledge: { points: points, pointsView: pointsView(points) }, challengeLoadingKnowledge: false });
         afterKnowledge(page, q, points, correct);
         persist(page); // 决策3：AI 返回知识卡后持久化，退出再进恢复完整知识卡页
       };
@@ -496,10 +609,17 @@ module.exports = {
       try { context = media.capture(); } catch (e) { context = null; }
       if (!context) { finish((q.knowledgePoints || []).slice(0, 3)); return; }
       const optText = page.data.challenge.options[page.data.challengeSelected] ? page.data.challenge.options[page.data.challengeSelected].text : '';
-      media.request(context, 'POST', '/api/chat', {
-        taskType: 'challenge', term: q.term, fruit: q.fruit, category: q.category, situation: q.situation,
-        userChoice: optText, isCorrect: correct, context: (q.knowledgePoints || []).join('；')
-      }).then(function (data) {
+      // 中文模式才把题目 id 带给服务端（服务端也用知识库）；英文模式不带，走 AI
+      media.request(context, 'POST', '/api/chat', (function () {
+        const isEn = (function () { try { return i18n.getLang && i18n.getLang() === 'en'; } catch (e) { return false; } })();
+        const body = {
+          taskType: 'challenge', term: q.term, fruit: q.fruit, category: q.category, situation: q.situation,
+          userChoice: optText, isCorrect: correct, context: knowledgeContext(q)
+        };
+        if (!isEn) body.questionId = q.id;
+        return body;
+      })()
+      ).then(function (data) {
         if (!data || !Array.isArray(data.knowledgePoints) || !data.knowledgePoints.length) { finish((q.knowledgePoints || []).slice(0, 3)); return; }
         finish(data.knowledgePoints.slice(0, 4));
       }).catch(function () { finish((q.knowledgePoints || []).slice(0, 3)); });
@@ -534,15 +654,21 @@ module.exports = {
 };
 
 // 把一段文本按像素宽度换行绘制，返回绘制后的 y 坐标。
-function wrapText(ctx, text, x, y, maxW, lh) {
+function wrapText(ctx, text, x, y, maxW, lh, firstIndent) {
   const chars = String(text).split('');
   let line = '';
+  let lineX = x + (firstIndent || 0);
+  let lineMax = maxW - (firstIndent || 0);
   for (let i = 0; i < chars.length; i++) {
     const test = line + chars[i];
-    if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, y); line = chars[i]; y += lh; }
-    else line = test;
+    if (ctx.measureText(test).width > lineMax && line) {
+      ctx.fillText(line, lineX, y);
+      line = chars[i];
+      y += lh;
+      lineX = x; lineMax = maxW;   // 第二行起顶格
+    } else line = test;
   }
-  if (line) ctx.fillText(line, x, y);
+  if (line) ctx.fillText(line, lineX, y);
   return y;
 }
 
@@ -571,6 +697,27 @@ function requestAlbumPermission(callback) {
 }
 
 // 把「转盘 + 知识卡」合成一张图保存到相册：先抓转盘 canvas，再画到离屏合成 canvas 上，叠加知识卡文字。
+// 海报高度原来固定 2.0 倍窗宽；知识卡改成「原因 + 由来」两段后文字变长，末尾容易被切掉 ✗
+// → 按内容估算行数，高度贴合内容（变体乙），照片永远是"满"的。
+function posterHeight(win, title, points) {
+  const W = win.windowWidth;
+  const textW = W - POSTER.pad * 2;
+  const perLine = Math.max(8, Math.floor(textW / POSTER.body));
+  let bodyLines = 0;
+  (points || []).forEach(function (p) {
+    const parts = splitPoint(p);
+    bodyLines += Math.max(1, Math.ceil((parts.text.length + parts.label.length + 1) / perLine));
+  });
+  const titleLines = Math.max(1, Math.ceil(String(title || '').length / Math.max(6, Math.floor(textW / POSTER.title))));
+  const need = W * 0.04 + W * 0.82 + 28                     // 转盘 + 标题前留白
+    + titleLines * POSTER.titleLine + POSTER.gapAfterTitle  // 标题 + 与横线的间距
+    + 20                                                    // 横线到正文
+    + bodyLines * POSTER.line
+    + Math.max(0, (points || []).length - 1) * POSTER.pointGap
+    + 30;                                                   // 底部留白
+  // 不再兜底 2 倍窗宽：高度按内容贴合，照片永远是"满"的（变体乙）
+  return Math.round(need);
+}
 function saveAlbum(page, onDone) {
   const wheelCanvas = page._wheelCanvas;
   if (!wheelCanvas) { wx.showToast({ title: '暂不支持保存', icon: 'none' }); onDone(false); return; }
@@ -578,7 +725,7 @@ function saveAlbum(page, onDone) {
   const W = win.windowWidth;
   const points = (page.data.challengeKnowledge && page.data.challengeKnowledge.points) || [];
   const title = page.data.challengeCardTitle || '';
-  const shareH = Math.round(W * 2.0);
+  const shareH = posterHeight(win, title, points);
   wx.canvasToTempFilePath({
     canvas: wheelCanvas,
     success: function (wr) {
@@ -600,20 +747,29 @@ function saveAlbum(page, onDone) {
           sctx.drawImage(img, wx0, wy, wheelSize, wheelSize);
           let y = wy + wheelSize + 28;
           sctx.fillStyle = '#234B3C';
-          sctx.font = 'bold 19px sans-serif';
+          sctx.font = 'bold ' + POSTER.title + 'px sans-serif';
           sctx.textAlign = 'left';
           sctx.textBaseline = 'top';
-          y = wrapText(sctx, title, 22, y, W - 44, 26);
-          y += 18;
+          y = wrapText(sctx, title, 22, y, W - 44, POSTER.titleLine);
+          y += POSTER.gapAfterTitle;                     // 标题与横线之间留足间距（原来 18px，字几乎贴线）
           sctx.strokeStyle = '#C0DD97';
           sctx.lineWidth = 1;
           sctx.beginPath(); sctx.moveTo(22, y); sctx.lineTo(W - 22, y); sctx.stroke();
           y += 20;
-          sctx.fillStyle = '#333333';
-          sctx.font = '15px sans-serif';
           points.forEach(function (p, idx) {
-            if (idx > 0) y += 12;
-            y = wrapText(sctx, '· ' + p, 22, y, W - 44, 24) + 16;
+            if (idx > 0) y += POSTER.pointGap;
+            // 「原因：」「由来：」用更大的字号单独画，正文接着首行往下排
+            const parts = splitPoint(p);
+            let firstIndent = 0;
+            if (parts.label) {
+              sctx.font = 'bold ' + POSTER.label + 'px sans-serif';
+              sctx.fillStyle = '#234B3C';
+              sctx.fillText(parts.label, 22, y);
+              firstIndent = sctx.measureText(parts.label).width;
+            }
+            sctx.font = POSTER.body + 'px sans-serif';
+            sctx.fillStyle = '#333333';
+            y = wrapText(sctx, (firstIndent ? '' : '· ') + parts.text, 22, y, W - 44, POSTER.line, firstIndent) + POSTER.line - 4;
           });
           wx.canvasToTempFilePath({
             canvas: sc,

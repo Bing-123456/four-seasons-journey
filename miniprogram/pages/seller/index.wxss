@@ -1,19 +1,35 @@
 .page { padding: 28rpx 28rpx 60rpx; background: #FFFDF8; min-height: 100vh; box-sizing: border-box; }
 .head { display: flex; align-items: center; margin-bottom: 24rpx; }
-.mark { width: 72rpx; height: 72rpx; border-radius: 18rpx; background: #3C9D6E; color: #fff; font-size: calc(40rpx * var(--fs-scale, 1)); display: flex; align-items: center; justify-content: center; margin-right: 18rpx; }
-.title { font-size: calc(44rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
-.publish-btn { width: 100%; background: #3C9D6E; color: #fff; border-radius: 44rpx; font-size: calc(32rpx * var(--fs-scale, 1)); margin-bottom: 28rpx; }
+.mark { width: 72rpx; height: 72rpx; border-radius: 18rpx; background: #47634B; color: #fff; font-size: calc(38rpx * var(--fs-scale, 1)); display: flex; align-items: center; justify-content: center; margin-right: 18rpx; }
+.title { font-size: calc(48rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
+.publish-btn { width: 100%; background: #47634B; color: #fff; border-radius: 44rpx; font-size: calc(32rpx * var(--fs-scale, 1)); margin-bottom: 28rpx; }
 .section-title { font-size: calc(32rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin: 8rpx 0 16rpx; }
-.empty { font-size: calc(26rpx * var(--fs-scale, 1)); color: #9aa89e; text-align: center; padding: 40rpx 0; }
-.town-card { background: #fff; border-radius: 18rpx; padding: 24rpx; margin-bottom: 16rpx; display: flex; align-items: center; box-shadow: 0 2rpx 10rpx rgba(35,75,60,0.05); }
+.empty { font-size: calc(26rpx * var(--fs-scale, 1)); color: #87917B; text-align: center; padding: 40rpx 0; }
+.town-card { background: #fff; border-radius: 18rpx; padding: 24rpx; margin-bottom: 16rpx; display: flex; align-items: center; box-shadow: 0 4rpx 20rpx rgba(29,37,32,.06); }
 .tc-main { flex: 1; }
-.tc-name { font-size: calc(30rpx * var(--fs-scale, 1)); font-weight: 600; color: #234B3C; }
-.tc-tag { font-size: calc(24rpx * var(--fs-scale, 1)); color: #3C9D6E; margin-top: 6rpx; }
-.tc-status { font-size: calc(24rpx * var(--fs-scale, 1)); padding: 4rpx 14rpx; border-radius: 20rpx; margin: 0 16rpx; }
+.tc-name { font-size: calc(28rpx * var(--fs-scale, 1)); font-weight: 600; color: #234B3C; }
+.tc-tag { font-size: calc(23rpx * var(--fs-scale, 1)); color: #47634B; margin-top: 6rpx; }
+.tc-status { font-size: calc(23rpx * var(--fs-scale, 1)); padding: 4rpx 14rpx; border-radius: 28rpx; margin: 0 16rpx; }
 .tc-status.on { color: #3C9D6E; background: #EAF1E2; }
 .tc-status.off { color: #9aa89e; background: #F0F2EE; }
 .tc-actions { display: flex; flex-direction: column; align-items: flex-end; }
 .tc-edit { font-size: calc(26rpx * var(--fs-scale, 1)); color: #234B3C; margin-bottom: 10rpx; }
-.tc-down { font-size: calc(26rpx * var(--fs-scale, 1)); color: #C0392B; }
-.state-tip { text-align: center; color: #9aa89e; font-size: calc(28rpx * var(--fs-scale, 1)); padding: 80rpx 0; }
-.state-tip.error { color: #C0392B; }
+.tc-down { font-size: calc(26rpx * var(--fs-scale, 1)); color: #B96D50; }
+.state-tip { text-align: center; color: #87917B; font-size: calc(28rpx * var(--fs-scale, 1)); padding: 80rpx 0; }
+.state-tip.error { color: #B96D50; }
+
+/* 工作台里的明确出口（系统小房子已隐藏） */
+.back-tourist{position:fixed;right:28rpx;bottom:calc(40rpx + env(safe-area-inset-bottom));z-index:50;padding:16rpx 30rpx;border-radius:999rpx;background:#234B3C;color:#FFFDF8;font-size:calc(23rpx * var(--fs-scale, 1));box-shadow:0 6rpx 20rpx rgba(29,37,32,.24)}
+
+/* 名片：显示全部填写内容；空值在模板里整项不渲染，所以卡片高度自适应、不留空白 */
+.tc-line{font-size:calc(23rpx * var(--fs-scale, 1));color:#7A7062;line-height:1.6;margin-top:6rpx;overflow-wrap:anywhere}
+.tc-chips{display:flex;flex-wrap:wrap;gap:8rpx;margin-top:10rpx}
+.tc-chip{font-size:calc(21rpx * var(--fs-scale, 1));color:#234B3C;background:#EEF3EC;border-radius:999rpx;padding:4rpx 16rpx;line-height:1.6}
+.tc-block{margin-top:12rpx}
+.tc-label{font-size:calc(21rpx * var(--fs-scale, 1));color:#9AA79B;line-height:1.5;margin-bottom:4rpx}
+.tc-intro{font-size:calc(23rpx * var(--fs-scale, 1));color:#3F4A3F;line-height:1.75;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.tc-intro.open{display:block;-webkit-line-clamp:999;overflow:visible}
+.tc-more{display:inline-block;margin-top:8rpx;font-size:calc(21rpx * var(--fs-scale, 1));font-weight:600;color:#47634B}
+
+/* 工作台加载失败时的重试入口（只这一个按钮，不动其它样式） */
+.seller-retry{margin-top:22rpx;display:inline-block;padding:14rpx 38rpx;border-radius:999rpx;background:#234B3C;color:#FFFDF8;font-size:calc(23rpx * var(--fs-scale, 1));font-weight:600}
