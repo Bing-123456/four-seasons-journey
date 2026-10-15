@@ -2,7 +2,12 @@
 .head { display: flex; align-items: center; margin-bottom: 24rpx; }
 .mark { width: 72rpx; height: 72rpx; border-radius: 18rpx; background: #47634B; color: #fff; font-size: calc(38rpx * var(--fs-scale, 1)); display: flex; align-items: center; justify-content: center; margin-right: 18rpx; }
 .title { font-size: calc(48rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
-.publish-btn { width: 100%; background: #47634B; color: #fff; border-radius: 44rpx; font-size: calc(32rpx * var(--fs-scale, 1)); margin-bottom: 28rpx; }
+/* 主入口「果园活动方案」（新设计图 1）：白底 + 深绿描边卡片，位置与圆角沿用原来那个按钮 */
+.plan-entry { display: flex; align-items: center; background: #fff; border: 2rpx solid #234B3C; border-radius: 18rpx; padding: 24rpx; margin-bottom: 28rpx; }
+.pe-main { flex: 1; }
+.pe-title { font-size: calc(34rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
+.pe-hint { font-size: calc(24rpx * var(--fs-scale, 1)); color: #87917B; line-height: 1.5; margin-top: 8rpx; }
+.pe-arrow { font-size: calc(40rpx * var(--fs-scale, 1)); color: #234B3C; line-height: 1; margin-left: 16rpx; }
 .section-title { font-size: calc(32rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin: 8rpx 0 16rpx; }
 .empty { font-size: calc(26rpx * var(--fs-scale, 1)); color: #87917B; text-align: center; padding: 40rpx 0; }
 .town-card { background: #fff; border-radius: 18rpx; padding: 24rpx; margin-bottom: 16rpx; display: flex; align-items: center; box-shadow: 0 4rpx 20rpx rgba(29,37,32,.06); }
@@ -30,6 +35,11 @@
 .tc-intro{font-size:calc(23rpx * var(--fs-scale, 1));color:#3F4A3F;line-height:1.75;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
 .tc-intro.open{display:block;-webkit-line-clamp:999;overflow:visible}
 .tc-more{display:inline-block;margin-top:8rpx;font-size:calc(21rpx * var(--fs-scale, 1));font-weight:600;color:#47634B}
+
+/* 「我的方案」：卡片最后一行整块（方案名 + 编号的那几步）。没有方案的名片整块不渲染，
+   所以老名片的高度与原来一样。字体沿用名片正文那两档，不新造字号。 */
+.tc-plan-title{font-size:calc(23rpx * var(--fs-scale, 1));font-weight:600;color:#3F4A3F;line-height:1.7;overflow-wrap:anywhere}
+.tc-plan-step{font-size:calc(23rpx * var(--fs-scale, 1));color:#7A7062;line-height:1.7;margin-top:4rpx;overflow-wrap:anywhere}
 
 /* 工作台加载失败时的重试入口（只这一个按钮，不动其它样式） */
 .seller-retry{margin-top:22rpx;display:inline-block;padding:14rpx 38rpx;border-radius:999rpx;background:#234B3C;color:#FFFDF8;font-size:calc(23rpx * var(--fs-scale, 1));font-weight:600}

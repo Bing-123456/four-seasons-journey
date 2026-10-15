@@ -4,6 +4,9 @@
 // 可体验标签、导航前往（wx.openLocation）。
 const farmtown = require('../../../lib/farmtown-service');
 const WORLD = require('../../../data/world-fruit-culture');
+// 2026-10-11：英文模式下「当季水果文化」取本分包自己的英文六维对照；缺失时回退中文。
+// 与 packageFruit/pages/fruit-detail/fruit-detail.js、fruit-note/fruit-note.js 同一套路。
+const fruitCultureEn = require('../../data/fruit-culture-en');
 const i18n = require('../../../lib/i18n');
 
 // 水果 → 默认插画（assets/fruit-art/）。文档要求「没有实拍图时显示该水果的默认插画」。
@@ -28,12 +31,26 @@ function artForFruit(fruit) {
   return base + file;
 }
 // 当季水果文化静态回退：取知识库的民俗食俗一段，截断到 90 字以内。
+// 2026-10-11 修正：WORLD[name] 的形状是六维数组 [{cat, text, detail, …}]（维度名在 cat 字段里），
+// 不是按维度命名的对象，原先读 p.folk 永远是 undefined，本页「当季水果文化」因此一直只显示兜底句、
+// 真内容从未出现过。现在按 cat === 'folk' 取出该条，正文取 detail（整段），仍截断到 90 字。
+// 英文模式取分包里的英文对照（结构 { '苹果': { folk: { text, detail } } }），缺失时回退中文，
+// 两种语言都取不到时才用原来的兜底句，不会出现空白。
 function staticCulture(fruit) {
-  const p = WORLD && WORLD[String(fruit || '').trim()];
-  if (p && typeof p.folk === 'string' && p.folk.trim()) {
-    const text = p.folk.trim();
-    return text.length > 90 ? text.slice(0, 90) + '…' : text;
+  const name = String(fruit || '').trim();
+  let text = '';
+  if (i18n.getLang() === 'en') {
+    const en = fruitCultureEn[name];
+    const enFolk = en && en.folk ? (en.folk.detail || en.folk.text || '') : '';
+    if (typeof enFolk === 'string' && enFolk.trim()) text = enFolk.trim();
   }
+  if (!text) {
+    const list = WORLD && WORLD[name];
+    const folk = Array.isArray(list) ? list.find(item => item && item.cat === 'folk') : null;
+    const zh = folk && typeof folk.detail === 'string' ? folk.detail : '';
+    if (zh.trim()) text = zh.trim();
+  }
+  if (text) return text.length > 90 ? text.slice(0, 90) + '…' : text;
   return '暂无该水果的静态文化资料，欢迎来果乡实地感受四季风物。';
 }
 // 果乡故事扩充（按 county 定位，覆盖已上架的三张国风插画果园）；未命中回退后端 description。

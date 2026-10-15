@@ -6,11 +6,30 @@ const fs = require('node:fs');
 const path = require('node:path');
 const fruitCulture = require('../miniprogram/data/fruit-culture');
 const worldFruit = require('../miniprogram/data/world-fruit-culture');
-const craftLessonsDoc = require('../miniprogram/data/craft-lessons-doc');
+// 2026-10-11：手艺小课堂的用户文档（109KB）已物理移出主包，改放分包 packageMore/data/；
+// 断言随之改从这里取（意图不变：文档覆盖、三项食材、03 三段反思）。
+const craftLessonsDoc = require('../miniprogram/packageMore/data/craft-lessons-doc');
 const activities = require('../miniprogram/data/farm-activities');
 const i18n = require('../miniprogram/lib/i18n');
 
 const read = (...parts) => fs.readFileSync(path.resolve(__dirname, '..', ...parts), 'utf8');
+
+// 与 miniprogram/packageMore/craft-lesson/craft-lesson.js 里那段「文档覆盖」逐字一致的字段表
+// （搬移前它在主包 world-fruit-culture.js 的 buildCraftLearn 文档分支里）：
+// 主包 WORLD 的 learn 现在只有兜底结构，文档内容由分包页面在 onLoad 里按 craftProduct 覆盖上去，
+// 所以手艺课的断言挂到「覆盖之后」的那份 learn 上。返回新对象，不改主包共享的 WORLD 条目。
+function withCraftLessonDoc(learn) {
+  const doc = craftLessonsDoc[learn.product];
+  if (!doc) return learn;
+  return Object.assign({}, learn, {
+    ingredientLead: doc.ingredientLead || '',
+    ingredients: doc.ingredients || [],
+    stepLead: doc.stepLead || '',
+    steps: (doc.steps || []).map(text => ({ title: '', text })),
+    reflectionLead: doc.reflectionLead || '',
+    reflection: doc.reflection || []
+  });
+}
 
 test('the mini program is renamed to 果物四时记 everywhere it is shown', () => {
   const files = ['miniprogram/app.json', 'miniprogram/lib/i18n.js', 'miniprogram/pages/index/index.json', 'miniprogram/pages/learn/learn.json'];
@@ -95,7 +114,7 @@ test('the almanac keeps one screen while its fruit directory explains the favour
   assert.match(detail, /openCategory/, 'directory rows navigate to the dedicated note page');
   assert.equal(JSON.parse(read('miniprogram/pages/calendar/calendar.json')).disableScroll, true);
   assert.doesNotMatch(markup, /selectedFruit|fruit-cat/, 'details stay in their own page');
-  assert.doesNotMatch(read('miniprogram/packageMore/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
+  assert.doesNotMatch(read('miniprogram/packageFruit/pages/fruit-note/fruit-note.wxml'), /read-card|guoling-read/, 'the note page no longer carries the Guoling reader');
   assert.match(detail, /'♥' : '♡'/, 'the heart fills in once a note is favourited');
   // 2026-10-08 全站视觉统一：原来用的是 #D0342C（规范外的红），已收敛到色板里的赭红 #B96D50。
   // 断言容忍冒号后的空格（竹简改造时重写过样式，写法不带空格）。
@@ -128,9 +147,10 @@ test('the season chain places every fruit name on the inner ring beside its own 
   // 10.2 / P02①：名字原先固定挂在节点正下方，夏季 16 果时互相压住、还会压到别的水果。
   // 现在按角度朝圆心偏移，每个名字只贴自己那颗果。
   const controller = read('miniprogram/pages/calendar/calendar.js');
-  assert.match(controller, /-Math\.cos\(angle\) \* inward/, 'the label is offset towards the centre');
-  assert.match(controller, /-Math\.sin\(angle\) \* inward/, 'the label is offset towards the centre');
-  assert.match(read('miniprogram/pages/calendar/calendar.wxml'), /class="graph-fruit-name" style="\{\{item\.nameStyle\}\}"/);
+  assert.match(controller, /-Math\.cos\(angle\) \* 74/, '中文与稀疏季节：标签朝圆心偏移 74rpx');
+  assert.match(controller, /enBig \? \(x - 50\) \/ 100 \* gs\.width \* 2 \* 0\.42/, '英文密集季节：标签沿半径排到环外，仍贴着自己的水果');
+  assert.match(controller, /-Math\.sin\(angle\) \* 74/, '中文与稀疏季节：标签朝圆心偏移 74rpx');
+  assert.match(read('miniprogram/pages/calendar/calendar.wxml'), /class="graph-fruit-name {{item.nameClass}}" style="\{\{item\.nameStyle\}\}"/);
   const wxss = read('miniprogram/pages/calendar/calendar.wxss');
   assert.match(wxss, /\.graph-fruit-name\{[^}]*white-space:nowrap/, 'names stay on one line so the ring cannot wrap into a neighbour');
   assert.doesNotMatch(wxss, /\.graph-fruit-name\{[^}]*top:calc\(100%/, 'the old fixed below-the-node placement is gone');
@@ -165,24 +185,26 @@ test('the rewritten six-dimension notes match their titles and run longer than t
 });
 
 test('9.27 feedback: craft lessons keep real ingredients and a complete 01/02/03, seasons match content', () => {
-  // 手艺小课堂内容现取自用户文档（craftLessonsDoc），按 craftProduct 索引：
+  // 手艺小课堂内容现取自用户文档（craftLessonsDoc，已移入分包 packageMore/data/），按 craftProduct 索引：
   // 01 认食材=三项真实食材（主料/辅料/文化小知识）、02 学手艺=编号步骤、03 记收获=三段反思。
   const EXPECTED_REF = ['反思与延伸', '动手实践', '收藏与分享'];
   for (const [name, categories] of Object.entries(worldFruit)) {
     const craft = (categories || []).find(category => category.cat === 'craft');
     if (!craft || !craft.learn) continue;
+    // 文档内容挂在分包页面覆盖之后的那份 learn 上（与 craft-lesson.js onLoad 同一处）。
+    const learn = withCraftLessonDoc(craft.learn);
     // P17 兜底/文档均不应出现「清洁器具」占位食材
-    assert.equal(craft.learn.ingredients.some(item => item.name === '清洁器具'), false, name + ' 食材不含清洁器具');
+    assert.equal(learn.ingredients.some(item => item.name === '清洁器具'), false, name + ' 食材不含清洁器具');
     // 步骤为编号文本，非空且至少一步
-    const steps = craft.learn.steps;
+    const steps = learn.steps;
     assert.ok(Array.isArray(steps) && steps.length >= 1, name + ' 至少一步');
     for (const step of steps) assert.ok(typeof step.text === 'string' && step.text.trim().length > 0, name + ' 步骤文本非空');
     // 文档覆盖的水果：食材为真实三项、03 记收获三段齐全且名称正确
-    const doc = craftLessonsDoc[craft.learn.product];
-    assert.ok(doc, name + ' 的 craftProduct(' + craft.learn.product + ') 已在文档中覆盖');
-    assert.equal(craft.learn.ingredients.length, 3, name + ' 文档食材为三项');
-    assert.equal(craft.learn.reflection.length, 3, name + ' 文档03为三段');
-    assert.deepEqual(craft.learn.reflection.map(r => r.name), EXPECTED_REF, name + ' 03三段名称');
+    const doc = craftLessonsDoc[learn.product];
+    assert.ok(doc, name + ' 的 craftProduct(' + learn.product + ') 已在文档中覆盖');
+    assert.equal(learn.ingredients.length, 3, name + ' 文档食材为三项');
+    assert.equal(learn.reflection.length, 3, name + ' 文档03为三段');
+    assert.deepEqual(learn.reflection.map(r => r.name), EXPECTED_REF, name + ' 03三段名称');
   }
   // P19：季节与内容一致——杨梅（夏至杨梅）、山竹（热带夏季果）归入夏季，且节点图随季节改名
   for (const name of ['杨梅', '山竹']) {
@@ -195,4 +217,15 @@ test('9.27 feedback: craft lessons keep real ingredients and a complete 01/02/03
   const tools = mangosteen.categories.find(category => category.cat === 'tools');
   assert.match(tools.text, /荫棚|嫁接|高枝剪/);
   assert.doesNotMatch(tools.text, /开山竹|开果的刀/);
+});
+
+test('the 109KB craft lesson document is physically out of the main package and loaded by its own subpackage', () => {
+  // 2026-10-11（用户批准）：主包余量只剩 98KB，这份文档整体搬进分包 packageMore/data/，
+  // 主包侧不再 require 它（不是复制），文档内容由分包页面 craft-lesson.js 自己读入并应用。
+  assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/packageMore/data/craft-lessons-doc.js')), '文档现在在 packageMore/data/ 里');
+  assert.equal(fs.existsSync(path.resolve(__dirname, '../miniprogram/data/craft-lessons-doc.js')), false, '主包目录里不再留这份文档（也不是复制一份）');
+  assert.doesNotMatch(read('miniprogram/data/world-fruit-culture.js'), /require\(['"]\.\/craft-lessons-doc['"]\)/, '主包数据模块不再 require 它');
+  const lessonPage = read('miniprogram/packageMore/craft-lesson/craft-lesson.js');
+  assert.match(lessonPage, /require\('\.\.\/data\/craft-lessons-doc'\)/, '分包页面从自己分包 require 文档');
+  assert.match(lessonPage, /craftLessonsDoc\[learn\.product\]/, '分包页面按 craftProduct 取文档并覆盖 learn');
 });

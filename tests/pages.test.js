@@ -20,6 +20,12 @@ const venue = catalog.places.find(place => place.routeEligible);
 const origin = { name: venue.name, address: venue.address, latitude: venue.location.latitude, longitude: venue.location.longitude, coordinateSystem: 'gcj02', source: 'catalog' };
 const event = (dataset, value) => ({ currentTarget: { dataset: dataset || {} }, detail: { value } });
 
+// 行程（路线）整页已随主包瘦身迁到分包：miniprogram/packageMore/route-detail/route-detail.js
+// （逻辑在 packageMore/lib/route-controller.js，route-detail.js 只做 `Page(controller)` 装配）。
+// miniprogram/pages/route/route.js 现在指「票夹」页（P04），不再是这套 stops/sources 的行程页，
+// 因此本文件里的行程用例必须显式加载 route-detail，否则拿到的是票夹页（历史红灯原因）。
+function loadRoutePage() { return loadPage('route-detail'); }
+
 // This is a Page-controller harness, not a renderer. Every network request is mocked.
 function loadPage(name) {
   let definition;
@@ -101,7 +107,7 @@ test('profile rejects invalid party sizes and removes the old route when new con
 
 test('route excludes points, clears an infeasible route, and restores all points', () => {
   store.saveRoute(core.generateRoute(store.getProfile()));
-  const page = loadPage('route'); page.onShow();
+  const page = loadRoutePage(); page.onShow();
   assert.equal(calls.tabs[0].selected, 3);
   const first = page.data.stops[0];
   page.viewSource(event({ fact: first.factId }));
@@ -128,7 +134,7 @@ test('route uses its saved profile snapshot and keeps unknown total costs null',
   const profile = store.getProfile();
   store.saveRoute(core.generateRoute(profile));
   store.saveProfile(Object.assign({}, profile, { partySize: 4, budget: 400 }));
-  const page = loadPage('route'); page.onShow();
+  const page = loadRoutePage(); page.onShow();
   assert.equal(page.data.profile.partySize, profile.partySize);
   assert.equal(page.data.profile.budget, profile.budget);
   assert.equal(page.data.route.totalCost, null);

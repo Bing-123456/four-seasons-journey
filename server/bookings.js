@@ -26,7 +26,12 @@ function createBookingService(options = {}) {
   function publish(owner, body) {
     if (!body || typeof body !== 'object') fail('活动内容不完整');
     const requestId = text(body.requestId, '提交编号', 100);
-    const input = { batchId: text(body.batchId, '种植记录编号', 100), title: text(body.title, '活动名称', 60), description: text(body.description, '活动介绍', 300), location: text(body.location, '集合地点', 160), startDate: day(body.startDate), endDate: day(body.endDate), capacityPerDay: integer(body.capacityPerDay, '每日接待人数', 1000), published: body.published !== false };
+    // townId（2026-10-18 新增，可选）：这场活动办的是哪一家果乡。此前活动契约里没有这个字段，
+    // 客户端（miniprogram/pages/route/route.js 的 activityForTown）只能拿名片的名称 / 地址去和
+    // 活动的名称 / 集合地点「猜」对应关系 —— 改个名字就断。现在创建时写入、读回时带上
+    // （publicActivity 原样透出，list / summary 都走它）；老客户端不传、老活动记录里压根没有
+    // 这个键，两边都照旧可用：客户端认不出 townId 就退回原来那套等值猜测，不删退路。
+    const input = { batchId: text(body.batchId, '种植记录编号', 100), townId: text(body.townId, '果乡编号', 100, true), title: text(body.title, '活动名称', 60), description: text(body.description, '活动介绍', 300), location: text(body.location, '集合地点', 160), startDate: day(body.startDate), endDate: day(body.endDate), capacityPerDay: integer(body.capacityPerDay, '每日接待人数', 1000), published: body.published !== false };
     if (input.startDate > input.endDate || input.published && input.endDate < today() || Date.parse(input.endDate) - Date.parse(input.startDate) > 366 * 86400000) fail('活动需在有效的未来一年区间内');
     const fingerprint = digest(JSON.stringify({ ...input, id: body.id || '' }));
     const existingRequest = state.activityRequests.find(item => item.ownerId === owner.id && item.requestId === requestId);
@@ -68,12 +73,30 @@ function createBookingService(options = {}) {
     const future = bookings.filter(item => item.date >= today());
     return { available: true, source: 'confirmed-bookings', totalTrips: future.length, totalParties: future.reduce((sum, item) => sum + item.people, 0), totalReservations: bookings.length, totalPeople: bookings.reduce((sum, item) => sum + item.people, 0), byDate: rows, top: activities.map(item => ({ name: item.title, count: future.filter(booking => booking.activityId === item.id).reduce((sum, booking) => sum + booking.people, 0) })).filter(item => item.count).sort((a, b) => b.count - a.count).slice(0, 5), activities: activities.map(item => ({ ...publicActivity(item), reservations: rows.filter(row => row.activityId === item.id) })), updatedAt: new Date(now()).toISOString() };
   }
+  // 游客侧只读的「按天余量」：逐日给出与 reserve 同一口径的已用人数，
+  // 让前端能把满员 / 已过去的日期置灰；只回聚合数，不含任何他人身份信息。
+  function availability(credential, activityId) {
+    client(credential, 'visitor');
+    const id = text(activityId, '活动编号', 100);
+    const activity = state.activities.find(item => item.id === id && item.published);
+    if (!activity) fail('活动已下架或不存在', 'not_found', 404);
+    const sums = {};
+    state.bookings.filter(item => item.activityId === activity.id && item.status === 'confirmed').forEach(item => { sums[item.date] = (sums[item.date] || 0) + item.people; });
+    const days = [];
+    for (let cursor = activity.startDate; cursor <= activity.endDate;) {
+      const used = sums[cursor] || 0;
+      days.push({ date: cursor, capacityPerDay: activity.capacityPerDay, used, remaining: Math.max(activity.capacityPerDay - used, 0), full: used >= activity.capacityPerDay, past: cursor < today() });
+      cursor = new Date(Date.parse(cursor + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10);
+    }
+    return { available: true, source: 'confirmed-bookings', activityId: activity.id, title: activity.title, location: activity.location, capacityPerDay: activity.capacityPerDay, days, updatedAt: new Date(now()).toISOString() };
+  }
   function dispatch({ method, path: route, credential, body, query = {} }) {
     if (method === 'POST' && route === '/api/booking-clients') return { status: 201, body: register(body) };
     const owner = client(credential);
     if (method === 'GET' && route === '/api/booking-activities') return { status: 200, body: { activities: state.activities.filter(item => item.published && item.endDate >= today()).map(publicActivity) } };
     if (method === 'POST' && route === '/api/booking-activities') { client(credential, 'seller'); return { status: 200, body: { activity: publish(owner, body) } }; }
     if (method === 'GET' && route === '/api/booking-summary') return { status: 200, body: summary(credential, query.batchId) };
+    if (method === 'GET' && route === '/api/booking-availability') return { status: 200, body: availability(credential, query.activityId) };
     if (method === 'GET' && route === '/api/bookings') { client(credential, 'visitor'); return { status: 200, body: { bookings: state.bookings.filter(item => item.ownerId === owner.id).map(bookingView) } }; }
     if (method === 'POST' && route === '/api/bookings') { client(credential, 'visitor'); return { status: 201, body: { booking: reserve(owner, body) } }; }
     const cancellation = route.match(/^\/api\/bookings\/([a-f0-9-]{36})\/cancel$/);

@@ -1,5 +1,6 @@
 'use strict';
-const CRAFT_LESSON_DOC = require('./craft-lessons-doc');
+// 2026-10-11：主包不再 require craft-lessons-doc.js（109KB，已物理移出主包，见 packageMore/data/）。
+// learn 的文档内容改由分包 packageMore/craft-lesson/craft-lesson.js 从自己分包读入并应用。
 
 // 2026-09-26 评审修改（P22）：42 种水果全部按「民俗仪式与节气食俗 / 历史源流 / 传统手工技艺 /
 // 老农口述乡土故事 / 古法种植经验 / 时令食养文化」六维重写，正文与小标题一一对应。
@@ -450,10 +451,12 @@ const PROFILES = {
   }
 };
 
-// 手艺小课堂 01/02/03：文档内容优先（CRAFT_LESSON_DOC，按 craftProduct 索引），
-// 无文档（如青梅酱等 8 个缺失项）则用旧自动生成逻辑兜底。
+// 手艺小课堂 01/02/03：这里只给兜底结构——课名（craftProduct）、一条通用食材、按正文切出的步骤。
+// 2026-10-11：用户文档（原 data/craft-lessons-doc.js，109KB）已物理移出主包到
+// packageMore/data/craft-lessons-doc.js（主包不能 require 分包文件，也不能为了它撑过 2048KB 硬线）。
+// 有文档的课由分包页面 packageMore/craft-lesson/craft-lesson.js 从自己分包读入文档、按同一张字段表
+// 覆盖本函数产出的兜底结构；两步拼出来的 learn 与搬移前逐字一致。
 function buildCraftLearn(p, fallbackName) {
-  const doc = CRAFT_LESSON_DOC[p.craftProduct];
   const autoSteps = (function () {
     const sentences = p.craft.split('。').filter(Boolean);
     const defaults = ['准备与辨认', '处理与制作', '观察与记录', '保存与分享', '完成与检查'];
@@ -465,18 +468,6 @@ function buildCraftLearn(p, fallbackName) {
     if (tail) steps.push({ title: defaults[4], text: tail });
     return steps;
   })();
-  if (doc) {
-    return {
-      product: p.craftProduct,
-      intro: '观察原料、处理与成品的变化。',
-      ingredientLead: doc.ingredientLead || '',
-      ingredients: doc.ingredients || [],
-      stepLead: doc.stepLead || '',
-      steps: (doc.steps || []).map(function (text) { return { title: '', text: text }; }),
-      reflectionLead: doc.reflectionLead || '',
-      reflection: doc.reflection || []
-    };
-  }
   return {
     product: p.craftProduct,
     intro: '观察原料、处理与成品的变化。',
@@ -504,20 +495,13 @@ Object.keys(PROFILES).forEach(name => {
 });
 module.exports = WORLD;
 
-// 英文模式（2026-10-06）：按「果名 + cat」从 fruit-culture-en.js 覆盖 text / detail。
-// 下游 fruit-detail.js / fruit-note.js / search.js 照旧只读 category.text / .detail，无需改动；
-// 英文对照缺失的果或分类保留中文，不会出现空白。sourceNote / sources 属出处标注，
-// 按用户决定保留中文不译（出处多为中文政府/大学网站）。
-try {
-  if (require('../lib/i18n').getLang() === 'en') {
-    const EN_CULTURE = require('./fruit-culture-en');
-    Object.keys(WORLD).forEach(name => {
-      const dict = EN_CULTURE[name];
-      if (!dict) return;
-      WORLD[name] = WORLD[name].map(item => {
-        const t = dict[item.cat];
-        return t ? Object.assign({}, item, { text: t.text, detail: t.detail }) : item;
-      });
-    });
-  }
-} catch (e) { /* 英文对照缺失或 i18n 不可用时保持中文 */ }
+// 英文模式：这里**不做**覆盖。fruit-culture-en.js 是 304.8KB，只放在各分包里
+// （packageFruit/data/fruit-culture-en.js、packageMore/data/fruit-culture-en.js），
+// 主包不能 require 分包文件，也不能为了它把主包撑过 2048KB 硬线；此处原先那段
+// require('./fruit-culture-en') 注定 MODULE_NOT_FOUND、被 try 静默吞掉，已删除。
+// 英文模式的六维文化由显示它的各分包页面在自己分包内用 data/fruit-culture-en.js 覆盖：
+// fruit-detail.js（preview）、fruit-note.js（text / detail）、fruit-town.js（folk 静态片段）、
+// search.js（证据包正文）、craft-lesson.js（craft 维度的 learn，取 packageMore/data/craft-lessons-en.js）。
+// 同理，手艺小课堂的用户文档 craft-lessons-doc.js 也已从主包移入 packageMore/data/，
+// 由 craft-lesson.js 自己 require 后覆盖上面 buildCraftLearn 给出的兜底 learn（见该文件注释）。
+// sourceNote / sources 属出处标注，中英一致保留中文不译（出处多为中文政府/大学网站）。

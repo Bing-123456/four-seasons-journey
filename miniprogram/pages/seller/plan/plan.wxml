@@ -1,0 +1,42 @@
+<view class="page plan {{fontClass}}">
+  <demo-notice id="demo-mode-notice"/>
+
+  <block wx:if="{{expired}}">
+    <view class="expired">{{L.plan_expired}}</view>
+    <button class="submit" bindtap="goBack">{{L.pub_prev}}</button>
+  </block>
+
+  <block wx:else>
+    <view class="src">{{sourceLine}}</view>
+    <view wx:if="{{missingLine}}" class="missing">{{missingLine}}</view>
+
+    <view class="card plan-card">
+      <view class="card-head">
+        <text class="card-title">{{L.plan_nav}}</text>
+        <text wx:if="{{isAI}}" class="badge">{{L.plan_badge_ai}}</text>
+      </view>
+      <view class="plan-title">{{title}}</view>
+      <view class="when">{{whenText}}</view>
+      <view wx:if="{{capacityText}}" class="row">
+        <text class="row-label">{{L.plan_capacity}}</text>
+        <text class="row-value">{{capacityText}}</text>
+      </view>
+      <view class="row stacked">
+        <text class="row-label">{{stepsTitle}}</text>
+        <view class="steps">
+          <view wx:for="{{steps}}" wx:key="*this" class="step">{{index + 1}}. {{item}}</view>
+        </view>
+      </view>
+      <view wx:if="{{budgetText}}" class="row">
+        <text class="row-label">{{L.plan_budget}}</text>
+        <text class="row-value">{{budgetText}}</text>
+      </view>
+      <view wx:if="{{alternative}}" class="row">
+        <text class="row-label">{{L.plan_alt}}</text>
+        <text class="row-value">{{alternative}}</text>
+      </view>
+    </view>
+
+    <button class="submit" loading="{{publishing}}" disabled="{{publishing}}" bindtap="saveAndPublish">{{L.plan_cta}}</button>
+  </block>
+</view>

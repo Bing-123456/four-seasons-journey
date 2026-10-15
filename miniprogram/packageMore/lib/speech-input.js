@@ -154,7 +154,7 @@ function defaultTranscribe(payload) {
 function probePlugin(handlers) {
   try {
     const get = typeof handlers.getPlugin === 'function' ? handlers.getPlugin
-      : (typeof requirePlugin === 'function' ? () => requirePlugin(PLUGIN_NAME) : null);
+      : (typeof requirePlugin === 'function' ? () => requirePlugin('WechatSI') : null);
     const plugin = get ? get() : null;
     return plugin && typeof plugin.getRecordRecognitionManager === 'function' ? plugin : null;
   } catch (error) { return null; }

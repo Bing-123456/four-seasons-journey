@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const companionLib = require('../miniprogram/lib/companion');
-const fruitQuiz = require('../miniprogram/data/fruit-quiz');
+const fruitQuiz = require('../miniprogram/packageGame/data/fruit-quiz');
 const store = require('../miniprogram/lib/store');
 const clone = value => JSON.parse(JSON.stringify(value));
 const originalWx = global.wx, originalPage = global.Page;
@@ -45,7 +45,7 @@ function companionPage() {
 }
 
 function playground() {
-  const createPlaygroundController = require('../miniprogram/lib/playground-controller');
+  const createPlaygroundController = require('../miniprogram/packageGame/lib/playground-controller');
   const definition = createPlaygroundController();
   const subject = Object.assign({}, definition, {
     data: clone(definition.data),
@@ -135,7 +135,7 @@ test('a player who owns nothing still sees one placeholder card instead of an em
 });
 
 test('the result markup renders a fan coverflow of centred fruit cards', () => {
-  const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/playground/playground.wxml'), 'utf8');
+  const wxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/packageGame/pages/playground/playground.wxml'), 'utf8');
   assert.match(wxml, /class="coverflow-stage/, 'results render in a coverflow stage');
   assert.match(wxml, /bindtap="coverflowTo"/, 'tapping a card brings it to the centre');
   assert.match(wxml, /coverflow-card/, 'each fruit renders a coverflow card');
@@ -144,7 +144,7 @@ test('the result markup renders a fan coverflow of centred fruit cards', () => {
   assert.match(wxml, /bindtouchmove="coverflowTouchMove"/, 'cards follow the finger while dragging');
   assert.match(wxml, /bindtouchend="coverflowTouchEnd"/, 'releasing snaps to the nearest card');
   assert.match(wxml, /size="\{\{coverflowFaceSize\}\}"/, 'fruit art scales with the card');
-  const wxss = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/playground/playground.wxss'), 'utf8');
+  const wxss = fs.readFileSync(path.resolve(__dirname, '../miniprogram/packageGame/pages/playground/playground.wxss'), 'utf8');
   assert.match(wxss, /\.coverflow-card/, 'the coverflow card is styled');
   assert.match(wxss, /\.coverflow-stage/, 'the stage has a fixed height');
   // 卡片带横向撑满整屏；拖动中必须关掉过渡，卡片才能实时跟手
@@ -153,7 +153,7 @@ test('the result markup renders a fan coverflow of centred fruit cards', () => {
 });
 
 test('the coverflow follows the finger in the right direction', () => {
-  const createController = require('../miniprogram/lib/playground-controller');
+  const createController = require('../miniprogram/packageGame/lib/playground-controller');
   const controller = createController({});
   controller.setData = patch => Object.assign(controller.data, patch);
   controller.data.unlockCards = [{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }];

@@ -136,6 +136,10 @@ function sellerInsightRequest(body) {
   })) : [];
   const status = choice(risk.status, '测算状态', ['insufficient', 'clear', 'attention', 'urgent']);
   return {
+    // v59：界面语言随请求上报（客户端 pages/seller/publish/publish.js 送 lib/i18n 的当前语言）。
+    // 口径与 server/chat.js:383 的会话语言一致：只认 'en'，其余（含完全不传 lang 的老客户端）
+    // 一律按 'zh' —— 中文侧的行为与数值一个字都没改。
+    lang: body.lang === 'en' ? 'en' : 'zh',
     batch: {
       id: optionalText(batch.id, '批次编号', 80),
       name: shortText(batch.name, '批次名', 80), crop: optionalText(batch.crop, '作物', 40), variety: optionalText(batch.variety, '品种', 60),
@@ -170,23 +174,32 @@ function sellerInsightRequest(body) {
 }
 // The model may phrase the reading and plan, but the deterministic status is
 // the only risk authority: a mismatched echo invalidates the whole output.
+// v59：英文侧的输出上限按英文放宽（同一段话用英文写天然比中文长，沿用中文字数会把整条英文结果判无效，
+// 于是永远掉回中文兜底）。**中文侧数值一个都没动**；英文侧只在 lang==='en' 时生效。
+// 这几组数值与客户端同口径校验（miniprogram/lib/service.js 的 sellerInsight）必须一致，改一处要同步另一处。
+const INSIGHT_CAPS = {
+  zh: { reading: 160, suggestion: 60, step: 90, title: 40, titleFallback: 'AI 文旅方案草案' },
+  en: { reading: 400, suggestion: 180, step: 270, title: 120, titleFallback: 'AI plan draft' }
+};
+function insightCaps(input) { return INSIGHT_CAPS[input && input.lang === 'en' ? 'en' : 'zh']; }
 function sellerInsight(output, input) {
   object(output, '模型结果');
+  const caps = insightCaps(input);
   const status = choice(output.status, '状态回显', ['insufficient', 'clear', 'attention', 'urgent']);
   if (status !== input.risk.status) throw new InputError('模型状态与程序测算不一致');
-  const reading = shortText(output.reading, '解读', 160);
+  const reading = shortText(output.reading, '解读', caps.reading);
   if (reading.length < 10) throw new InputError('解读过短');
   const suggestions = output.suggestions;
-  if (!Array.isArray(suggestions) || suggestions.length < 2 || suggestions.length > 4 || suggestions.some(item => typeof item !== 'string' || !item.trim() || item.trim().length > 60)) throw new InputError('建议无效');
+  if (!Array.isArray(suggestions) || suggestions.length < 2 || suggestions.length > 4 || suggestions.some(item => typeof item !== 'string' || !item.trim() || item.trim().length > caps.suggestion)) throw new InputError('建议无效');
   const steps = output.planSteps;
-  if (!Array.isArray(steps) || steps.length < 3 || steps.length > 6 || steps.some(item => typeof item !== 'string' || !item.trim() || item.trim().length > 90)) throw new InputError('步骤无效');
+  if (!Array.isArray(steps) || steps.length < 3 || steps.length > 6 || steps.some(item => typeof item !== 'string' || !item.trim() || item.trim().length > caps.step)) throw new InputError('步骤无效');
   const capacity = output.capacity === null || output.capacity === undefined ? null : finite(output.capacity, '人数', 1, input.limits.maxCapacity, true);
   const budget = output.budget === null || output.budget === undefined ? null : finite(output.budget, '预算', 0, input.limits.maxBudget, true);
   return {
     status, reading, suggestions: suggestions.map(item => item.trim()),
-    planTitle: shortText(output.planTitle, '方案标题', 40) || 'AI 文旅方案草案',
+    planTitle: shortText(output.planTitle, '方案标题', caps.title) || caps.titleFallback,
     planSteps: steps.map(item => item.trim()), capacity, budget,
-    alternative: output.alternative === null || output.alternative === undefined ? '' : shortText(output.alternative, '备选', 120)
+    alternative: output.alternative === null || output.alternative === undefined ? '' : shortText(output.alternative, '备选', caps.alternative)
   };
 }
 

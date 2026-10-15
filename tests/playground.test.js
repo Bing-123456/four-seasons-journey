@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const createController = require('../miniprogram/lib/playground-controller');
+const createController = require('../miniprogram/packageGame/lib/playground-controller');
 const store = require('../miniprogram/lib/store');
 const i18n = require('../miniprogram/lib/i18n');
 const originalWx = global.wx;
@@ -30,7 +30,7 @@ test('each single-screen game entry opens the requested activity and rejects unk
   const hub = page(true); hub.onShow();
   assert.deepEqual(hub.data.quiz, [], 'the selector does not start an unanswered round');
   for (const game of ['quiz', 'challenge', 'match']) hub.openGame({ currentTarget: { dataset: { game } } });
-  assert.deepEqual(navigations, ['quiz', 'challenge', 'match'].map(game => '/pages/playground/playground?game=' + game));
+  assert.deepEqual(navigations, ['quiz', 'challenge', 'match'].map(game => '/packageGame/pages/playground/playground?game=' + game));
   hub.openGame({ currentTarget: { dataset: { game: '../../mine' } } });
   assert.equal(navigations.length, 3);
   assert.equal(hub.onShareAppMessage().path, '/pages/learn/learn');
@@ -41,7 +41,7 @@ test('activity deep links select and share the module with localized navigation 
   for (const [requested, selected] of [['quiz', 'quiz'], ['challenge', 'challenge'], ['match', 'match'], ['unknown', 'quiz']]) {
     const detail = page(false); detail.onLoad({ game: requested }); detail.onShow();
     assert.equal(detail.data.game, selected);
-    assert.equal(detail.onShareAppMessage().path, '/pages/playground/playground?game=' + selected);
+    assert.equal(detail.onShareAppMessage().path, '/packageGame/pages/playground/playground?game=' + selected);
     assert.equal(titles.at(-1), detail.data.activeTitle);
     assert.match(detail.data.activeTitle, /^[A-Za-z]/);
   }
@@ -115,8 +115,35 @@ test('答完两轮后当天再进游戏停在结果页，跨天自动重玩', ()
   assert.equal(store.getQuizProgress().roundsDone, 0, '第二天轮数归零');
 });
 
+test('当天打满 2 局后 restartQuiz 在逻辑层被拒，绕开界面也开不出第 3 局', () => {
+  const quiz = page(false);
+  quiz.onLoad({ game: 'quiz' }); quiz.onShow();
+  // 第 1 局打完 → 当天额度内，第 2 局照常能开
+  quiz.finishQuizRound(1);
+  assert.equal(store.getQuizProgress().roundsDone, 1);
+  quiz.restartQuiz();
+  assert.equal(quiz.data.quizRound, 2, '当天第 2 局仍可开');
+  assert.equal(quiz.data.quizDone, false);
+  // 第 2 局打完 → 当天 2 局已用满
+  quiz.finishQuizRound(2);
+  assert.equal(store.getQuizProgress().roundsDone, 2);
+  assert.equal(quiz.data.quizDone, true, '停在「今日已结束」的总结页');
+  // 界面已藏按钮，这里模拟「绕过界面直接调用」：不许开第 3 局
+  const round2 = quiz.data.quiz.map(question => question.id);
+  quiz.restartQuiz();
+  assert.deepEqual(quiz.data.quiz.map(question => question.id), round2, '不发新题');
+  assert.equal(quiz.data.quizRound, 2, '轮次不前进到第 3 局');
+  assert.equal(quiz.data.quizDone, true, '仍停在今日已结束那一屏');
+  assert.equal(store.getQuizProgress().roundsDone, 2, '守卫不改写当天完成轮数');
+  // 跨天（day 不是今天）→ 轮数归零，守卫自动放行
+  store.saveQuizProgress({ roundsDone: 2, day: '2000-01-02' });
+  quiz.restartQuiz();
+  assert.equal(quiz.data.quizDone, false, '第二天可以重新开一局');
+  assert.equal(quiz.data.quiz.length, 6);
+});
+
 test('每道题的干扰项都不是那句一眼假的套话', () => {
-  const quizData = require('../miniprogram/data/fruit-quiz');
+  const quizData = require('../miniprogram/packageGame/data/fruit-quiz');
   const stale = '这是全国各地都必须严格照办的硬性农时，不用看当地气候和品种。';
   for (const question of quizData.QUIZ) {
     assert.notEqual(question.wrong, stale, question.id + ' 的干扰项必须换掉');

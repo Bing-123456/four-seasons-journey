@@ -50,7 +50,7 @@ page{background: #F5F5F7;overflow:hidden;height:100%}
    标签 10px/400 米金、标题 12.5px/700 米白、副标题 10.5px/400 半透明、分隔为虚线 */
 .drawer-row{display:flex;align-items:flex-start;gap:8px;padding:18rpx 0;border-bottom:1rpx dashed rgba(255,249,223,.18);flex-shrink:0}
 .drawer-row:last-child{border-bottom:0}
-.drawer-tag{flex-shrink:0;width:24px;font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;line-height:1.5;color: #F3E3C8;letter-spacing:.5px}
+.drawer-tag{flex-shrink:0;width:auto;min-width:24px;white-space:nowrap;font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;line-height:1.5;color: #F3E3C8;letter-spacing:.5px}
 .drawer-row-main{flex:1;min-width:0;overflow:hidden}
 .drawer-title{font-size: calc(26rpx * var(--fs-scale, 1));font-weight:700;line-height:1.45;color: #FFF9DF;overflow-wrap:anywhere}
 .drawer-sub{font-size: calc(21rpx * var(--fs-scale, 1));font-weight:400;line-height:1.5;color:rgba(255,249,223,.72);margin-top:4rpx;overflow-wrap:anywhere}

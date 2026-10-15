@@ -28,15 +28,34 @@ function sanitizeMessage(message) {
     if (typeof chip.jumpLabel !== 'string' || !chip.jumpLabel.trim()) return null;
     return { fullId: chip.fullId, name: typeof chip.name === 'string' ? chip.name.slice(0, 20) : '', seasonName: typeof chip.seasonName === 'string' ? chip.seasonName.slice(0, 20) : '', jumpLabel: chip.jumpLabel.slice(0, 40) };
   };
-  return {
+  const cleanFollowUps = list => (Array.isArray(list) ? list : []).filter(item => typeof item === 'string' && item.trim()).map(item => item.trim().slice(0, 24)).slice(0, 2);
+  const cleaned = {
     id: typeof message.id === 'string' && message.id.length <= 40 ? message.id : '',
     role: message.role,
     text: text.slice(0, MAX_TEXT),
     local: message.local === true,
     evidence: (Array.isArray(message.evidence) ? message.evidence : []).filter(item => typeof item === 'string' && item.trim()).map(item => item.trim().slice(0, 60)).slice(0, 4),
-    followUps: (Array.isArray(message.followUps) ? message.followUps : []).filter(item => typeof item === 'string' && item.trim()).map(item => item.trim().slice(0, 24)).slice(0, 2),
+    followUps: cleanFollowUps(message.followUps),
     chips: (Array.isArray(message.chips) ? message.chips : []).map(chipOf).filter(Boolean).slice(0, 6)
   };
+  // 第 3 阶段（切语言翻历史）：只有果灵回答才需要双语缓存。
+  // lang = 当前 text 的语言；textZh/textEn 是两种语言的正文缓存；
+  // followUpsZh/followUpsEn 是追问建议的双语缓存。
+  // 旧记录没有这些字段 → 按 zh 处理（线上此前只有中文回答），并用当前正文回填 zh 缓存，
+  // 避免切回来时把中文再翻一遍。
+  if (message.role === 'elf') {
+    const isEn = message.lang === 'en';
+    const zhText = typeof message.textZh === 'string' ? message.textZh.trim().slice(0, MAX_TEXT) : '';
+    const enText = typeof message.textEn === 'string' ? message.textEn.trim().slice(0, MAX_TEXT) : '';
+    const zhFups = cleanFollowUps(message.followUpsZh);
+    const enFups = cleanFollowUps(message.followUpsEn);
+    cleaned.lang = isEn ? 'en' : 'zh';
+    cleaned.textZh = isEn ? zhText : (zhText || text.slice(0, MAX_TEXT));
+    cleaned.textEn = isEn ? (enText || text.slice(0, MAX_TEXT)) : enText;
+    cleaned.followUpsZh = isEn ? zhFups : (zhFups.length ? zhFups : cleanFollowUps(message.followUps));
+    cleaned.followUpsEn = isEn ? (enFups.length ? enFups : cleanFollowUps(message.followUps)) : enFups;
+  }
+  return cleaned;
 }
 
 function load() {

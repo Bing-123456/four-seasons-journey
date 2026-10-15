@@ -38,7 +38,9 @@ async function bounded(promise, label, timeout = 12000) {
     });
     backedUp = true;
     await navigate('/pages/mine/mine');
-    await evaluate(() => { getCurrentPages().slice(-1)[0].enterDemo(); return true; });
+    // 进入演示账户：页面级 enterDemo 已按用户要求删除，改走「我的」页共用的 changeDemo
+    // （内部就是 store.enterDemo()，store 层能力原样保留）。App.evaluate 里没有模块级 require，取不到 lib/store。
+    await evaluate(() => { getCurrentPages().slice(-1)[0].changeDemo('enterDemo'); return true; });
     await pause(500);
 
     // P01：跳过欢迎浮层拍首页轮播
@@ -113,7 +115,7 @@ async function bounded(promise, label, timeout = 12000) {
     await shot('p20-place-finder-results');
 
     // P23：国风绘画实玩页
-    await navigate('/pages/playground/playground?game=paint');
+    await navigate('/packageGame/pages/playground/playground?game=paint');
     await pause(900);
     await shot('p23-playground-paint');
   } finally {

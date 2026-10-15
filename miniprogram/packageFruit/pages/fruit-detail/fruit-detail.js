@@ -1,5 +1,7 @@
 const CN_NUMBERS = ['一', '二', '三', '四', '五', '六'];
 const fruitCulture = require('../../../data/fruit-culture');
+// 2026-10-10：英文模式下正文取 data/fruit-culture-en.js（按中文果名索引）；缺失时回退中文。
+const fruitCultureEn = require('../../data/fruit-culture-en');
 const store = require('../../../lib/store');
 const i18n = require('../../../lib/i18n');
 Page({
@@ -15,6 +17,8 @@ Page({
     const labels = i18n.labels(['fn_invalid_title','fn_back','fruit_note_short','cal_fav_aria','fn_read']);
     const fruit = fruitCulture.findFruit(this._fruitId);
     if (!fruit) { this.setData({ invalid: true, L: labels }); return; }
+    // 英文模式：按中文果名取英文正文（fruit-culture-en.js 的结构是 { '西瓜': { folk: {text, detail} } }）
+    const enRec = i18n.getLang() === 'en' ? (fruitCultureEn[fruit.name] || null) : null;
     const favorites = store.getKnowledgeFavorites();
     const nameKey = 'fruit_' + fruit.id;
     const name = i18n.dict[nameKey] ? i18n.t(nameKey) : fruit.name;
@@ -24,10 +28,14 @@ Page({
       fruit: Object.assign({}, fruit, { name, seasonName: i18n.t('season_name_' + fruit.seasonId), categories: fruit.categories.map((item, index) => {
         const favId = fruit.fullId + ':' + item.cat;
         // 目录页预览：摘要句之外的正文开头，让 01-06 每节内容与重写后的正文同步、对应小标题。
-        const body = item.detail && item.detail.startsWith(item.text) ? item.detail.slice(item.text.length).trim() : (item.detail || '');
-        const preview = (body || item.text).slice(0, 96) + (body.length > 96 ? '…' : '');
+        // 先按语言选出正文（有英文用英文，没有就用中文），再算摘要
+        const enCat = enRec && enRec[item.cat];
+        const text = (enCat && enCat.text) ? enCat.text : item.text;
+        const detail = (enCat && enCat.detail) ? enCat.detail : item.detail;
+        const body = detail && detail.startsWith(text) ? detail.slice(text.length).trim() : (detail || '');
+        const preview = (body || text).slice(0, 96) + (body.length > 96 ? '…' : '');
         const labelKey = fruit.world ? ('cat_' + item.cat + '_world') : ('cat_' + item.cat);
-        return Object.assign({}, item, { label: i18n.t(labelKey), favId, fav: favorites.includes(favId), preview, num: i18n.getLang() === 'en' ? String(index + 1) : CN_NUMBERS[index] });
+        return Object.assign({}, item, { text, detail, label: i18n.t(labelKey), favId, fav: favorites.includes(favId), preview, num: i18n.getLang() === 'en' ? String(index + 1) : CN_NUMBERS[index] });
       }) })
     });
   },
@@ -39,7 +47,7 @@ Page({
   openCategory: function (event) {
     const cat = event.currentTarget.dataset.cat;
     if (!this.data.fruit || !this.data.fruit.categories.some(item => item.cat === cat)) return;
-    wx.navigateTo({ url: '/packageMore/fruit-note/fruit-note?fruit=' + encodeURIComponent(this._fruitId) + '&cat=' + encodeURIComponent(cat) });
+    wx.navigateTo({ url: '/packageFruit/pages/fruit-note/fruit-note?fruit=' + encodeURIComponent(this._fruitId) + '&cat=' + encodeURIComponent(cat) });
   },
   toggleFavorite: function (event) {
     const id = event.currentTarget.dataset.id;

@@ -74,3 +74,29 @@ test('write failure does not mutate the live booking ledger', t => {
   assert.throws(() => f.call('POST', '/api/booking-activities', f.seller, f.activity));
   assert.equal(f.service.summary(f.seller).activities.length, 0);
 });
+
+// 2026-10-18：活动契约新增可选字段 townId（这场活动办的是哪一家果乡）。
+// 此前客户端（pages/route/route.js 的 activityForTown）只能拿名片名称 / 地址去和活动名称 / 集合地点猜，
+// 改个名字就断。这里钉住三件事：创建时写入、读回时带上、老活动（压根没这个键）照旧可用。
+test('activity townId: written on publish, echoed on list / summary, and legacy activities without it still work', t => {
+  const f = fixture(t);
+  const { activity } = f.call('POST', '/api/booking-activities', f.seller, { ...f.activity, townId: 'townluochuan' });
+  assert.equal(activity.townId, 'townluochuan', '创建时写入');
+  assert.equal(f.call('GET', '/api/booking-activities', f.visitor).activities[0].townId, 'townluochuan', '游客侧列表读得回');
+  assert.equal(f.call('GET', '/api/booking-summary', f.seller).activities[0].townId, 'townluochuan', '果农侧 summary 也读得回');
+
+  // 不带 townId（老客户端）：照旧 200，存成空串，不报错
+  const plain = f.call('POST', '/api/booking-activities', f.seller, { ...f.activity, requestId: 'publish-no-town', title: '另一场活动' }).activity;
+  assert.equal(plain.townId, '');
+  assert.equal(f.call('GET', '/api/booking-activities', f.visitor).activities.length, 2, '两场活动都在');
+
+  // 老活动记录（磁盘上就是没有这个键）：重启后读回也不凭空多出来，客户端照旧走回退猜测
+  const disk = JSON.parse(fs.readFileSync(f.file, 'utf8'));
+  disk.activities = disk.activities.map(row => { const copy = { ...row }; delete copy.townId; return copy; });
+  fs.writeFileSync(f.file, JSON.stringify(disk));
+  const restarted = createBookingService(f.options);
+  const listed = restarted.dispatch({ method: 'GET', path: '/api/booking-activities', credential: f.visitor }).body.activities;
+  assert.equal(listed.length, 2);
+  assert.ok(listed.every(row => !('townId' in row)), '老活动读回不凭空补出 townId 键');
+  assert.equal(listed[0].title, '园中采摘', '其余字段与改造前逐字一致');
+});

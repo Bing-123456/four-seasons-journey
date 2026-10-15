@@ -22,6 +22,10 @@ release/
 __pycache__/
 *.pyc
 
+# 本机后端直连配置（含真 token，不进版本库）
+# 首次克隆后复制 miniprogram/lib/backend-config.example.js 为 backend-config.js，并填入自己的值
+miniprogram/lib/backend-config.js
+
 # 向量缓存（qwen3-vl-embedding 的返回结果，可重新生成）
 /.cache/
 
@@ -47,3 +51,11 @@ cloudrun-deploy-v*/
 guayouji-miniprogram-deploy-*.zip
 /guayouji-miniprogram-deploy-20261005/
 /game-art-upload/
+
+# 交接记录：含本机凭证（云托管 API_TOKEN）与部署环境信息，不进版本库。
+# 文件仍完整保留在本地磁盘（已用 git rm --cached 取消跟踪）。
+HANDOFF.md
+
+# AI 工具工作缓存目录：含本机凭证/交接记录，不进版本库。
+# 文件仍完整保留在本地磁盘（已用 git rm --cached 取消跟踪）。
+.workbuddy-ai/

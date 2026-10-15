@@ -5,16 +5,20 @@
     <view class="news-sub">{{countLabel}}</view>
   </view>
 
-  <!-- 空态：只有一句话 + 同步说明，无插画无按钮 -->
-  <view wx:if="{{loaded && empty}}" class="news-empty">
+  <view wx:if="{{waking}}" class="news-empty">
+    <view class="news-empty-text">{{L.sl_waking}}</view>
+  </view>
+  <view wx:elif="{{loaded && empty && loadFailed}}" class="news-empty">
+    <view class="news-empty-text">{{L.news_load_failed}}</view>
+    <button class="town-btn town-btn-primary" bindtap="retry">{{L.sl_retry}}</button>
+  </view>
+  <view wx:elif="{{loaded && empty}}" class="news-empty">
     <view class="news-empty-text">{{L.news_empty}}</view>
     <view class="news-empty-hint">{{L.news_empty_hint}}</view>
   </view>
 
   <scroll-view wx:else scroll-y class="news-scroll">
     <view wx:for="{{cards}}" wx:key="id" class="town-card" id="town-{{item.id}}">
-      <image class="town-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
-
       <view class="town-line">{{L.pub_name}}</view>
       <view class="town-title">{{item.name}}</view>
       <view wx:if="{{item.termLabel}}" class="town-term">{{item.termLabel}}</view>
@@ -28,19 +32,26 @@
         <view wx:if="{{item.region}}" class="town-line">{{item.region}}</view>
         <view wx:if="{{item.address}}" class="town-line">{{L.sl_address}}</view>
         <view wx:if="{{item.address}}" class="town-line">{{item.address}}</view>
-        <view wx:if="{{item.openDateText}}" class="town-line">{{L.sl_open_date}}：{{item.openDateText}}</view>
-        <view wx:if="{{item.openTimeText}}" class="town-line">{{L.sl_open_time}}：{{item.openTimeText}}</view>
+        <view wx:if="{{item.openDateText}}" class="town-line">{{L.sl_open_date_colon}}{{item.openDateText}}</view>
+        <view wx:if="{{item.openTimeText}}" class="town-line">{{L.sl_open_time_colon}}{{item.openTimeText}}</view>
       <view wx:if="{{item.distance}}" class="town-line town-distance">{{item.distance}}</view>
       <view wx:if="{{item.intro}}" class="town-line">{{L.sl_intro}}</view>
         <view wx:if="{{item.intro}}" class="town-intro">{{item.intro}}</view>
-      <view wx:if="{{item.transport}}" class="town-line town-transport">{{L.sl_transport}}：{{item.transport}}</view>
-      <!-- 联系方式：微信号 / 手机号（2026-10-08） -->
-        <view class="town-line">微信号：{{item.wechat || '无'}}</view>
-        <view class="town-line">手机号：{{item.phone || '无'}}</view>
+      <view wx:if="{{item.transport}}" class="town-line town-transport">{{L.sl_transport_colon}}{{item.transport}}</view>
+      <!-- 联系方式：微信号 / 手机号（2026-10-08；2026-10-11 改走 i18n 键，中文侧逐字不变） -->
+        <view class="town-line">{{L.sl_wechat_colon}}{{item.wechat || L.sl_none}}</view>
+        <view class="town-line">{{L.sl_phone_colon}}{{item.phone || L.sl_none}}</view>
+      <!-- 「活动方案」（2026-10-13）：AI 生成的活动方案（方案名 + 编号的那几步），照「我的发布」卡片那块写。
+           数据来自 lib/town-info.js 的 cardFor（本页与 ①去哪 共用同一套）；没有方案的名片整块不渲染。
+           标题复用既有键 plan_nav（词典里就是「活动方案」/「Activity plan」），不新造键、也不复用卖货台的 sl_my_plan。 -->
+      <view wx:if="{{item.hasPlan}}" class="town-plan">
+        <view class="town-line">{{L.plan_nav}}</view>
+        <view class="town-plan-title">{{item.planTitle}}</view>
+        <view wx:for="{{item.planSteps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="*this" class="town-plan-step">{{stepIndex + 1}}. {{step}}</view>
+      </view>
 
       <view class="town-actions">
         <button wx:if="{{item.contact}}" class="town-btn town-btn-primary" data-contact="{{item.contact}}" bindtap="copyContact">{{L.news_copy_phone}}</button>
-        <button wx:else class="town-btn town-btn-primary" data-id="{{item.id}}" bindtap="viewCard">{{L.news_view_card}}</button>
         <button class="town-btn" data-id="{{item.id}}" bindtap="planTicket">{{L.news_plan_ticket}}</button>
       </view>
     </view>

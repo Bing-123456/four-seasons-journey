@@ -49,6 +49,7 @@ const dict = {
   news_subtitle: ['今天新上架', 'New today'],
   news_empty: ['果农今天还没有发布', 'No grower post today'],
   news_empty_hint: ['与果园同步，稍后再来看看。', 'Synced with the orchards — check back later.'],
+  news_load_failed: ['加载异常，下拉重试', 'Load failed — pull down to retry'],
   news_copy_wechat: ['复制微信', 'Copy WeChat'],
   news_copy_phone: ['复制电话号码', 'Copy phone number'],
   news_view_card: ['看名片', 'View card'],
@@ -67,6 +68,9 @@ const dict = {
   rt_no_stub: ['还没有盖过章', 'No stubs yet'],
   rt_pool_note: ['这里只列还没排过、也没去过的园子', 'Only orchards you haven’t planned or visited'],
   rt_pool_all: ['查看更多果园', 'more orchards'],
+  // 「查看更多果园 N ›」英文按数量取单数用（i18n 不支持插值，条数在页内拼）：
+  // 中文侧与 rt_pool_all 完全同字（逐字不变），只有英文侧区分单复数（2026-10-12 第13 轮）。
+  rt_pool_all_one: ['查看更多果园', 'more orchard'],
   rt_pool_less: ['收起', 'Show less'],
   rt_save: ['保存', 'Save'],
   // wx.showModal 的按钮文字上限 4 个字，盖章确认必须用短词（长文案会让弹窗直接失败）
@@ -115,6 +119,15 @@ const dict = {
   rt_stamp_confirm_title: ['去过了？', 'Been there?'],
   rt_stamp_confirm_body: ['确认后这张票会撕下来放进存根。', 'The ticket is torn off and filed under stubs.'],
   rt_load_failed: ['果乡服务暂时连不上（长时间没人用会休眠），点下面重试', 'Orchard service is unreachable — tap Retry below'],
+  // 「生成这张票」的真报名（2026-10-13 本轮新增，只这两个键）：成功一句、满员一句；
+  // 其余失败（没活动 / 断网 / 已下架）复用既有 network_error，不另造文案。
+  rt_booking_ok: ['已报名成功，票也留在本机', 'Reserved — ticket saved on this device'],
+  rt_booking_full: ['这一天已约满，请换一天', 'That day is fully booked — pick another day'],
+  // 「每天还剩多少名额」逐日行 + 名额未知态（2026-10-13 本轮新增，只这两个键）：
+  // 行内文案带 {{n}} 占位（i18n.t 支持插值）；未知态用于接口未部署 / 断网 / 403 / 无活动，
+  // 「不许拦住报名」的要求写在页面侧（不置灰、不阻塞），这里只给一句可读提示。
+  rt_seats_left: ['还剩 {{n}} 个名额', '{{n}} left'],
+  rt_seats_unknown: ['暂时拿不到名额信息，可照常报名', 'Seat info unavailable — you can still book'],
   sl_waking: ['正在唤醒果乡服务，请稍候…', 'Waking up the orchard service…'],
   sl_retry: ['重试', 'Retry'],
   tab_mine: ['我的', 'Me'],
@@ -283,6 +296,9 @@ const dict = {
   sl_open_time: ['开关门时间', 'Open–close hours'],
   sl_experience: ['可提供的体验', 'Experiences'],
   sl_intro: ['果乡介绍', 'About'],
+  // 「我的发布」卡片最后一行：跟名片一起存到服务端的那份活动方案（方案名 + 那几步）。
+  // 老名片 / 方案丢了的名片整块不渲染，所以这一句只在真有方案时出现。
+  sl_my_plan: ['我的方案', 'My plan'],
   sl_transport: ['交通指引', 'Getting there'],
   sl_contact: ['联系方式', 'Contact'],
   sl_wechat: ['微信号', 'WeChat'],
@@ -294,6 +310,35 @@ const dict = {
   sl_mine: ['我的发布', 'My listings'],
   sl_edit: ['编辑', 'Edit'],
   sl_unpublish: ['下架', 'Unpublish'],
+  // 工作台首页 English 接线：模板里的「标签 + 全角冒号」合成一个键（英文侧改半角冒号），
+  // 剩下的中文（节气 / 水果 / 体验标签 / 状态）在 index.js 构造视图时按语言取词。
+  sl_publish_new: ['＋ 发布我的果乡名片', '+ Publish your orchard card'],
+  // 工作台主入口（新设计图 1）：原来是「＋ 发布我的果乡名片」按钮，改成一张卡片 + 一行小字。
+  sl_plan_entry: ['果园活动方案', 'Orchard activity plan'],
+  sl_plan_entry_hint: ['按你园子这一批果子，出一份能照着办的活动方案', 'A plan you can follow, based on this batch of fruit from your orchard.'],
+  // 页面副标题：说清这一页现在只做到「填批次 + 存本机」，不承诺生成
+  // ② 系统自动带出（§4.2）：本次只占位，不接天气 / 人流量 / 预约数据
+  // 保存草稿的按钮 / 提示 / 校验
+  // 生成方案（§4.3）：按钮 / 进行中 / 结果区块与来源标注。
+  // 来源必须如实分开：AI 结果与本机规则草案不能混为一谈。
+  sl_date_colon: ['可去的日期：', 'Date: '],
+  sl_open_date_colon: ['开关门日期：', 'Open–close dates: '],
+  sl_open_time_colon: ['开关门时间：', 'Open–close hours: '],
+  sl_transport_colon: ['交通指引：', 'Getting there: '],
+  sl_wechat_colon: ['微信号：', 'WeChat: '],
+  sl_phone_colon: ['手机号：', 'Phone: '],
+  sl_none: ['无', 'Not provided'],
+  sl_status_on: ['已发布', 'Published'],
+  sl_status_off: ['已下架', 'Unpublished'],
+  sl_unpublish_title: ['下架果乡名片', 'Unpublish this card'],
+  sl_unpublish_body: ['下架后游客在地图上将看不到它，确定吗？', 'Visitors will no longer see it on the map. Unpublish anyway?'],
+  sl_unpublish_failed: ['下架失败', 'Unpublish failed'],
+  // 5 个体验标签：中文值就是存档值（publish.js 的 EXPERIENCES），这里只提供双语显示名。
+  sl_exp_pick: ['采摘', 'Picking'],
+  sl_exp_sightseeing: ['观光', 'Sightseeing'],
+  sl_exp_craft: ['手作', 'Handicraft'],
+  sl_exp_food: ['餐饮', 'Dining'],
+  sl_exp_culture: ['文化讲解', 'Culture talk'],
   pub_name: ['果乡名称', 'Orchard name'],
   pub_region: ['所在地区', 'Region'],
   pub_location: ['地图位置', 'Map location'],
@@ -320,10 +365,89 @@ const dict = {
   sj_empty: ['还没有收藏的果乡，去「行程」逛逛并收藏吧', 'No favourite orchards yet.'],
   sl_empty: ['还没有发布果乡名片，点上方按钮发布第一个吧', 'No listings yet.'],
   pub_next: ['下一步 →', 'Next →'],
+  pub_submit: ['确认发布', 'Publish'],
+  pub_save_edit: ['保存修改', 'Save changes'],
+  // 新建态那颗第二按钮（与「保存修改」同一套样式、同一个 saveCard 入口）已经删掉了：
+  // 合并页现在只有「生成方案」一颗无条件按钮 + 编辑态的「保存修改」，没有模板再渲染这个词条。
+  // 词条本身留着不删（publish.js 的 L 字典仍列着它，结果页另有自己的 plan_cta 文案）。
+  pub_save_publish: ['保存并发布', 'Save and publish'],
   pub_experience: ['可提供的体验（可多选）', 'Experiences (multi-select)'],
   pub_wechat: ['微信号（选填）', 'WeChat (optional)'],
   pub_phone: ['手机号（选填）', 'Phone (optional)'],
   pub_contact: ['联系方式（选填）', 'Contact (optional)'],
+  // 发布向导 English 接线：标题（{{step}} 占位）、placeholder（含地区兜底「请选择」）、
+  // 逐字段校验提示与 toast。中文侧一律保留原字面。
+  pub_nav_title: ['发布果乡名片', 'Publish your orchard card'],
+  pub_step_title: ['果园活动方案（{{step}}/2）', 'Orchard activity plan ({{step}}/2)'],
+  pub_name_ph: ['如：洛川王大爷苹果园', 'e.g. Luochuan Grandpa Wang’s apple orchard'],
+  pub_region_ph: ['请选择', 'Select'],
+  pub_fruit_ph: ['如：苹果', 'e.g. Apple'],
+  pub_desc_ph: ['讲讲你的果园和故事…', 'Tell us about your orchard and its story…'],
+  pub_wechat_ph: ['微信号', 'WeChat ID'],
+  pub_phone_ph: ['手机号', 'Phone number'],
+  pub_prev: ['← 上一步', '← Back'],
+  pub_err_town_missing: ['果乡不存在或已下架', 'This orchard card does not exist or is unpublished'],
+  pub_err_load_failed: ['加载失败，请重试', 'Load failed — please retry'],
+  pub_err_name: ['请填写果乡名称', 'Enter the orchard name'],
+  pub_err_region: ['请选择所在地区', 'Select the region'],
+  pub_err_fruit: ['请填写当季水果', 'Enter the seasonal fruit'],
+  pub_err_address: ['请填写具体位置', 'Enter the exact location'],
+  pub_err_open_date: ['请选择开门日期', 'Pick the opening date'],
+  pub_err_open_time: ['请选择开门时间', 'Pick the opening time'],
+  pub_err_close_date: ['请选择关门日期', 'Pick the closing date'],
+  pub_err_close_time: ['请选择关门时间', 'Pick the closing time'],
+  pub_err_location_invalid: ['位置无效，请重选', 'Invalid location — please pick again'],
+  pub_toast_location_set: ['已选择位置', 'Location selected'],
+  pub_err_exp_max: ['最多选 5 个', 'Pick at most 5'],
+  pub_err_exp_required: ['请至少选择一个体验标签', 'Pick at least one experience'],
+  pub_err_desc: ['请填写果乡介绍', 'Write the orchard introduction'],
+  // 2026-10-16：果乡资料三项上限放宽到 60 / 30 / 600 字（server/farmtown.js），超限时服务端除了原有
+  // error 文案还带 field / max —— 这三句就是「哪一栏、多少字上限」的专用提示。本机预校验与服务端被拒
+  // 共用这一批键（不写两套），只新增这 3 个键。
+  pub_err_name_long: ['果乡名称过长（最多 {{n}} 字）', 'The orchard name is too long (max {{n}} characters)'],
+  pub_err_fruit_long: ['当季水果过长（最多 {{n}} 字）', 'The fruit name is too long (max {{n}} characters)'],
+  pub_err_desc_long: ['果乡介绍过长（最多 {{n}} 字）', 'The orchard introduction is too long (max {{n}} characters)'],
+  pub_toast_saved: ['保存成功', 'Saved'],
+  pub_toast_published: ['发布成功', 'Published'],
+  pub_toast_save_failed: ['保存失败', 'Save failed'],
+  pub_toast_publish_failed: ['发布失败', 'Publish failed'],
+  // 新设计图 2 · 一页填完（果乡资料 + 这一批果子）：上半段标题 / 下半段标题与它那 2 项、
+  // 底部按钮与一行小字。页面标题复用工作台入口的 sl_plan_entry（不新增键）。
+  // 「这一批果子」两项服务端名片接口不收，只存本机（lib/batch-local.js）。
+  pub_page_hint: ['下面两张表在同一页上，从上往下填就行。填不完先空着，没填的地方会标出来。', 'Both tables sit on this one page — fill from top to bottom. Leave anything you cannot fill yet blank; missing spots will be pointed out.'],
+  pub_sec_card: ['果乡资料', 'Orchard details'],
+  pub_sec_batch: ['这一批果子', 'This batch of fruit'],
+  pub_batch_left: ['①大概还剩多少', '①Roughly how much is left'],
+  pub_batch_left_ph: ['比如：800 斤 或 120 箱', 'e.g. 800 jin or 120 boxes'],
+  pub_batch_people: ['②一次能接待多少人', '②How many people can you host at once'],
+  pub_batch_people_ph: ['比如：30 人', 'e.g. 30 people'],
+  pub_generate: ['生成方案', 'Create the plan'],
+  pub_generate_hint: ['没填完也可以生成，缺的会说明。', 'You can create the plan even if some fields are blank — anything missing will be pointed out.'],
+  // 结果页（设计图 3 第 4 版）：点「生成方案」→ 跳到这里，一屏读完一份活动方案。
+  // 只放这一页独有的字：「果乡名称 / 所在地区 / 当季水果 / 可去的日期段 / 果乡介绍」直接用 pub_* 既有键，
+  // 日期格式化复用 lib/ticket-format；来源行两种写法按 mode 分开（本机规则绝不写成 AI）。
+  plan_nav: ['活动方案', 'Activity plan'],
+  plan_src_ai: ['这段方案是 AI 生成（按你填的 {{n}} 项整理）', 'Written by AI from the {{n}} items you filled in'],
+  plan_src_local: ['这段方案是在手机上按规矩整理的（没连上 AI）', 'Put together on the phone by fixed rules (no AI connection)'],
+  plan_badge_ai: ['AI 生成', 'AI'],
+  plan_missing: ['没填的：{{list}}。这些空着，方案里只能按一般情况写。', 'Not filled in: {{list}}. Where blanks remain, the plan can only use general wording.'],
+  plan_m_people: ['一次能接待多少人', 'how many you can host at once'],
+  plan_when: ['建议时间', 'Suggested time'],
+  plan_when_line: ['你写的最晚卖到 {{date}}。这 {{days}} 天里建议办 {{sessions}} 场，每场半天（{{start}}—{{end}}）。', 'You wrote that the last day is {{date}}. Over these {{days}} days, {{sessions}} half-day sessions are suggested ({{start}}–{{end}}).'],
+  plan_when_open: ['你还没填最晚卖到哪天。可先按一场半天安排，日期定了再定场次。', 'You have not set the last day yet. Start with one half-day session, then fix the dates.'],
+  plan_capacity: ['一场接待多少人', 'Guests per session'],
+  plan_capacity_value: ['{{n}} 人左右', 'Around {{n}} guests'],
+  plan_steps: ['活动内容（{{n}} 步）', 'What happens ({{n}} steps)'],
+  plan_budget: ['大概花费', 'Estimated cost'],
+  plan_budget_value: ['每场约 {{n}} 元', 'About ¥{{n}} per session'],
+  plan_budget_total: ['，{{sessions}} 场大概需要 {{total}} 元。', ', about ¥{{total}} for {{sessions}} sessions.'],
+  plan_alt: ['备选做法', 'If things change'],
+  // 结果页底部那颗按钮：点它就是真的发布这张果乡名片（走 pages/seller/publish 同一条链路），
+  // 所以文案与合并页那颗「保存并发布」同一句；原来那行小字（plan_cta_note）已从页面上撤掉，键先留着。
+  plan_cta: ['保存并发布', 'Save and publish'],
+  plan_cta_note: ['复制这段文字并打开编辑页，由你自己确认后保存。不会覆盖你原来写的内容。', 'Copies this text and opens the edit page — you confirm and save. Nothing you wrote before is overwritten.'],
+  plan_expired: ['方案已过期，请回到上一页重新生成', 'This plan has expired. Go back and create it again.'],
+  plan_failed: ['生成失败，请稍后重试', 'Could not create the plan — please retry'],
   game_challenge: ['农事转盘', 'Farming Wheel'],
   game_match: ['文脉连连', 'Heritage Match'],
   challenge_day_limit: ['今天的次数已结束，欢迎明天再来玩～', 'Today\'s rounds are finished. Come back tomorrow!'],
@@ -489,9 +613,6 @@ const dict = {
   demo_account: ['独立演示账户', 'Demo account'],
   exit_demo: ['返回我的本机账户 ↗', 'Back to my account ↗'],
   reset_demo: ['重置示例', 'Reset demo'],
-  demo_entry_title: ['看看一位旅客如何使用', 'See how one traveller uses it'],
-  demo_entry_sub: ['独立的模拟案例，保留你的本机数据。', 'A separate demo; your local data is untouched.'],
-  demo_entry_btn: ['体验案例 ↗', 'Open demo ↗'],
   my_identity: ['我的身份', 'My role'],
   language: ['语言', 'Language'],
   collections: ['文化收藏', 'Culture'],
@@ -1208,6 +1329,52 @@ const dict = {
   'product_瓯柑蜜饯': ['瓯柑蜜饯', 'Candied Ou mandarin'],
   'product_冬枣干': ['冬枣干', 'Dried winter jujube'],
 
+  // 2026-10-13 补：英文侧对齐 world-fruit-culture.js 里在用的 42 个 craftProduct。
+  // 上面 13 条里只有青梅酱 / 桑葚酱仍对得上（英文侧本来就正确，逐字未动），
+  // 其余 11 条是旧产品名、已无任何页面引用（页面按 'product_' + learn.product 查键）。
+  // 英文名不自行翻译：取自仓库里已有的《手作课英文 · 乙套》14 批对照稿
+  // （即 packageMore/data/craft-lessons-en.js 的同一批来源，逐字照录）。
+  'product_樱桃果酱': ['樱桃果酱', 'Cherry jam'],
+  'product_枇杷糖水': ['枇杷糖水', 'Loquat in syrup'],
+  'product_杨梅果饮': ['杨梅果饮', 'Bayberry drink'],
+  'product_菠萝馅': ['菠萝馅', 'Pineapple filling'],
+  'product_香蕉烘片': ['香蕉烘片', 'Dried banana slices'],
+  'product_芒果果泥': ['芒果果泥', 'Mango purée'],
+  'product_草莓果酱': ['草莓果酱', 'Strawberry jam'],
+  'product_甘蔗汁': ['甘蔗汁', 'Sugarcane juice'],
+  'product_山竹果杯': ['山竹果杯', 'Mangosteen cup'],
+  'product_西瓜果杯': ['西瓜果杯', 'Watermelon cup'],
+  'product_桃子糖水': ['桃子糖水', 'Peaches in syrup'],
+  'product_李子果酱': ['李子果酱', 'Plum jam'],
+  'product_荔枝干': ['荔枝干', 'Dried lychees'],
+  'product_桂圆果汤': ['桂圆果汤', 'Longan soup'],
+  'product_黄皮果酱': ['黄皮果酱', 'Wampee jam'],
+  'product_甜瓜果盘': ['甜瓜果盘', 'Melon platter'],
+  'product_葡萄果酱': ['葡萄果酱', 'Grape jam'],
+  'product_椰肉小食': ['椰肉小食', 'Toasted coconut strips'],
+  'product_火龙果果杯': ['火龙果果杯', 'Dragon fruit cup'],
+  'product_百香果果饮': ['百香果果饮', 'Passion fruit drink'],
+  'product_杏子果酱': ['杏子果酱', 'Apricot jam'],
+  'product_柠檬调味片': ['柠檬调味片', 'Preserved lemon slices'],
+  'product_柿饼工序': ['柿饼工序', 'Making dried persimmons'],
+  'product_石榴果汁': ['石榴果汁', 'Pomegranate juice'],
+  'product_梨片小食': ['梨片小食', 'Pear slices'],
+  'product_苹果烘片': ['苹果烘片', 'Dried apple slices'],
+  'product_猕猴桃果泥': ['猕猴桃果泥', 'Kiwifruit purée'],
+  'product_柚肉果杯': ['柚肉果杯', 'Pomelo cup'],
+  'product_山楂糕': ['山楂糕', 'Hawthorn cake'],
+  'product_冬枣果片': ['冬枣果片', 'Winter jujube slices'],
+  'product_枣泥小食': ['枣泥小食', 'Date paste'],
+  'product_无花果果酱': ['无花果果酱', 'Fig jam'],
+  'product_橙肉小食': ['橙肉小食', 'Navel orange bites'],
+  'product_橘瓣果杯': ['橘瓣果杯', 'Tangerine segment cup'],
+  'product_瓯柑果酱': ['瓯柑果酱', 'Ou mandarin jam'],
+  'product_糖渍金桔': ['糖渍金桔', 'Candied kumquats'],
+  'product_杨桃切片': ['杨桃切片', 'Star fruit slices'],
+  'product_木瓜果杯': ['木瓜果杯', 'Papaya cup'],
+  'product_释迦果肉杯': ['释迦果肉杯', 'Custard apple cup'],
+  'product_椰枣夹馅': ['椰枣夹馅', 'Stuffed dates'],
+
   // 导航栏标题（onLoad 动态设置，配合 json 静态标题兜底）
   nav_account: ['我的资料', 'My Profile'],
   nav_calendar: ['果物四时记', 'Fruit Seasons'],
@@ -1411,7 +1578,62 @@ const chatDict = {
   chat_clear_confirm: ['清空后本机保存的聊天记录会全部删除，确定清空吗？', 'This deletes the chat history stored on this device. Clear it?'],
   chat_cleared: ['对话已清空', 'Chat cleared'],
   chat_header_sub: ['依据四时素材库作答 · 可继续追问', 'Grounded in the seasonal library · follow up anytime'],
-  chat_suggest_title: ['试着这样问', 'Try asking']
+  chat_suggest_title: ['试着这样问', 'Try asking'],
+  // 10.11：**本地台词**（不经过服务端的回答）也要跟着界面语言走。
+  // 起因：English 界面下问「你好」拿到的是中文问候（用户截图反馈）。
+  // 中文侧一律保留原文、逐字未改；英文侧是原中文的忠实翻译，不新增任何事实。
+  chat_hello: ['你好呀，我是果灵🌱 四时果园里的小精灵。想聊哪种水果都可以，问我时令、挑选、吃法或习俗都行～', "Hi! I'm Guoling 🌱 the little elf of the Four Seasons orchard. Ask me about fruit seasons, picking, eating or customs."],
+  chat_thanks: ['不客气～有果的问题随时来问我。', 'You are welcome — come back any time with a fruit question.'],
+  chat_bye: ['再见啦，四时果园随时欢迎你回来。', 'See you! The Four Seasons orchard is always glad to have you back.'],
+  chat_cloud_fail: ['连接云端失败：{{detail}}。', 'Cloud connection failed: {{detail}}.'],
+  chat_no_credential: ['连接云端失败：没有可用凭证。', 'Cloud connection failed: no usable credential.'],
+  chat_empty_answer: ['云端返回了空答案，请稍后再试。', 'The cloud returned an empty answer. Please try again in a moment.'],
+  chat_check_network: ['请检查网络后重试', 'please check your network and try again'],
+  chat_offline_note: ['这个问题素材库里还没有答案，换个水果关键词试试。', 'The library has no entry for that yet — try asking with a fruit name.'],
+  // 英文模式下云端连不上时的诚实提示（中文模式的离线兜底仍是原来的中文正文，不走这条）
+  chat_offline_cloud_down: ['云端暂时连不上，我取不到素材库的资料。稍后再问我一次吧。', "I can't reach the cloud right now, so I can't pull the library. Please ask me again in a moment."],
+  chat_guide_1: ['当季吃什么水果好？', 'What fruit is in season now?'],
+  chat_guide_2: ['怎么挑西瓜？', 'How do I pick a good watermelon?'],
+  chat_scope_fruit: ['{{name}}为外来引进我国的果品，不属于《四时》板块收录的中国本土原生水果。', '{{name}} is a fruit introduced to China from abroad; it is not one of the native Chinese fruits covered by the Four Seasons library.'],
+  chat_scope_topic: ['{{name}}属于境外农耕文化，不属于《四时》板块收录的中国本土农耕文化。', '{{name}} belongs to farming culture outside China; it is not part of the native Chinese farming culture covered by the Four Seasons library.'],
+  chat_scope_hint: ['可以试试《四时》收录的{{names}}。', 'You could ask about these fruits from the Four Seasons library: {{names}}.'],
+  chat_jump_pill: ['前往四时【{{name}}】', 'Go to Four Seasons · {{name}}']
+};
+
+// 游戏（农事转盘 / 文脉连连）：2026-10-11 用户要求 —— English 模式下这两个游戏要全英文。
+// 中文侧全部沿用原值（逐字未改），英文侧是原中文的忠实翻译。
+const gameDict = {
+  // 转盘内圈「困境」六类
+  challenge_cat_farming: ['农事', 'Farming'],
+  challenge_cat_traditional: ['古法', 'Traditional methods'],
+  challenge_cat_storage: ['储存', 'Storage'],
+  challenge_cat_health: ['食养', 'Food & health'],
+  challenge_cat_care: ['管护', 'Orchard care'],
+  challenge_cat_disaster: ['灾害', 'Hazards'],
+  // 知识卡两段的小标签（模板按冒号拆行，冒号前就是标签）
+  challenge_kb_cause: ['原因：', 'Reason: '],
+  challenge_kb_origin: ['由来：', 'Origin: '],
+  // 保存/分享知识卡的提示
+  challenge_album_title: ['需要相册权限', 'Album permission needed'],
+  challenge_album_body: ['保存图片需要访问你的相册，请在设置中开启。', 'Saving the image needs access to your album. Please allow it in Settings.'],
+  challenge_album_go: ['去设置', 'Open Settings'],
+  challenge_toast_unsupported: ['暂不支持保存', 'Saving is not supported on this device'],
+  challenge_toast_save_failed: ['保存失败', 'Save failed'],
+  challenge_toast_saved: ['已保存到相册', 'Saved to your album'],
+  challenge_toast_image_failed: ['生成图片失败', 'Could not create the image'],
+  challenge_toast_wheel_failed: ['抓取转盘失败', 'Could not capture the wheel'],
+  // 文脉连连
+  match_elf_explaining: ['果灵正在讲解…', 'Guoling is explaining...'],
+  match_note_fallback: ['「{{label}}」说的是{{fruit}}：{{source}}。', '"{{label}}" tells about {{fruit}}: {{source}}.'],
+  match_select_fruit: ['「{{name}}」已选中，再点一个文化标签。', '"{{name}}" selected — now tap a culture tag.'],
+  match_select_label: ['「{{name}}」已选中，再点一个水果。', '"{{name}}" selected — now tap a fruit.'],
+  match_learned_pair: ['{{fruit}} 与 {{label}}', '{{fruit}} & {{label}}'],
+  match_wrong_hint: ['这个标签说的是「{{name}}」的线索，再试一次。', 'This tag is a clue for "{{name}}". Try again.'],
+  match_some_fruit: ['某水果', 'some fruit'],
+  // 问答簿与翻页控件
+  qlog_source_fallback: ['知识库', 'the library'],
+  coverflow_prev: ['上一张', 'Previous'],
+  coverflow_next: ['下一张', 'Next']
 };
 
 let cachedLang = null;
@@ -1443,7 +1665,7 @@ function t(key, vars) {
 }
 
 // 页面标签集：传一组 key，返回 {key: 文案} 供 WXML 绑定。
-Object.assign(dict, chatDict);
+Object.assign(dict, chatDict, gameDict);
 
 function labels(keys) {
   const out = {};

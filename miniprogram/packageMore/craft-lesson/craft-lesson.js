@@ -3,6 +3,13 @@
 // 手艺小课堂：四时链图「传统手工技艺 → 点击学习制作xx酱」的目标页面。
 // 内容取自 fruit-culture 每种水果的 learn 字段（产品/食材/工序），分三步互动阅读。
 const fruitCulture = require('../../data/fruit-culture');
+// 2026-10-11：手艺小课堂的用户文档（原 data/craft-lessons-doc.js，109KB）已物理移出主包、放进本分包。
+// 主包 world-fruit-culture.js 不再 require 它，只给出兜底 learn（课名 + 一条通用食材 + 按正文切出的步骤）；
+// 本页按 craftProduct 从自己分包取出文档，用与搬移前主包完全相同的字段表覆盖兜底结构，
+// 拼出来的 learn 与搬移前逐字一致（中文显示内容不变）。
+const craftLessonsDoc = require('../data/craft-lessons-doc');
+// 2026-10-10：英文模式下用手作课英文对照（同分包）；缺失的课或字段回退中文。
+const craftLessonsEn = require('../data/craft-lessons-en');
 const store = require('../../lib/store');
 const i18n = require('../../lib/i18n');
 
@@ -18,6 +25,27 @@ Page({
     const craft = fruit ? (fruit.categories || []).find(item => item.cat === 'craft') : null;
     const learn = craft && craft.learn ? craft.learn : null;
     if (!learn) { this.setData({ invalid: true, L: i18n.labels(['craft_empty_title']) }); return; }
+    // 文档覆盖（2026-10-11 从主包 buildCraftLearn 的文档分支原样搬来）：有文档就用文档的 01/02/03，
+    // 没有文档的课保留主包给出的兜底 ingredients / steps。
+    const doc = craftLessonsDoc[learn.product];
+    if (doc) {
+      learn.ingredientLead = doc.ingredientLead || '';
+      learn.ingredients = doc.ingredients || [];
+      learn.stepLead = doc.stepLead || '';
+      learn.steps = (doc.steps || []).map(text => ({ title: '', text }));
+      learn.reflectionLead = doc.reflectionLead || '';
+      learn.reflection = doc.reflection || [];
+    }
+    // 英文模式：按课程名取英文（缺就保留中文，不空白）
+    const enLesson = i18n.getLang() === 'en' ? (craftLessonsEn[learn.product] || null) : null;
+    if (enLesson) {
+      learn.ingredientLead = enLesson.ingredientLead || learn.ingredientLead;
+      learn.stepLead = enLesson.stepLead || learn.stepLead;
+      learn.reflectionLead = enLesson.reflectionLead || learn.reflectionLead;
+      if (Array.isArray(enLesson.ingredients) && enLesson.ingredients.length) learn.ingredients = enLesson.ingredients.map(item => Object.assign({}, item));
+      if (Array.isArray(enLesson.steps) && enLesson.steps.length) learn.steps = enLesson.steps.map(item => Object.assign({}, item));
+      if (Array.isArray(enLesson.reflection) && enLesson.reflection.length) learn.reflection = enLesson.reflection.map(item => Object.assign({}, item));
+    }
     // WXML 绑定用首字图形，提前算好。
     learn.ingredients = (learn.ingredients || []).map(item => Object.assign({}, item, { glyph: (item.name || '·')[0] }));
     // 评审 9.28②：通用模板小标题与各课内容不对应，改为纯序号；青梅酱等自拟标题保留。

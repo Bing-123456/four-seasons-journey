@@ -10,10 +10,13 @@ const { sites } = require('../miniprogram/packageWorld/data/sites');
 const app = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../miniprogram/app.json'), 'utf8'));
 
 test('subpackage is registered with its single world page', () => {
-  // packageWorld 之外新增了 packageFruit（果乡/水果详情分包）、packageTrip（分步向导定制行程，评审 P24③）
-  // 与 packageMore（2026-10-06 为压主包体积迁入的 13 个非 tab 页面）；世界分包仍排首位。
-  assert.equal(app.subPackages.length, 4);
+  // packageWorld 之外新增了 packageFruit（果乡/水果详情分包）、packageTrip（分步向导定制行程，评审 P24③）、
+  // packageMore（2026-10-06 为压主包体积迁入的 13 个非 tab 页面）与 packageGame（2026-10-15 玩法链下沉，
+  // 主包 1892.6→1355 KiB）；世界分包仍排首位。
+  assert.equal(app.subPackages.length, 5);
   assert.equal(app.subPackages[0].root, 'packageWorld');
+  assert.equal(app.subPackages.at(-1).root, 'packageGame');
+  assert.deepEqual(app.subPackages.at(-1).pages, ['pages/playground/playground']);
   assert.deepEqual(app.subPackages[0].pages, ['pages/index/index']);
   for (const ext of ['js', 'json', 'wxml', 'wxss']) {
     assert.ok(fs.existsSync(path.resolve(__dirname, '../miniprogram/packageWorld/pages/index/index.' + ext)), ext + ' missing');

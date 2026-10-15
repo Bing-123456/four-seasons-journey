@@ -13,10 +13,41 @@
 // 小程序全局 mock：必须在 require search.js 之前定义。
 global.Page = () => {};
 global.getCurrentPages = () => [];
+
+// 凭证解析：优先读环境变量，其次读本机 backend-config.js（该文件在 .gitignore 内，不进版本库）。
+// 两者都取不到就报错退出并给出配置指引——绝不回退到硬编码 token。
+// 必须在 require search.js 之前调用：search.js → lib/store.js 会直接
+// require('./backend-config')，本机缺该文件时会在加载期抛 MODULE_NOT_FOUND；
+// 先判定凭证才能给出可照做的配置提示，而不是一串加载栈。
+function resolveToken() {
+  const fromEnv = (process.env.GUAYOUJI_TOKEN || '').trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const localConfig = require('../miniprogram/lib/backend-config');
+    const fromConfig = localConfig && typeof localConfig.token === 'string' ? localConfig.token.trim() : '';
+    if (fromConfig) return fromConfig;
+  } catch (error) {
+    // 本机还没有 backend-config.js（例如刚克隆的机器）——继续走到下面的配置提示。
+  }
+  console.error([
+    '未取到云托管 API_TOKEN，无法请求 /api/chat。请任选一种方式配置后重跑：',
+    '  1) 临时环境变量（当前终端有效）：',
+    '       PowerShell:  $env:GUAYOUJI_TOKEN="<你的 token>"',
+    '       bash/zsh:    export GUAYOUJI_TOKEN=<你的 token>',
+    '  2) 持久配置：把 miniprogram/lib/backend-config.example.js 复制为',
+    '       miniprogram/lib/backend-config.js 并填入自己的 token',
+    '       （该文件已被 .gitignore 忽略，不会进版本库）',
+    '  3) 从本机已有的 backend-config.js 临时导出：',
+    '       PowerShell:  $env:GUAYOUJI_TOKEN=(node -p "require(\'./miniprogram/lib/backend-config\').token")',
+    '注意：token 属于凭证，不要写回源码，也不要提交到仓库。'
+  ].join('\n'));
+  process.exit(1);
+}
+const TOKEN = resolveToken();
+
 const search = require('../miniprogram/packageMore/search/search.js');
 const fruitCulture = require('../miniprogram/data/fruit-culture');
 const BASE = process.argv[2] || 'https://guayouji-server-322229-5-1499093335.sh.run.tcloudbase.com';
-const TOKEN = '99fb6493972c19271035cc64ce98d039e4cf55ab0bd1ac86b2004ef8ad5e5539';
 
 // 当前季节的果名清单（时令题断言用）：e2e 与客户端同源，按真实月份算。
 function currentSeason() {

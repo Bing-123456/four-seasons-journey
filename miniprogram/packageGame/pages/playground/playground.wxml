@@ -1,0 +1,218 @@
+<demo-notice id="demo-mode-notice"/>
+<view wx:if="{{unlockCelebration}}" class="unlock-overlay" catchtouchmove="noop">
+  <view class="unlock-card">
+    <view class="unlock-face"><companion-view config="{{unlockCelebration.config}}" size="240" animated="{{true}}"/></view>
+    <view class="unlock-title">{{unlockCelebration.alreadyOwned ? L.unlock_owned_title : L.unlock_title}}</view>
+    <view class="unlock-body">「{{unlockCelebration.name}}」{{unlockCelebration.alreadyOwned ? L.unlock_owned_body : L.unlock_body_suffix}}</view>
+    <button id="unlock-go" class="unlock-go" bindtap="goMine">{{L.unlock_go}}</button>
+    <button id="unlock-continue" class="unlock-continue" bindtap="closeUnlock">{{L.unlock_continue}}</button>
+  </view>
+</view>
+
+<!-- 农事转盘 · 一大轮完成 弹窗 -->
+<view wx:if="{{challengeRoundVisible}}" class="limit-overlay" catchtouchmove="noop" bindtap="closeChallengeRound">
+  <view class="limit-card" catchtap="noop"><view class="limit-text">{{L.challenge_round_done}}</view><view class="limit-close" bindtap="closeChallengeRound">×</view></view>
+</view>
+
+<!-- 文脉连连 · 一大轮完成 弹窗（每日结束弹窗已移除，改由结束页按钮下方文字提示） -->
+<view wx:if="{{matchRoundVisible}}" class="limit-overlay" catchtouchmove="noop" bindtap="closeMatchRound">
+  <view class="limit-card" catchtap="noop"><view class="limit-text">{{L.match_round_done}}</view><view class="limit-close" bindtap="closeMatchRound">×</view></view>
+</view>
+
+<view class="page playground-page {{fontClass}}">
+
+  <!-- 农谚问时（保持不变） -->
+  <view wx:if="{{game === 'quiz'}}" id="game-quiz" class="game-card game-card-full">
+    <view class="game-head"><text class="game-num">02</text><view class="game-name">{{L.game_quiz}}</view><text class="game-pill">{{L.quiz_pill}}</text></view>
+    <block wx:if="{{!quizDone}}">
+      <view class="quiz-progress-track" aria-label="{{quizProgress}}"><view class="quiz-progress-fill" style="width:{{quizProgressWidth}}%"></view></view>
+      <view class="quiz-progress">{{quizProgress}}</view>
+      <view class="quiz-kind">{{quiz[quizIndex].kind === 'proverb' ? L.quiz_proverb_type : L.quiz_knowledge_type}}</view>
+      <view class="quiz-question">{{quiz[quizIndex].text}}</view>
+      <view class="quiz-prompt">{{L.quiz_prompt}}</view>
+      <view wx:for="{{quiz[quizIndex].options}}" wx:key="index" class="quiz-option {{quizAnswered && item.correct ? 'is-correct' : ''}}" data-correct="{{item.correct ? '1' : '0'}}" bindtap="answer" role="button">
+        <text>{{item.label}}</text><text wx:if="{{quizAnswered && item.correct}}" class="quiz-mark">✓</text>
+      </view>
+      <view wx:if="{{quizAnswered}}" class="quiz-feedback {{quizCorrect ? 'good' : 'bad'}}">{{quizCorrect ? L.quiz_correct : L.quiz_wrong}}</view>
+      <view wx:if="{{quizAnswered && quiz[quizIndex].sourceTitle}}" class="quiz-source" bindtap="copyQuizSource" role="button">{{quiz[quizIndex].sourceTitle}} ↗</view>
+      <button wx:if="{{quizAnswered}}" class="game-button" bindtap="nextQuiz">{{L.quiz_next}}</button>
+    </block>
+    <block wx:else>
+      <view class="quiz-done">{{L.quiz_done}}<text>{{quizScoreLine}}</text></view>
+          <!-- 今天的问答簿（第一轮答完就出现，位置在「再来一轮」上面）-->
+          <view wx:if="{{quizRound < 2}}" class="qlog">
+          <view class="qlog-title">{{L.qlog_title}}</view>
+          <view wx:if="{{!quizLog.length}}" class="qlog-empty">{{L.qlog_empty}}</view>
+          <view wx:for="{{quizLog}}" wx:key="index" class="qlog-row">
+          <view class="qlog-dot {{item.correct ? 'ok' : ''}}"></view>
+          <view class="qlog-q">{{item.text}}</view>
+          <view wx:if="{{item.answer}}" class="qlog-a">{{L.qlog_right}}{{item.answer}}</view>
+                    <view class="qlog-a qlog-src">{{L.qlog_by}}{{item.source || L.qlog_source_fallback}}</view>
+          </view>
+          </view>
+      <view wx:if="{{coverflowCards.length}}" class="coverflow-wrap">
+        <view class="coverflow-stage {{coverflowDragging ? 'is-dragging' : ''}}"
+              bindtouchstart="coverflowTouchStart" bindtouchmove="coverflowTouchMove"
+              bindtouchend="coverflowTouchEnd" bindtouchcancel="coverflowTouchEnd">
+          <view wx:for="{{coverflowCards}}" wx:key="id" class="coverflow-card {{coverflowIndex === index ? 'is-center' : ''}}" style="{{item.style}}" data-index="{{index}}" bindtap="coverflowTo" role="button" aria-label="{{item.name}}">
+            <view class="coverflow-face"><companion-view config="{{item.config}}" size="{{coverflowFaceSize}}" animated="{{true}}"/></view>
+            <view class="coverflow-name">{{item.name}}</view>
+          </view>
+        </view>
+        <view wx:if="{{coverflowCount > 1}}" class="coverflow-controls">
+          <button class="coverflow-arrow" bindtap="coverflowPrev" aria-label="{{L.coverflow_prev}}">‹</button>
+          <view class="coverflow-caption">{{coverflowIndex + 1}} / {{coverflowCount}}</view>
+          <button class="coverflow-arrow" bindtap="coverflowNext" aria-label="{{L.coverflow_next}}">›</button>
+        </view>
+      </view>
+      <button wx:if="{{quizRound < 2}}" class="game-button" bindtap="restartQuiz">{{L.quiz_again}}</button>
+      <block wx:else>
+      <view class="quiz-finished">{{L.quiz_finished}}</view>
+          <!-- 今天的问答簿（今日全部答完时出现，位置在「今日问答题已结束」下面）-->
+          <view wx:if="{{quizRound >= 2}}" class="qlog">
+          <view class="qlog-title">{{L.qlog_title}}</view>
+          <view wx:if="{{!quizLog.length}}" class="qlog-empty">{{L.qlog_empty}}</view>
+          <view wx:for="{{quizLog}}" wx:key="index" class="qlog-row">
+          <view class="qlog-dot {{item.correct ? 'ok' : ''}}"></view>
+          <view class="qlog-q">{{item.text}}</view>
+          <view wx:if="{{item.answer}}" class="qlog-a">{{L.qlog_right}}{{item.answer}}</view>
+          
+          <view class="qlog-a qlog-src">{{L.qlog_by}}{{item.source || L.qlog_source_fallback}}</view>
+          </view>
+          </view>
+      </block>
+    </block>
+  </view>
+
+  <!-- 农事转盘 -->
+  <view wx:if="{{game === 'challenge'}}" id="game-challenge" class="game-card game-card-full challenge-game">
+
+    <!-- 状态 6：今日次数用完，2 列 3 行填满整屏展示 6 张知识卡 -->
+    <view wx:if="{{challengeLocked}}" class="challenge-locked">
+      <view class="challenge-locked-title">{{L.challenge_day_limit}}</view>
+      <view class="challenge-cards-grid">
+        <view wx:for="{{challengeCardRows}}" wx:key="index" class="challenge-card-row">
+          <view wx:for="{{item}}" wx:for-item="c" wx:key="sig" class="challenge-card-item">
+            <view class="challenge-card-header">{{c.title}}</view>
+            <view wx:if="{{c.situation}}" class="challenge-card-q">{{c.situation}}</view>
+            <view wx:if="{{c.answer}}" class="challenge-card-answer">{{L.challenge_card_answer}}{{c.answer}}</view>
+            <view class="challenge-card-line"></view>
+            <view class="challenge-card-body">
+              <view wx:for="{{c.pointsView}}" wx:for-item="pt" wx:key="index" class="challenge-card-point"><text class="challenge-k-label">{{pt.label}}</text><text class="challenge-k-text">{{pt.text}}</text></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 状态 1-5 / 7 -->
+    <block wx:else>
+      <view class="challenge-left">{{L.challenge_left}}{{challengeLeft}} / 6</view>
+
+      <!-- 真实三圈转盘：外圈节气、中圈水果、内圈困境 -->
+      <view class="challenge-wheel-wrap">
+        <view class="challenge-wheel">
+          <view class="challenge-wheel-rings {{wheelSpinning ? 'is-spinning' : ''}}">
+            <canvas type="2d" id="challengeWheel" class="challenge-wheel-canvas"></canvas>
+          </view>
+          <view class="wheel-center"><companion-view config="{{companion}}" size="120"/></view>
+        </view>
+      </view>
+
+      <!-- 状态 1：仅一个撑满的「自动转盘」按钮 -->
+      <view wx:if="{{challengeState === 'idle'}}" class="challenge-start-actions">
+        <button class="game-button challenge-start-btn" bindtap="challengeAutoSpin">{{L.challenge_auto}}</button>
+      </view>
+
+      <!-- 状态 2：旋转中，下方空白（不显示题目、选项、结果） -->
+
+      <!-- 结果条：转盘与题目之间 -->
+      <view wx:if="{{challengeState !== 'idle' && challengeState !== 'spinning'}}" class="wheel-summary">{{wheelSummary}}</view>
+
+      <!-- 状态 3-7：题目区 -->
+      <view wx:if="{{challengeState !== 'idle' && challengeState !== 'spinning'}}" class="challenge-question-area">
+        <view class="challenge-situation">{{challenge.situation}}</view>
+        <!-- 提问引导语：只给"题面只是陈述、本身没在提问"的题补一行，紧跟在题面后面 -->
+        <view wx:if="{{challenge.prompt}}" class="challenge-prompt">{{challenge.prompt}}</view>
+
+        <!-- 选项：状态 7 隐藏 -->
+        <view wx:if="{{challengeState !== 'saved'}}" class="challenge-options">
+          <view wx:for="{{challenge.options}}" wx:key="index" data-index="{{index}}"
+            class="challenge-option {{item.correct && (challengeState === 'correct' || challengeState === 'reveal' || challengeState === 'wrong') ? 'is-correct' : ''}} {{challengeSelected === index && !item.correct ? 'is-wrong' : ''}} {{challengeState !== 'answering' && !item.correct ? 'is-faded' : ''}}"
+            bindtap="challengeAnswer">
+            <text class="challenge-option-letter">{{item.letter}}.</text>
+            <text class="challenge-option-text">{{item.text}}</text>
+            <text wx:if="{{item.correct && (challengeState === 'correct' || challengeState === 'reveal' || challengeState === 'wrong')}}" class="challenge-option-mark">✓</text>
+            <text wx:if="{{challengeSelected === index && !item.correct}}" class="challenge-option-mark is-wrong-mark">✗</text>
+          </view>
+        </view>
+
+        <!-- 知识卡加载占位：等 AI 返回后一次性定稿，中途不再变内容 -->
+        <view wx:if="{{challengeLoadingKnowledge}}" class="challenge-knowledge">
+          <view class="challenge-k-loading">{{L.challenge_knowledge_loading}}</view>
+        </view>
+        <!-- 知识卡：答对 / 答错 / 保存后均展示 -->
+        <view wx:elif="{{challengeKnowledge && (challengeState === 'correct' || challengeState === 'wrong' || challengeState === 'reveal' || challengeState === 'saved')}}" class="challenge-knowledge">
+          <view class="challenge-k-title">{{challengeCardTitle}}</view>
+          <view wx:for="{{challengeKnowledge.pointsView}}" wx:key="index" class="challenge-k-point"><text class="challenge-k-label">{{item.label}}</text><text class="challenge-k-text">{{item.text}}</text></view>
+          <view class="challenge-k-actions">
+            <button wx:if="{{challengeState !== 'saved'}}" class="game-button challenge-mini {{challengeSaving ? 'challenge-saving-btn' : ''}}" bindtap="saveKnowledgeCard" disabled="{{challengeSaving}}">{{challengeSaving ? L.challenge_saving : L.challenge_save_album}}</button>
+            <button wx:if="{{challengeState !== 'saved'}}" class="game-button challenge-mini" bindtap="challengeNext">{{L.challenge_next}}</button>
+            <button wx:if="{{challengeState === 'saved'}}" class="game-button challenge-mini challenge-saved-btn" disabled>{{L.challenge_saved_toast}}</button>
+            <button wx:if="{{challengeState === 'saved'}}" class="game-button challenge-mini" bindtap="challengeNext">{{L.challenge_next}}</button>
+          </view>
+        </view>
+      </view>
+      <!-- 离屏合成画布：保存「转盘 + 知识卡」为一张图时用 -->
+      <canvas type="2d" id="challengeShare" class="challenge-share-canvas"></canvas>
+    </block>
+  </view>
+
+  <!-- 文脉连连 -->
+  <view wx:if="{{game === 'match'}}" id="game-match" class="game-card game-card-full match-game">
+    <view class="match-top">
+      <view class="match-left">{{L.match_left}}{{matchLeft}} / {{matchDailyLimit}}</view>
+    </view>
+    <view class="match-board">
+      <canvas type="2d" id="matchLines" class="match-lines"></canvas>
+      <view class="match-col">
+        <view id="match-fruit-{{item.id}}" wx:for="{{matchFruits}}" wx:key="id" data-id="{{item.id}}"
+          class="match-card {{matchSelectedFruit === item.id ? 'is-selected' : ''}} {{matchMatched[item.id] ? 'is-matched' : ''}} {{matchWrong && matchWrong.fruit === item.id ? 'is-wrong' : ''}}"
+          bindtap="matchTapFruit">{{item.nameEn || item.name}}</view>
+      </view>
+      <view class="match-col">
+        <view id="match-label-{{item.id}}" wx:for="{{matchLabels}}" wx:key="id" data-id="{{item.id}}"
+          class="match-card {{matchSelectedLabel === item.id ? 'is-selected' : ''}} {{matchMatched[item.id] ? 'is-matched' : ''}} {{matchWrong && matchWrong.label === item.id ? 'is-wrong' : ''}}"
+          bindtap="matchTapLabel">{{item.label}}</view>
+      </view>
+    </view>
+    <!-- 底部固定果灵气泡：静态不浮动。配对中显示讲解，结算后保留最后一对的逐行讲解（不再显示 4 对合并长文）。 -->
+    <view class="match-elf-bar">
+      <view class="match-elf-face"><companion-view config="{{companion}}" size="56"/></view>
+      <view class="match-elf-body">
+        <view wx:if="{{matchBubble.visible}}" class="match-elf-text {{matchBubble.type}}">{{matchBubble.text}}</view>
+        <view wx:else class="match-elf-text match-elf-hint">{{L.match_tip}}</view>
+      </view>
+    </view>
+    <view wx:if="{{matchDone}}" class="match-done-actions">
+      <button wx:if="{{matchLeft > 0}}" class="game-button" bindtap="matchRestart">{{L.match_again}}</button>
+      <button wx:else class="game-button match-disabled" disabled>{{L.match_exhausted}}</button>
+      <view wx:if="{{matchLeft <= 0}}" class="match-day-end">{{L.match_day_end}}</view>
+          <!-- 今日连线图谱（2026-10-08 新增）：一对一行，实线=连对 / 虚线=连错；下面跟果灵讲解词 -->
+          <view wx:if="{{matchDone}}" class="mgraph">
+            <view class="mgraph-title">{{L.mgraph_title}}</view>
+            <view wx:if="{{!matchRoundLog.length}}" class="mgraph-empty">{{L.mgraph_empty}}</view>
+            <view wx:for="{{matchRoundLog}}" wx:key="index" class="mgraph-item">
+              <view class="mgraph-line">
+                <view class="mgraph-node fruit">{{item.fruit}}</view>
+                <view class="mgraph-edge {{item.correct ? 'solid' : 'dash'}}"></view>
+                <view class="mgraph-node label">{{item.label}}</view>
+              </view>
+              <view wx:if="{{item.note}}" class="mgraph-note">{{item.note}}</view>
+      <view class="mgraph-note mgraph-src">{{L.qlog_by}}{{item.source || L.qlog_source_fallback}}</view>
+            </view>
+            <view wx:if="{{matchRoundLog.length}}" class="mgraph-hint">{{L.mgraph_hint}}</view>
+          </view>
+    </view>
+  </view>
+</view>

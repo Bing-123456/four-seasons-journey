@@ -60,18 +60,18 @@ test('graph and heritage supply every visible label after loading in either lang
 
 test('craft notes load translated product names and refresh dialect labels without reloading the module', () => {
   language('zh');
-  const source = definition('fruit-note');
+  const source = definition('packageFruit', 'pages/fruit-note/fruit-note');
   for (const lang of ['zh', 'en', 'zh']) {
     language(lang);
     const page = instance(source);
     assert.doesNotThrow(() => page.onLoad({ fruit: 'spring-plum', cat: 'craft' }));
     assert.equal(page.data.category.learn.product, lang === 'zh' ? '青梅酱' : 'Green plum jam');
-    assertVisibleLabels(page, 'fruit-note');
+    assertVisibleLabels(page, 'packageFruit', 'pages/fruit-note/fruit-note');
   }
 });
 
 test('an invalid fruit note still displays its explanation and back action', () => {
-  const page = instance(definition('fruit-note'));
+  const page = instance(definition('packageFruit', 'pages/fruit-note/fruit-note'));
   page.onLoad({ fruit: 'missing', cat: 'craft' });
   assert.equal(page.data.invalid, true);
   assert.ok(page.data.L.fn_invalid_title);

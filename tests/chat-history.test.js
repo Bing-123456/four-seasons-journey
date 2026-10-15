@@ -83,3 +83,36 @@ test('clear empties the stored history', () => {
   assert.equal(chatHistory.clear(), true);
   assert.deepEqual(chatHistory.load(), []);
 });
+
+test('elf messages carry bilingual caches; legacy zh text seeds the zh cache; user messages stay plain', () => {
+  // 新中文消息：自带 textZh 缓存
+  chatHistory.save([elf('西瓜七月最甜。', { lang: 'zh', textZh: '西瓜七月最甜。', textEn: '', followUps: ['西瓜怎么挑？'], followUpsZh: ['西瓜怎么挑？'], followUpsEn: [] })]);
+  let m = chatHistory.load()[0];
+  assert.equal(m.lang, 'zh');
+  assert.equal(m.textZh, '西瓜七月最甜。');
+  assert.equal(m.textEn, '');
+  assert.deepEqual(m.followUpsZh, ['西瓜怎么挑？']);
+  assert.deepEqual(m.followUpsEn, []);
+
+  // 旧记录：没有 lang / 缓存 → 按 zh 处理，并用正文回填 zh 缓存（切回来不用重翻）
+  chatHistory.save([elf('梨子润肺。', { followUps: ['梨怎么挑？'] })]);
+  m = chatHistory.load()[0];
+  assert.equal(m.lang, 'zh');
+  assert.equal(m.textZh, '梨子润肺。');
+  assert.deepEqual(m.followUpsZh, ['梨怎么挑？']);
+  assert.equal(m.textEn, '');
+
+  // 英文消息：缓存落在 en 侧，zh 侧留空
+  chatHistory.save([elf('Pears moisten the lungs.', { lang: 'en', textEn: 'Pears moisten the lungs.', textZh: '', followUps: ['How to pick a pear?'], followUpsEn: ['How to pick a pear?'], followUpsZh: [] })]);
+  m = chatHistory.load()[0];
+  assert.equal(m.lang, 'en');
+  assert.equal(m.textEn, 'Pears moisten the lungs.');
+  assert.equal(m.textZh, '');
+
+  // 用户消息不携带双语缓存字段
+  chatHistory.save([{ id: 'u1', role: 'user', text: '那梨子呢' }]);
+  const u = chatHistory.load()[0];
+  assert.equal('lang' in u, false);
+  assert.equal('textZh' in u, false);
+  assert.equal('textEn' in u, false);
+});

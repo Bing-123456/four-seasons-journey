@@ -136,8 +136,8 @@ test('favorites use attributed real photos and text cards for topics with no pho
   const mineWxml = fs.readFileSync(path.resolve(__dirname, '../miniprogram/pages/mine/mine.wxml'), 'utf8');
   assert.doesNotMatch(mineWxml, /\/assets\/henan-/);
   // 收藏入口移到统计位（文化收藏 / 旅游地收藏），两类收藏分开展示。
-  assert.match(mineWxml, /openPlaceFavorites/);
-  assert.match(mineWxml, /openKnowledgeFavorites/);
+  assert.doesNotMatch(mineWxml, /openPlaceFavorites/, '2026-10-11 用户要求移除「我的收获」块：收藏入口不再出现在「我的」页');
+  assert.doesNotMatch(mineWxml, /openKnowledgeFavorites/, '2026-10-11 用户要求移除「我的收获」块：文化收藏入口不再出现在「我的」页');
   const wxml = fs.readFileSync(pagePath('favorites', '.wxml'), 'utf8');
   // 收藏列表页：有图地点显示缩略图，无图主题显示首字卡片；按 type 只展示一类。
   assert.match(wxml, /item\.imageView\.src/);

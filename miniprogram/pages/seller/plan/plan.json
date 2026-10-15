@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "活动方案",
+  "navigationBarBackgroundColor": "#FFFDF8",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#FFFDF8",
+  "usingComponents": {
+    "demo-notice": "/components/demo-notice/index"
+  }
+}

@@ -14,7 +14,6 @@ page{background: #F5F5F7}
 
 /* 名片卡：暖纸底、14px 圆角、细边 */
 .town-card{background: #FFFDF8;border:1rpx solid rgba(0,0,0,.08);border-radius: 28rpx;padding:26rpx 26rpx 24rpx;margin-bottom:22rpx;box-sizing:border-box}
-.town-art{width:100%;height:320rpx;border-radius: 28rpx;background:#EDE7DA;display:block}
 .town-title{font-size: calc(32rpx * var(--fs-scale, 1));font-weight:700;color: #1D1D1F;line-height:1.4;margin-top:20rpx;overflow-wrap:anywhere}
 .town-term{display:inline-block;margin-top:10rpx;padding:4rpx 14rpx;border-radius: 28rpx;background:rgba(243,227,200,.55);color: #826B4B;font-size: calc(21rpx * var(--fs-scale, 1));line-height:1.5}
 /* 体验标签：最多 3 个 chip */
@@ -26,6 +25,11 @@ page{background: #F5F5F7}
 .town-transport{color: #87917B}
 .town-intro{font-size: calc(26rpx * var(--fs-scale, 1));color: #1D1D1F;line-height:1.75;margin-top:16rpx;overflow-wrap:anywhere}
 .town-contact{color: #234B3C}
+/* 「我的方案」：卡片正文最后一块（方案名 + 编号的那几步），照 pages/seller/index.wxss 的 .tc-plan-* 同款字号。
+   没有方案的名片整块不渲染（wxml 挂 hasPlan），老名片高度与原来一样。 */
+.town-plan{margin-top:12rpx}
+.town-plan-title{font-size: calc(26rpx * var(--fs-scale, 1));font-weight:600;color: #1D1D1F;line-height:1.7;overflow-wrap:anywhere}
+.town-plan-step{font-size: calc(26rpx * var(--fs-scale, 1));color: #6F7C70;line-height:1.7;margin-top:4rpx;overflow-wrap:anywhere}
 /* 按钮：主色实心 + 次要描边；圆角 11px */
 .town-actions{display:flex;gap:14rpx;margin-top:24rpx}
 .town-btn{flex:1;margin:0;padding:0;border-radius: 28rpx;background: #F5F5F7;color: #234B3C;font-size: calc(26rpx * var(--fs-scale, 1));line-height:88rpx;text-align:center;border:1rpx solid rgba(0,0,0,.08)}

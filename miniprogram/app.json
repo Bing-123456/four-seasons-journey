@@ -10,7 +10,7 @@
     "pages/companion/companion",
     "pages/seller/index",
     "pages/seller/publish/publish",
-    "pages/playground/playground",
+    "pages/seller/plan/plan",
     "pages/community/community",
     "pages/community/post",
     "pages/community/detail"
@@ -58,7 +58,10 @@
   "lazyCodeLoading": "requiredComponents",
   "permission": {
     "scope.userLocation": {
-      "desc": "用于显示果园与你的距离"
+      "desc": "用于选择行程起点、标注果乡位置与显示距离"
+    },
+    "scope.record": {
+      "desc": "用于语音提问（语音转文字）"
     }
   },
   "requiredPrivateInfos": [
@@ -76,7 +79,8 @@
       "root": "packageFruit",
       "pages": [
         "pages/fruit-town/fruit-town",
-        "pages/fruit-detail/fruit-detail"
+        "pages/fruit-detail/fruit-detail",
+        "pages/fruit-note/fruit-note"
       ]
     },
     {
@@ -98,11 +102,30 @@
         "graph/graph",
         "journal/journal",
         "craft-lesson/craft-lesson",
-        "fruit-note/fruit-note",
         "smart-card/smart-card",
         "search/search",
         "news/news"
       ]
+    },
+    {
+      "root": "packageGame",
+      "pages": [
+        "pages/playground/playground"
+      ]
     }
-  ]
+  ],
+  "preloadRule": {
+    "pages/index/index": {
+      "network": "all",
+      "packages": [
+        "packageGame"
+      ]
+    },
+    "pages/learn/learn": {
+      "network": "all",
+      "packages": [
+        "packageGame"
+      ]
+    }
+  }
 }

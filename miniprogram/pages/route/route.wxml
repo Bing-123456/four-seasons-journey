@@ -19,30 +19,8 @@
       </view>
       <view class="tn-perf"/>
       <view class="tn-bottom">
-        <!-- ⑦ 点票后在这一页原地长出三块，不跳页 -->
-        <view wx:if="{{expandedId === next.id}}" class="tk-more">
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_find_who}}</view>
-            <view wx:if="{{next.contactLine}}" class="tk-block-x">{{next.contactLine}}</view>
-            <view wx:if="{{next.transportLine}}" class="tk-block-x">{{next.transportLine}}</view>
-            <view wx:if="{{next.expLine}}" class="tk-block-x">{{next.expLine}}</view>
-            <view wx:if="{{next.contact}}" class="ticket-actions" style="margin-top:12rpx">
-              <view class="ticket-btn" data-contact="{{next.contact}}" bindtap="copyContact">{{L.rt_copy_contact}}</view>
-            </view>
-          </view>
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_where_is}}</view>
-            <view class="tk-block-t">{{L.sl_region}}</view>
-            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{next.region}}</text></view>
-            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{next.placeLine}}</text></view>
-            <view wx:if="{{next.address}}" class="tk-block-t">{{L.sl_address}}</view>
-            <view wx:if="{{next.address}}" class="tk-place"><text>{{next.address}}</text></view>
-          </view>
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_my_note}}</view>
-            <input class="ticket-input" value="{{next.note}}" data-id="{{next.id}}" bindinput="updateNote" placeholder="{{L.rt_note_placeholder}}"/>
-          </view>
-        </view>
+        <!-- ⑦ 展开区（2026-10 用户拍板）：只留「导航出发」「去过了·撕票盖章」两个动作。
+             原先的「联系人 / 位置 / 备注」三段展示整块删除；i18n 键与票据字段、保存逻辑一个字没动。 -->
         <view class="ticket-actions"><view class="ticket-btn ticket-btn-primary" data-id="{{next.id}}" bindtap="navigateTicket">{{L.rt_navigate_go}}</view></view>
         <view class="ticket-actions"><view class="ticket-btn" data-id="{{next.id}}" bindtap="stampTicket">{{L.rt_stamp}}</view></view>
       </view>
@@ -62,27 +40,8 @@
           <view class="rt-arrow">{{expandedId === item.id ? '⌃' : '›'}}</view>
         </view>
         <view wx:if="{{expandedId === item.id}}" class="tk-more">
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_find_who}}</view>
-            <view wx:if="{{item.contactLine}}" class="tk-block-x">{{item.contactLine}}</view>
-            <view wx:if="{{item.transportLine}}" class="tk-block-x">{{item.transportLine}}</view>
-            <view wx:if="{{item.expLine}}" class="tk-block-x">{{item.expLine}}</view>
-            <view wx:if="{{item.contact}}" class="ticket-actions" style="margin-top:12rpx">
-              <view class="ticket-btn" data-contact="{{item.contact}}" bindtap="copyContact">{{L.rt_copy_contact}}</view>
-            </view>
-          </view>
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_where_is}}</view>
-            <view class="tk-block-t">{{L.sl_region}}</view>
-            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{item.region}}</text></view>
-            <view class="tk-place"><text class="tk-place-pin">◉</text><text>{{item.placeLine}}</text></view>
-            <view wx:if="{{item.address}}" class="tk-block-t">{{L.sl_address}}</view>
-            <view wx:if="{{item.address}}" class="tk-place"><text>{{item.address}}</text></view>
-          </view>
-          <view class="tk-block">
-            <view class="tk-block-t">{{L.rt_my_note}}</view>
-            <input class="ticket-input" value="{{item.note}}" data-id="{{item.id}}" bindinput="updateNote" placeholder="{{L.rt_note_placeholder}}"/>
-          </view>
+          <!-- 展开区（2026-10 用户拍板）：联系人 / 位置 / 备注三段展示删除，
+               只留动作按钮；待用票的删除（✕）是既有功能，保留。 -->
           <view class="ticket-actions">
             <view class="ticket-btn ticket-btn-primary" data-id="{{item.id}}" bindtap="navigateTicket">{{L.rt_navigate_go}}</view>
             <view class="ticket-btn" data-id="{{item.id}}" bindtap="stampTicket">{{L.rt_stamp}}</view>
@@ -115,7 +74,9 @@
   </scroll-view>
 
   <!-- ⑥ 排票抽屉：不跳页，背后仍是票夹原样；只问 去哪 / 什么时候去 / 怎么去 -->
-  <view wx:if="{{drawerOpen}}" class="plan-mask" catchtouchmove="noop" bindtap="closeDrawer">
+  <!-- 2026-10-11：遮罩上原来挂着 catchtouchmove="noop"，它会把抽屉内列表的滑动一起吞掉（划不动）→ 去掉。
+       背景是 scroll-view（只有直接触摸它才滚），所以去掉后不会出现"背景跟着滚"。 -->
+  <view wx:if="{{drawerOpen}}" class="plan-mask" bindtap="closeDrawer">
     <view class="plan-sheet" catchtap="noop">
       <view class="plan-head">
         <view class="plan-title serif">{{L.rt_add_ticket}}</view>
@@ -127,20 +88,75 @@
       <scroll-view scroll-y class="plan-scroll">
         <view class="plan-label">{{L.rt_drawer_where}}</view>
         <block wx:if="{{poolPreview.length}}">
+          <!-- 预览的第一张：整张果乡名片（2026-10-12 第12 轮 + 第13 轮补全）——名称/节气·水果/可去日期/
+               体验标签/所在地区/具体位置/开关门日期/开关门时间/距离/果乡介绍/交通指引/微信号/手机号/联系方式，
+               字段与快讯卡片一致；整行仍可点选，右侧仍是勾选圈。无值的行整行不显示（不出现「暂无」）。 -->
           <view wx:for="{{poolPreview}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
-            <image class="pool-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
             <view class="pool-main">
-              <view class="pool-name">{{item.name}}</view>
-              <view class="pool-term">{{item.subLine}}</view>
+              <view class="pool-name">{{item.card.name}}</view>
+              <view wx:if="{{item.card.termLabel}}" class="pool-term">{{item.card.termLabel}}</view>
+              <!-- 可去日期（写法照 news.wxml 那条：news_activity_date + 值，不拼冒号） -->
+              <view wx:if="{{item.card.activityDate}}" class="pool-line pool-date">{{L.news_activity_date}} {{item.card.activityDate}}</view>
+              <view wx:if="{{item.expTags.length}}" class="pool-chips">
+                <view wx:for="{{item.expTags}}" wx:for-item="tag" wx:key="*this" class="pool-chip">{{tag}}</view>
+              </view>
+              <view wx:if="{{item.card.region}}" class="pool-line">{{L.sl_region}}</view>
+              <view wx:if="{{item.card.region}}" class="pool-line">{{item.card.region}}</view>
+              <view wx:if="{{item.card.address}}" class="pool-line">{{L.sl_address}}</view>
+              <view wx:if="{{item.card.address}}" class="pool-line">{{item.card.address}}</view>
+              <!-- 开关门日期 / 时间：标签复用卖货台那套自带冒号的键（英文同款，不硬拼全角冒号） -->
+              <view wx:if="{{item.card.openDateText}}" class="pool-line">{{L.sl_open_date_colon}}{{item.card.openDateText}}</view>
+              <view wx:if="{{item.card.openTimeText}}" class="pool-line">{{L.sl_open_time_colon}}{{item.card.openTimeText}}</view>
+              <!-- 距你多少公里：与快讯卡片同款写法（值自带「距你」/「km away」，无值整行不显示） -->
+              <view wx:if="{{item.card.distance}}" class="pool-line pool-distance">{{item.card.distance}}</view>
+              <view wx:if="{{item.card.intro}}" class="pool-line">{{L.sl_intro}}</view>
+              <view wx:if="{{item.card.intro}}" class="pool-intro">{{item.card.intro}}</view>
+              <view wx:if="{{item.card.transport}}" class="pool-line">{{L.sl_transport}}：{{item.card.transport}}</view>
+              <view class="pool-line">{{L.sl_wechat_colon}}{{item.card.wechat || L.sl_none}}</view>
+              <view class="pool-line">{{L.sl_phone_colon}}{{item.card.phone || L.sl_none}}</view>
+              <!-- 「活动方案」（2026-10-13）：AI 生成的活动方案（方案名 + 编号的那几步），照「我的发布」卡片那块写。
+                   数据来自 lib/town-info.js 的 cardFor（与快讯页共用同一套）；没有方案的名片整块不渲染。
+                   标题复用既有键 plan_nav（词典里就是「活动方案」/「Activity plan」），不新造键。 -->
+              <view wx:if="{{item.card.hasPlan}}" class="pool-plan">
+                <view class="pool-line">{{L.plan_nav}}</view>
+                <view class="pool-plan-title">{{item.card.planTitle}}</view>
+                <view wx:for="{{item.card.planSteps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="*this" class="pool-plan-step">{{stepIndex + 1}}. {{step}}</view>
+              </view>
+              <!-- 联系方式：只作一行文字，不做按钮（整行本身已经是点选区）；有值才显示 -->
+              <view wx:if="{{item.card.contact}}" class="pool-line">{{L.rt_contact_prefix}}{{item.card.contact}}</view>
             </view>
             <view class="pool-check">{{draft.destId === item.id ? '✓' : ''}}</view>
           </view>
           <block wx:if="{{poolExpanded}}">
+            <!-- 其余果园：与第一张同一套内容，点「查看更多果园」才出现（展开逻辑未改） -->
             <view wx:for="{{poolRest}}" wx:key="id" class="pool-row {{draft.destId === item.id ? 'is-on' : ''}}" data-id="{{item.id}}" bindtap="pickDest" role="button">
-              <image class="pool-art" src="{{item.art}}" mode="aspectFill" aria-hidden="true"/>
               <view class="pool-main">
-                <view class="pool-name">{{item.name}}</view>
-                <view class="pool-term">{{item.subLine}}</view>
+                <view class="pool-name">{{item.card.name}}</view>
+                <view wx:if="{{item.card.termLabel}}" class="pool-term">{{item.card.termLabel}}</view>
+                <!-- 与预览那一条逐项相同：可去日期 / 开关门日期 / 开关门时间 / 距离 / 联系方式，有值才显示 -->
+                <view wx:if="{{item.card.activityDate}}" class="pool-line pool-date">{{L.news_activity_date}} {{item.card.activityDate}}</view>
+                <view wx:if="{{item.expTags.length}}" class="pool-chips">
+                  <view wx:for="{{item.expTags}}" wx:for-item="tag" wx:key="*this" class="pool-chip">{{tag}}</view>
+                </view>
+                <view wx:if="{{item.card.region}}" class="pool-line">{{L.sl_region}}</view>
+                <view wx:if="{{item.card.region}}" class="pool-line">{{item.card.region}}</view>
+                <view wx:if="{{item.card.address}}" class="pool-line">{{L.sl_address}}</view>
+                <view wx:if="{{item.card.address}}" class="pool-line">{{item.card.address}}</view>
+                <view wx:if="{{item.card.openDateText}}" class="pool-line">{{L.sl_open_date_colon}}{{item.card.openDateText}}</view>
+                <view wx:if="{{item.card.openTimeText}}" class="pool-line">{{L.sl_open_time_colon}}{{item.card.openTimeText}}</view>
+                <view wx:if="{{item.card.distance}}" class="pool-line pool-distance">{{item.card.distance}}</view>
+                <view wx:if="{{item.card.intro}}" class="pool-line">{{L.sl_intro}}</view>
+                <view wx:if="{{item.card.intro}}" class="pool-intro">{{item.card.intro}}</view>
+                <view wx:if="{{item.card.transport}}" class="pool-line">{{L.sl_transport}}：{{item.card.transport}}</view>
+                <view class="pool-line">{{L.sl_wechat_colon}}{{item.card.wechat || L.sl_none}}</view>
+                <view class="pool-line">{{L.sl_phone_colon}}{{item.card.phone || L.sl_none}}</view>
+                <!-- 「活动方案」：与预览那一条逐项相同；没有方案的名片整块不渲染 -->
+                <view wx:if="{{item.card.hasPlan}}" class="pool-plan">
+                  <view class="pool-line">{{L.plan_nav}}</view>
+                  <view class="pool-plan-title">{{item.card.planTitle}}</view>
+                  <view wx:for="{{item.card.planSteps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="*this" class="pool-plan-step">{{stepIndex + 1}}. {{step}}</view>
+                </view>
+                <view wx:if="{{item.card.contact}}" class="pool-line">{{L.rt_contact_prefix}}{{item.card.contact}}</view>
               </view>
               <view class="pool-check">{{draft.destId === item.id ? '✓' : ''}}</view>
             </view>
@@ -156,6 +172,20 @@
           <view class="plan-input" bindtap="openDateSheet">{{draft.date || L.rt_pick_date}}</view>
           <view class="plan-input" bindtap="openTimeSheet">{{draft.time || L.rt_pick_time}}</view>
         </view>
+        <!-- 每天还剩多少名额（GET /api/booking-availability）：每一天一行、带当天剩余名额。
+             满员 / 已过去的那天整行灰掉、不做点击区（disabled 的那种行不绑 tap）。
+             接口还没部署到线上（404）、断网、403 一律按「名额未知」：不置灰、不拦报名，只多一句提示。 -->
+        <view wx:if="{{dayRows.length}}" class="seats">
+          <block wx:for="{{dayRows}}" wx:key="date">
+            <view wx:if="{{item.disabled}}" class="seat-row is-off">
+              <text class="seat-day">{{item.label}}</text><text class="seat-left">{{item.seatsText}}</text>
+            </view>
+            <view wx:else class="seat-row {{draft.date === item.date ? 'is-on' : ''}}" data-date="{{item.date}}" bindtap="pickDay" role="button">
+              <text class="seat-day">{{item.label}}</text><text class="seat-left">{{item.seatsText}}</text>
+            </view>
+          </block>
+        </view>
+        <view wx:elif="{{seatsUnknown}}" class="seat-hint">{{L.rt_seats_unknown}}</view>
 
         <view class="plan-label">{{L.rt_drawer_how}}</view>
         <view class="plan-transports">

@@ -26,7 +26,9 @@ function rememberPreview(key, filePath) {
   while (previewCache.size > MAX_CACHED_PREVIEWS) previewCache.delete(previewCache.keys().next().value);
 }
 Component({
-  properties:{config:{type:Object,value:null},animated:{type:Boolean,value:false},size:{type:Number,value:240}},
+  // config 允许空值：页面数据未就绪时调用方会先传 undefined/null（如「我的」页的 companion 只在 setData 里出现）。
+  // 微信组件规范里 type:null 表示「任意类型」，空值不再触发 [Component] type-uncompatible 告警；取值仍由 companion.normalizeConfig 归一成默认果灵。
+  properties:{config:{type:null,value:null},animated:{type:Boolean,value:false},size:{type:Number,value:240}},
   data:{failed:false,wave:false,motionActive:true,imagePath:''},
   observers:{'config, animated':function(){if(this._canvas)this.paint();}},
   lifetimes:{

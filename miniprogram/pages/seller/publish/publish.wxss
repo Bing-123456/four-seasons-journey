@@ -8,6 +8,11 @@ page { padding: 24rpx 28rpx 60rpx; background: #FFFDF8; min-height: 100vh; box-s
 .back-btn { font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; padding: 8rpx 0; margin-right: 16rpx; }
 .head-title { font-size: calc(38rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; }
 .err { color: #B96D50; font-size: calc(26rpx * var(--fs-scale, 1)); margin-bottom: 16rpx; }
+/* 一页填完（新设计图 2）：顶部一行填表说明、两段的小标题、按钮下面一行小字 */
+.page-hint { font-size: calc(23rpx * var(--fs-scale, 1)); color: #7A7062; line-height: 1.6; margin-bottom: 10rpx; }
+.section-title { font-size: calc(32rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin: 26rpx 0 2rpx; }
+.section-title.batch { margin-top: 40rpx; }
+.gen-hint { font-size: calc(23rpx * var(--fs-scale, 1)); color: #87917B; line-height: 1.6; margin-top: 14rpx; }
 .label { display: block; font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; font-weight: 600; margin: 24rpx 0 10rpx; }
 .input { width: 100%; box-sizing: border-box; background: #fff; border: 2rpx solid #E1E5D9; border-radius: 14rpx; height: 88rpx; line-height: 88rpx; padding: 0 20rpx; font-size: calc(28rpx * var(--fs-scale, 1)); color: #234B3C; }
 .input.picker { color: #234B3C; }
@@ -21,3 +26,6 @@ page { padding: 24rpx 28rpx 60rpx; background: #FFFDF8; min-height: 100vh; box-s
 .next, .submit { width: 100%; margin-top: 36rpx; background: #47634B; color: #fff; border-radius: 44rpx; font-size: calc(28rpx * var(--fs-scale, 1)); }
 .polish { width: 100%; margin-top: 20rpx; background: #fff; color: #47634B; border: 2rpx solid #47634B; border-radius: 44rpx; font-size: calc(28rpx * var(--fs-scale, 1)); }
 .back-step { width: 100%; margin-top: 16rpx; background: transparent; color: #87917B; font-size: calc(28rpx * var(--fs-scale, 1)); }
+/* 次要按钮（白底描边，主按钮「生成方案」之下的那一个）：
+   编辑态（?id=xxx）是「保存修改」，新建态（无 ?id）是「保存并发布」——同一套样式、同一个 saveCard 入口。 */
+.save-edit { width: 100%; margin-top: 20rpx; background: #fff; color: #47634B; border: 2rpx solid #47634B; border-radius: 44rpx; font-size: calc(28rpx * var(--fs-scale, 1)); }

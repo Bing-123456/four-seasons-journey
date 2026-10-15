@@ -31,7 +31,7 @@ function effectiveApiBase(savedBase) {
 
 // 团队线上后端直连凭证（竞赛演示内置；可在「我的」改为自己的服务地址并配对）。
 // 2026-10-01 迁移至微信云托管（原开发者 VPS 已停用）。
-const DEFAULT_BACKEND = { apiBase: 'https://guayouji-server-322229-5-1499093335.sh.run.tcloudbase.com', token: '99fb6493972c19271035cc64ce98d039e4cf55ab0bd1ac86b2004ef8ad5e5539' };
+const DEFAULT_BACKEND = require('./backend-config');
 // 历史上用过的团队后端地址：读取时自动升级为当前地址（凭证通用）。
 const LEGACY_BACKEND_APIS = ['https://guayouji.orionsheep.com', 'https://demo.orionsheep.com/guayouji'];
 const defaultSettings = { apiBase: DEFAULT_BACKEND.apiBase, useAI: true, language: 'zh' };

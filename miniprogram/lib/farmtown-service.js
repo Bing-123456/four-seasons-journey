@@ -8,10 +8,22 @@ function call(method, path, body) {
   return media.request(ctx, method, path, body);
 }
 
-async function listTowns(term) {
+async function listTowns(term, hooks) {
+  // 冷启动兜底：最多 3 次尝试（失败等 2 秒 → 再失败等 4 秒），期间页面显示「正在唤醒」
   const path = '/api/farmtown/list' + (term ? '?term=' + encodeURIComponent(term) : '');
-  const res = await call('GET', path);
-  return (res && res.towns) || [];
+  const waits = [2000, 4000];
+  let lastError = null;
+  for (let attempt = 0; attempt <= waits.length; attempt += 1) {
+    try {
+      const res = await call('GET', path);
+      return (res && res.towns) || [];
+    } catch (error) {
+      lastError = error;
+      if (hooks && typeof hooks.onRetry === 'function' && attempt === 0) { try { hooks.onRetry(); } catch (e) { /* 忽略 */ } }
+      if (attempt < waits.length) { await new Promise(function (resolve) { setTimeout(resolve, waits[attempt]); }); }
+    }
+  }
+  throw lastError || new Error('list failed');
 }
 async function getTown(id) {
   const res = await call('GET', '/api/farmtown/detail?id=' + encodeURIComponent(id));
@@ -45,6 +57,12 @@ async function unpublishTown(id) {
   const res = await call('POST', '/api/farmtown/unpublish', { id });
   return (res && res.town) || null;
 }
+// 删除（2026-10-15 新增）：与 unpublishTown 逐字同款 —— 只换路由名，body 仍是 { id }。
+// 服务端会拦下演示种子（403 forbidden）与不属于自己的名片（404 not_found），失败由调用方按既有 try/catch 处理。
+async function deleteTown(id) {
+  const res = await call('POST', '/api/farmtown/delete', { id });
+  return (res && res.town) || null;
+}
 // 本地润色兜底：只做"整理"（去空白、收标点、补句号），绝不新增事实、不编故事。
 // 返回 { text, source }：source = 'server'（真 AI）| 'local' | 'local-short'
 function localPolish(description) {
@@ -69,12 +87,16 @@ function pickPolished(res) {
 }
 
 // 润色：优先真 AI；服务端没给出可用结果时退到本地整理，并如实标注来源（不冒充 AI）
-async function polishDescription(description, fruit) {
-  const fallback = localPolish(description);
+async function polishDescription(input, fruit) {
+  // 入参兼容：对象 = 完整素材（水果/地区/具体位置/体验/时段）；两个参数 = 旧写法
+  const payload = (input && typeof input === 'object' && !Array.isArray(input))
+    ? Object.assign({}, input)
+    : { description: input, fruit: fruit };
+  const fallback = localPolish(payload.description);
   try {
-    const res = await call('POST', '/api/farmtown-polish', { description, fruit });
+    const res = await call('POST', '/api/farmtown-polish', payload);
     const text = pickPolished(res);
-    if (text && text !== String(description || '').trim()) return { text: text, source: 'server' };
+    if (text && text !== String(payload.description || '').trim()) return { text: text, source: 'server' };
     return fallback;
   } catch (error) {
     return fallback;
@@ -105,6 +127,6 @@ function validTownLocation(location) {
 }
 
 module.exports = {
-  listTowns, getTown, myTowns, createTown, updateTown, unpublishTown,
+  listTowns, getTown, myTowns, createTown, updateTown, unpublishTown, deleteTown,
   polishDescription, localPolish, cultureText, validTownLocation
 };

@@ -42,15 +42,9 @@ page{background: #F5F5F7}
 .rt-chip{flex-shrink:0;font-size: calc(19rpx * var(--fs-scale, 1));color: #47634B;background: #F7F5ED;border-radius:10rpx;padding:4rpx 12rpx}
 .rt-arrow{flex-shrink:0;font-size: calc(26rpx * var(--fs-scale, 1));color: #87917B;line-height:1}
 
-/* 展开后长出的三块（设计稿第⑦屏）：到了找谁 / 在哪儿 / 我的一行备注 */
+/* 展开区（设计稿第⑦屏）：原先的「联系人 / 位置 / 备注」三块已按用户要求整块删除，
+   现在展开只长出一行动作按钮，.tk-more 只负责那道分隔虚线（配套的块级样式已一并清理）。 */
 .tk-more{border-top: 1rpx dashed #F0ECDE;margin-top:16rpx;padding-top:16rpx}
-.tn-bottom .tk-more{border-top-color: #F0ECDE}
-.tk-block{margin-bottom:16rpx}
-.tk-block-t{font-size: calc(23rpx * var(--fs-scale, 1));font-weight:700;color: #234B3C;line-height:1.4}
-.tk-block-x{font-size: calc(21rpx * var(--fs-scale, 1));color: #47634B;line-height:1.65;margin-top:6rpx;overflow-wrap:anywhere}
-.tk-place{display:flex;align-items:center;gap:10rpx;background: #EAF0E0;border-radius: 18rpx;padding:20rpx 22rpx;margin-top:10rpx;font-size: calc(21rpx * var(--fs-scale, 1));color: #47634B;line-height:1.5}
-.tk-place-pin{color:#B03A4A;font-size: calc(21rpx * var(--fs-scale, 1))}
-.ticket-input{width:100%;box-sizing:border-box;background: #F5F5F7;border-radius: 18rpx;padding:16rpx 18rpx;font-size: calc(23rpx * var(--fs-scale, 1));color: #1D1D1F;line-height:1.5;margin-top:8rpx}
 /* 动作按钮：9–11px 圆角 */
 .ticket-actions{display:flex;gap:14rpx;margin-top:14rpx}
 .ticket-btn{flex:1;margin:0;padding:0;border-radius: 28rpx;background: #F7F5ED;color: #2E4A38;font-size: calc(23rpx * var(--fs-scale, 1));line-height:84rpx;text-align:center;border:1rpx solid rgba(0,0,0,.06)}
@@ -85,15 +79,31 @@ page{background: #F5F5F7}
 .plan-head-actions{display:flex;align-items:center;gap:12rpx;flex-shrink:0}
 .plan-save{font-size: calc(23rpx * var(--fs-scale, 1));font-weight:650;color: #FFF9DF;background: #234B3C;border-radius:999rpx;padding:10rpx 24rpx;line-height:1.4}
 .plan-close{width:52rpx;height:52rpx;line-height:50rpx;text-align:center;border-radius:50%;background: #F7F5ED;color: #2E4A38;font-size: calc(26rpx * var(--fs-scale, 1));flex-shrink:0}
-.plan-scroll{flex:1;min-height:0;margin-top:8rpx}
+/* 2026-10-11：原来是 flex:1;min-height:0 —— 微信的 scroll-view 靠 flex 撑不出确定高度，
+   内容一长就溢出面板、划不动（用户实测）。改成确定高度（58vh），抽屉总高 ≈ 70vh，仍在 82vh 上限内。 */
+.plan-scroll{height:58vh;margin-top:8rpx}
 .plan-label{display:block;font-size: calc(21rpx * var(--fs-scale, 1));font-weight:700;color: #234B3C;line-height:1.5;margin:22rpx 0 10rpx}
-/* 候选项：32px 缩略插画 + 名称 + 「地区 ｜ 节气·水果」+ 单选圈 */
-.pool-row{display:flex;align-items:center;gap:18rpx;padding:16rpx 0;border-top: 1rpx dashed #EBEEE5}
+/* 候选项：整张果乡名片（2026-10-12 第12 轮用户要求「名片的所有内容都在①去哪显示出来」）；
+   名称 / 节气·水果 / 可去日期 / 体验标签 / 所在地区 / 具体位置 / 开关门日期 / 开关门时间 / 距离 /
+   果乡介绍 / 交通指引 / 微信号 / 手机号 / 联系方式（后 4 项为第13 轮补全）。
+   行内排版与 packageMore/news/news.wxss 的 .town-* 同款配色，类名本页独立，避免跨页样式耦合。 */
+.pool-row{display:flex;align-items:flex-start;gap:18rpx;padding:16rpx 0;border-top: 1rpx dashed #EBEEE5}
 .pool-row:first-child{border-top:0}
-.pool-art{width:64rpx;height:64rpx;border-radius: 18rpx;background:#E7E9E2;flex-shrink:0}
 .pool-main{flex:1;min-width:0}
 .pool-name{font-size: calc(23rpx * var(--fs-scale, 1));font-weight:650;color: #234B3C;line-height:1.4;overflow-wrap:anywhere}
-.pool-term{font-size: calc(19rpx * var(--fs-scale, 1));color: #87917B;line-height:1.4;margin-top:4rpx}
+.pool-term{display:inline-block;font-size: calc(19rpx * var(--fs-scale, 1));color: #826B4B;background:rgba(243,227,200,.55);border-radius: 28rpx;padding:4rpx 14rpx;line-height:1.5;margin-top:8rpx}
+.pool-chips{display:flex;flex-wrap:wrap;gap:10rpx;margin-top:12rpx}
+.pool-chip{padding:5rpx 16rpx;border-radius: 28rpx;background: #F7F5ED;border: 1rpx solid #DCE5D0;color: #826B4B;font-size: calc(21rpx * var(--fs-scale, 1));line-height:1.5}
+.pool-line{font-size: calc(22rpx * var(--fs-scale, 1));color: #6F7C70;line-height:1.6;margin-top:10rpx;overflow-wrap:anywhere}
+/* 可去日期 / 距你多少公里：与 news.wxss 的 .town-date / .town-distance 同款强调色（2026-10-12 第13 轮） */
+.pool-date{color: #826B4B}
+.pool-distance{color: #826B4B}
+.pool-intro{font-size: calc(22rpx * var(--fs-scale, 1));color: #1D1D1F;line-height:1.7;margin-top:10rpx;overflow-wrap:anywhere}
+/* 「我的方案」（2026-10-13）：候选名片正文最后一块（方案名 + 编号的那几步），照「我的发布」卡片那块写。
+   没有方案的名片整块不渲染（wxml 挂 hasPlan），字号沿用上面那两档，不新造。 */
+.pool-plan{margin-top:12rpx}
+.pool-plan-title{font-size: calc(22rpx * var(--fs-scale, 1));font-weight:600;color: #234B3C;line-height:1.7;overflow-wrap:anywhere}
+.pool-plan-step{font-size: calc(22rpx * var(--fs-scale, 1));color: #6F7C70;line-height:1.7;margin-top:4rpx;overflow-wrap:anywhere}
 .pool-check{flex-shrink:0;width:32rpx;height:32rpx;line-height:30rpx;text-align:center;border-radius:50%;border: 2rpx solid #DCE5D0;color: #FFFDF8;font-size: calc(21rpx * var(--fs-scale, 1));box-sizing:border-box}
 .pool-row.is-on .pool-check{background: #234B3C;border-color: #234B3C}
 .pool-empty{font-size: calc(23rpx * var(--fs-scale, 1));color: #87917B;line-height:1.6;padding:14rpx 0}
@@ -102,6 +112,13 @@ page{background: #F5F5F7}
 .filter-note .more{color: #234B3C;font-weight:650}
 .plan-when{display:flex;gap:14rpx}
 .plan-input{flex:1;background: #F5F5F7;border-radius: 28rpx;padding:18rpx;font-size: calc(23rpx * var(--fs-scale, 1));color: #1D1D1F;line-height:1.4;text-align:center}
+/* ② 里的「每天还剩多少名额」逐日行：满员 / 已过去的那天整行灰掉（那种行 wxml 里不绑 tap，没有点击区） */
+.seats{margin-top:12rpx}
+.seat-row{display:flex;align-items:center;justify-content:space-between;padding:14rpx 20rpx;margin-top:8rpx;border-radius: 28rpx;background: #F7F5ED;border:1rpx solid rgba(0,0,0,.06);font-size: calc(23rpx * var(--fs-scale, 1));color: #47634B;line-height:1.4}
+.seat-row.is-on{background: #234B3C;color: #FFF9DF;border-color: #234B3C;font-weight:650}
+.seat-row.is-off{background: #F1F1F1;border-color: #E6E6E6;color: #A6A6A6}
+.seat-left{font-size: calc(21rpx * var(--fs-scale, 1))}
+.seat-hint{margin-top:10rpx;font-size: calc(19rpx * var(--fs-scale, 1));color: #87917B;line-height:1.6}
 .plan-transports{display:flex;gap:14rpx}
 .transport{flex:1;text-align:center;padding:18rpx 0;border-radius: 28rpx;background: #F7F5ED;border:1rpx solid rgba(0,0,0,.06);font-size: calc(23rpx * var(--fs-scale, 1));color: #47634B;line-height:1.4}
 .transport.is-on{background: #234B3C;color: #FFF9DF;border-color: #234B3C;font-weight:650}

@@ -4,27 +4,64 @@
 // 一屏内顺序固定：下一张票 → 待用的票 → ＋排一张票 → 存根。
 // 一张票 = 一个目的地 + 4 项信息（目的地 / 距出发 / 目标日期时间 / 交通工具），
 // 两个动作：导航出发（wx.openLocation）与「去过了 · 撕票盖章」；待用票多一个删除（✕）。
-// 点一张票 = 在原页展开「到了找谁 / 在哪儿 / 我的一行备注」，不跳新页。
+// 点一张票 = 在原页展开（展开区只剩「导航出发」「去过了 · 撕票盖章」两个动作），不跳新页。
 // 旧版行程页的五个旧动作已从界面彻底移除（出行前复习、班次时刻、门票确认、出发前包、同步到社群）。
+// 「生成这张票」= 本机留票（原行为、离线兜底）+ 后台试一次真报名（lib/booking-service.js）；报名失败只提示，不影响票。
 const store = require('../../lib/store');
+const booking = require('../../lib/booking-service');
 const farmtown = require('../../lib/farmtown-service');
 const i18n = require('../../lib/i18n');
 const ticketFormat = require('../../lib/ticket-format');
 const townInfo = require('../../lib/town-info');
+const recentTown = require('../../lib/recent-town');
 
-// 抽屉「去哪」默认只露 3 个，其余折叠（2026-10-07 第11 轮按用户要求）
-const POOL_PREVIEW = 3;
+// 抽屉「去哪」默认只露 1 个（2026-10-12 第12 轮按用户要求：先只显示一个果乡名片，
+// 其余放进「查看更多果园」；展开逻辑 poolExpanded / poolRest 未改）
+const POOL_PREVIEW = 1;
 
 const LABEL_KEYS = [
-  'rt_holder_title', 'rt_next_ticket', 'rt_pending_tickets', 'rt_add_ticket', 'rt_stubs',
+  // rt_page_title = 页面内大标题（wxml 第 4 行一直在用），此前漏在本表外 → 大标题渲染成 undefined（2026-10-12 第13 轮修）。
+  // rt_load_failed = 候选池加载失败的提示行，同样一直用在 wxml 里、漏在本表外。
+  'rt_holder_title', 'rt_page_title', 'rt_load_failed',
+  'rt_next_ticket', 'rt_pending_tickets', 'rt_add_ticket', 'rt_stubs',
   'rt_navigate_go', 'rt_stamp', 'rt_no_ticket', 'rt_no_pending', 'rt_no_stub',
   'rt_pool_note', 'rt_pool_all', 'rt_pool_less', 'rt_pool_empty', 'rt_save', 'rt_drawer_where', 'rt_drawer_when', 'rt_pick_date', 'rt_pick_time', 'picker_cancel', 'picker_ok',
   'rt_drawer_how', 'rt_where_placeholder', 'rt_confirm', 'rt_cancel', 'rt_remove_ticket',
   'rt_remove_confirm', 'rt_visit_hint', 'rt_find_who', 'rt_where_is', 'rt_my_note',
   'rt_note_placeholder', 'rt_days_left', 'rt_depart_today', 'rt_expired',
   'rt_transport_self', 'rt_transport_share', 'rt_transport_public', 'rt_calendar', 'rt_clock',
-  'rt_when', 'rt_how', 'rt_visited', 'rt_copy_contact', 'rt_contact_prefix', 'rt_transport_prefix', 'rt_exp_prefix'
+  'rt_when', 'rt_how', 'rt_visited', 'rt_copy_contact', 'rt_contact_prefix', 'rt_transport_prefix', 'rt_exp_prefix',
+  // 「① 去哪」的候选名片要显示整张果乡名片（2026-10-12 第12 轮）：标签键复用快讯卡片那套，一个都没新造。
+  'pub_name', 'sl_region', 'sl_address', 'sl_experience', 'sl_intro', 'sl_transport',
+  'sl_wechat_colon', 'sl_phone_colon', 'sl_none',
+  // 名片剩余 4 项（可去日期 / 开关门日期 + 开关门时间两行 / 距你多少公里 / 联系方式，2026-10-12 第13 轮）：
+  // 标签同样全部复用既有键 —— 可去日期用快讯那条 news_activity_date，
+  // 开关门两项用卖货台那套自带冒号的 sl_open_date_colon / sl_open_time_colon，
+  // 联系方式沿用候选名片一直在用的 rt_contact_prefix（票卡展开区删掉那三段后，这个键仍由 ①去哪 的名片在用）；距离的值本身已含「距你」/「km away」，不需要标签键。
+  'news_activity_date', 'sl_open_date_colon', 'sl_open_time_colon',
+  // 「活动方案」（2026-10-13）：候选名片最后一块的标题键，直接用结果页早就在用的 plan_nav
+  // （词典里就是「活动方案」/「Activity plan」）—— 不新造键，也不复用卖货台那块专用的 sl_my_plan。
+  'plan_nav',
+  // 真报名的两句新提示（本轮只加这两个键；失败提示复用既有 network_error，不新造）
+  'rt_booking_ok', 'rt_booking_full',
+  // 「每天还剩多少名额」（本轮新增的两个键，全量就这两个）：
+  // rt_seats_left 带 {{n}}，只能在 JS 里插值后给每行（WXML 不做插值）；rt_seats_unknown 是名额未知时的那句可读提示。
+  'rt_seats_left', 'rt_seats_unknown'
 ];
+
+// 本页拟报名人数固定 1（页面上还没有人数字段）：用来判断「剩余名额 < 人数」。
+// 必须与 reserveSeat 里 booking.reserve 传的 people 是同一个数，否则置灰口径会和服务端不一致。
+const PEOPLE = 1;
+
+// 体验标签（存档值永远是中文，与 pages/seller/index.js 同一套口径）：
+// 词典里有的取英文名，没有的原样返回（不空白、不乱编）。
+const EXP_KEYS = ['sl_exp_pick', 'sl_exp_sightseeing', 'sl_exp_craft', 'sl_exp_food', 'sl_exp_culture'];
+const EXP_KEY_BY_ZH = {};
+EXP_KEYS.forEach(function (key) { EXP_KEY_BY_ZH[i18n.dict[key][0]] = key; });
+function experienceLabel(name) {
+  const key = EXP_KEY_BY_ZH[name];
+  return key ? i18n.t(key) : name;
+}
 
 function fontClass() {
   if (typeof getApp === 'function' && getApp() && typeof getApp().getFontClass === 'function') return getApp().getFontClass();
@@ -82,6 +119,17 @@ function stampShort(stampedAt) {
   const m = String(stampedAt || '').replace(/\//g, '-').match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m ? m[2] + '·' + m[3] : '';
 }
+// 「每天还剩多少名额」的一行（② 里逐日列出）。口径完全按服务端 server/bookings.js:83：
+// past 或 full → disabled（wxml 里这种行不绑 tap，整行灰掉、没有点击区）；remaining 用 {{n}} 在 JS 里插值。
+function seatRow(day) {
+  return {
+    date: day.date,
+    label: String(day.date || '').slice(5),
+    remaining: day.remaining,
+    disabled: !!(day.past || day.full),
+    seatsText: i18n.t('rt_seats_left', { n: day.remaining })
+  };
+}
 
 Page({
   data: {
@@ -101,6 +149,13 @@ Page({
     timeSheetIndex: [9, 0],
     timeRange: [[], []],
     dateSheetIndex: [0, 0, 0],
+    // ② 里的「每天还剩多少名额」：dayRows 只装 /api/booking-availability 真回过的天；
+    // 接口没部署 / 断网 / 403 / 404 一律 dayRows=[] + seatsKnown=false（名额未知 → 不置灰、不拦报名）。
+    dayRows: [],
+    seatsKnown: false,
+    seatsUnknown: false,
+    seatsDestId: '',
+    seatsToken: 0,
     drawerOpen: false,
     draft: { destId: '', date: '', time: '', transport: '' },
     expandedId: ''
@@ -112,7 +167,9 @@ Page({
     const bar = this.getTabBar && this.getTabBar();
     if (bar) { bar.setData({ selected: 3 }); if (bar.applyLang) bar.applyLang(); }
     // 果农名片或票据变化后回到本页时同步刷新（今日快讯页「排一张票」会切到这里）。
-    this.load();
+    // 名片就位后再取一次「每天还剩多少名额」（挑园子/回本页都会刷新；没选园子时什么都不做）。
+    const self = this;
+    this.load().then(function () { if (self.data.draft.destId) self.loadSeats(self.data.draft.destId); });
     // 今日快讯页「排一张票」带的园子：落到本页时自动开抽屉并预选。
     const app = typeof getApp === 'function' ? getApp() : null;
     if (app && app.pendingPlanTownId) {
@@ -129,7 +186,7 @@ Page({
   load: function () {
     const self = this;
     this.setData({ loading: true, error: '' });
-    // 本机的票不依赖网络：果乡名片拉不到时票夹照常显示（只是候选池与「到了找谁」的名片
+    // 本机的票不依赖网络：果乡名片拉不到时票夹照常显示（只是候选池那块的名片
     // 信息缺一块），不再整页报错 —— 2026-10-07 第10 轮修（开发者工具里没连云时会踩到）。
     const townsPromise = farmtown.listTowns()
       .then(function (list) { return { towns: list || [], failed: false }; })
@@ -192,7 +249,7 @@ Page({
       fail: doStamp
     });
   },
-  // 展开块里的「我的一行备注」：只改 note，不再和别的字段共用。
+  // note 字段的写入逻辑照旧保留（展开区已不再渲染备注输入框，界面上没人调用它了）：只改 note，不再和别的字段共用。
   updateNote: function (e) {
     const id = e.currentTarget.dataset.id;
     const tickets = this.data.allTickets.slice();
@@ -202,7 +259,7 @@ Page({
     store.saveTickets(tickets);
     this.setData(decorate(tickets, this.data.allTowns || [], this.data.poolFailed, this.data.poolExpanded));
   },
-  // 「到了找谁」里的复制微信
+  // 复制联系方式：展开区那三段删掉后界面已无人调用，handler 与 rt_copy_contact 一起原样保留（代码不动）。
   copyContact: function (e) {
     const contact = e.currentTarget.dataset.contact || '';
     if (!contact) return;
@@ -223,7 +280,18 @@ Page({
   closeDrawer: function () {
     this.setData({ drawerOpen: false }); },
   noop: function () {},
-  pickDest: function (e) { this.setData({ 'draft.destId': e.currentTarget.dataset.id }); },
+  pickDest: function (e) {
+    const id = e.currentTarget.dataset.id;
+    this.setData({ 'draft.destId': id });
+    this.loadSeats(id);
+  },
+  // 点「还有名额」的那一天 = 选日期。置灰行在 wxml 里就没绑 tap，这里再兜一层。
+  pickDay: function (e) {
+    const date = e.currentTarget.dataset.date;
+    const row = (this.data.dayRows || []).filter(function (r) { return r.date === date; })[0];
+    if (!row || row.disabled) return;
+    this.setData({ 'draft.date': date });
+  },
   pickTransport: function (e) { this.setData({ 'draft.transport': e.currentTarget.dataset.value }); },
   // 打开自绘日期面板（把当前选择带进去；此时还不算选好）
   openDateSheet: function () {
@@ -317,6 +385,10 @@ Page({
     if (!d.date) { wx.showToast({ title: i18n.t('rt_pick_when'), icon: 'none' }); return; }
     if (!d.time) { wx.showToast({ title: i18n.t('rt_pick_time'), icon: 'none' }); return; }
     if (!d.transport) { wx.showToast({ title: i18n.t('rt_pick_how'), icon: 'none' }); return; }
+    // 名额已知、且选的正是这家园子、且那天剩余 < 拟报名人数（本页 1 人）→ 不许提交，给可读提示。
+    // 名额未知时 seatsShort() 一定返回空串，绝不阻塞报名（照现有流程走）。
+    const short = this.seatsShort();
+    if (short) { wx.showToast({ title: short, icon: 'none' }); return; }
     const town = (this.data.allTowns || []).filter(function (t) { return t.id === d.destId; })[0];
     if (!town) return;
     const ticket = {
@@ -334,6 +406,74 @@ Page({
     const tickets = this.data.allTickets.concat([ticket]);
     this.setData({ drawerOpen: false, draft: { destId: '', date: '', time: '', transport: '' } });
     this.persist(tickets);
+    // 本机的票先落地（离线兜底 / 原行为），再在后台试一次真报名；报名这条线无论成败都不改上面这份票。
+    this.reserveSeat(town, d.date);
+  },
+  notify: function (title) {
+    try { if (typeof wx !== 'undefined' && wx.showToast) wx.showToast({ title: title, icon: 'none' }); } catch (e) { /* 提示失败也不影响本机那份票 */ }
+  },
+  // 真报名（lib/booking-service.js 既有用法：ensureClient 内部取身份、requestId 由它生成）。
+  // 四种情况都只弹一句中文提示，绝不抛错、不白屏：取不到身份 / 这个园子没有已发布活动 / 断网 / 服务端拒绝。
+  reserveSeat: function (town, date) {
+    const self = this;
+    const tell = function (key) { self.notify(i18n.t(key)); };
+    // 演示账户不连真实预约服务（lib/booking-service.js:26 会直接拒绝），走本机兜底、连请求都不发。
+    if (store.isDemoMode()) return;
+    let attempt;
+    try { attempt = booking.listActivities(); } catch (e) { attempt = Promise.reject(e); }
+    Promise.resolve(attempt).then(function (result) {
+      const activity = activityForTown(town, result && result.activities);
+      if (!activity) { tell('network_error'); return; }
+      // 一张票记 1 人：本页还没有人数字段（名额列表 / 人数选择是下一件小事），不在这里新造输入。
+      return booking.reserve({ requestId: booking.requestId(), activityId: activity.id, date: date, people: 1 })
+        .then(function () { tell('rt_booking_ok'); }, function (error) { tell(error && error.code === 'booking_full' ? 'rt_booking_full' : 'network_error'); });
+    }).catch(function () { tell('network_error'); });
+  },
+  // 每天还剩多少名额（GET /api/booking-availability，客户端封装见 lib/booking-service.js）。
+  // 严格按服务端口径置灰：past===true || full===true → 整行灰掉且不做点击区；past===false（含今天）可约。
+  // 优雅降级是硬要求：接口还没部署到线上（404 / 网络失败）、401 重取身份后仍失败、403（拿到的是果乡身份）、
+  // 认不出对应活动（=「没有这个活动」）→ 一律按「名额未知」：不置灰、不拦报名、照现有流程走，只多一句可读提示。
+  loadSeats: function (destId) {
+    const self = this;
+    const token = (this.data.seatsToken || 0) + 1;
+    const town = (this.data.allTowns || []).filter(function (t) { return t.id === destId; })[0];
+    // 没这家名片 / 演示账户不连真实预约服务：什么都不显示，也不置灰不拦
+    if (!town || store.isDemoMode()) { this.setData({ seatsToken: token, seatsDestId: '', dayRows: [], seatsKnown: false, seatsUnknown: false }); return; }
+    this.setData({ seatsToken: token, seatsDestId: destId, dayRows: [], seatsKnown: false, seatsUnknown: false });
+    // 名额未知的落地口（silent=true 连提示都不给：那属于「没有这个活动」，提交时沿用既有提示）
+    const settle = function (silent) {
+      if (self.data.seatsToken !== token) return;
+      self.setData({ dayRows: [], seatsKnown: false, seatsUnknown: !silent });
+    };
+    const attempt = function (retried) {
+      let listed;
+      try { listed = booking.listActivities(); } catch (e) { listed = Promise.reject(e); }
+      return Promise.resolve(listed).then(function (result) {
+        const activity = activityForTown(town, result && result.activities);
+        if (!activity) { settle(true); return; }
+        return booking.availability(activity.id).then(function (data) {
+          if (self.data.seatsToken !== token) return;
+          const days = (data && data.days) || [];
+          if (!days.length) { settle(true); return; }
+          self.setData({ dayRows: days.map(seatRow), seatsKnown: true, seatsUnknown: false });
+        }, function (error) {
+          // 401：身份已失效 → 按既有逻辑重取身份（booking-service 已顺手清掉旧凭据）后再试一次
+          if (error && error.code === 'booking_unauthorized' && !retried) return attempt(true);
+          // 403（拿到的是果乡身份）/ 还没部署到线上（404）/ 断网 → 一律「名额未知」+ 一句可读提示
+          settle(false);
+        });
+      }).catch(function () { settle(false); });
+    };
+    attempt(false);
+  },
+  // 提交前的本地闸：名额是接口给的、且选的正是这家园子、且那天剩余 < 拟报名人数 → 返回一句提示。
+  // 名额未知（接口没部署 / 断网 / 403 / 404 / 没活动）时一定返回空串：绝不阻塞报名，
+  // 并发抢最后一席仍由提交时的 409 booking_full 兜住（置灰只是提示）。
+  seatsShort: function () {
+    if (!this.data.seatsKnown || this.data.seatsDestId !== this.data.draft.destId) return '';
+    const date = this.data.draft.date;
+    const row = (this.data.dayRows || []).filter(function (r) { return r.date === date; })[0];
+    return row && row.remaining < PEOPLE ? i18n.t('rt_booking_full') : '';
   },
   // 删掉一张待用票 → 该园子自动回到候选池（persist 后由 decorate 重算）。
   removeTicket: function (e) {
@@ -357,9 +497,33 @@ Page({
   findTicket: function (id) { return this.data.allTickets.filter(function (t) { return t.id === id; })[0]; }
 });
 
+// 果乡 ↔ 已发布活动的对应关系。
+// ① 先认 townId（2026-10-18 起活动契约里带上这个字段，创建时由发活动那头写入，见 server/bookings.js 的 publish）：
+//    整份列表先扫一遍 townId，命中就认这一场 —— 不能跟下面那套猜测混在同一个循环里，
+//    否则一场更靠前的「同名活动」会把真正对应的那一场抢先（名字相等本来就只是巧合）。
+// ② 拿不到 townId（老活动 / 没写）再回退到原有的等值猜测（这条退路不许删）：
+//    把这张名片的 id / 收藏 id 写进种植记录编号，或把名片名称 / 地址写成活动名称 / 集合地点，
+//    这四种任一命中才算「这个果乡有对应的已发布活动」，认不出就退回本机。
+function activityForTown(town, list) {
+  const ids = [town.id, town.favId].filter(Boolean);
+  const names = [town.name, town.address].filter(Boolean);
+  const rows = Array.isArray(list) ? list : [];
+  for (let i = 0; i < rows.length; i++) {
+    const a = rows[i] || {};
+    if (a.townId && ids.indexOf(a.townId) !== -1) return a;
+  }
+  for (let i = 0; i < rows.length; i++) {
+    const a = rows[i] || {};
+    if (a.batchId && ids.indexOf(a.batchId) !== -1) return a;
+    if (a.title && names.indexOf(a.title) !== -1) return a;
+    if (a.location && names.indexOf(a.location) !== -1) return a;
+  }
+  return null;
+}
+
 // 组装票夹视图数据：下一张票 / 待用 / 存根 / 候选池。
 // 候选池 = 全部果农名片 −（待用的票 + 存根里的园子），三个板块地点互不重复；
-// 默认只给前 3 个（poolPreview），其余放 poolRest，点「查看更多果园 ›」展开（poolExpanded）。
+// 默认只给前 POOL_PREVIEW 个（=1，2026-10-12 第12 轮改），其余放 poolRest，点「查看更多果园 ›」展开（poolExpanded）。
 function decorate(tickets, towns, townsFailed, poolExpanded) {
   const planned = tickets.filter(function (t) { return t.status !== 'visited'; });
   const visited = tickets.filter(function (t) { return t.status === 'visited'; });
@@ -390,17 +554,25 @@ function decorate(tickets, towns, townsFailed, poolExpanded) {
     });
   };
   const sortedPending = planned.slice().sort(function (a, b) { return String(a.dateTime).localeCompare(String(b.dateTime)); });
-  const poolRows = pool.map(function (t) {
-    const term = t.term && t.fruit ? t.term + ' · ' + t.fruit : (t.fruit || t.term || '');
+  // 「① 去哪」的候选行 = 整张果乡名片（2026-10-12 第12 轮用户要求：名片的所有内容都在这里显示出来）。
+  // 字段名与取值兜底走 lib/town-info.js 的 cardFor —— 与今日快讯页同一套（原来是两处各写一份）。
+  // 旧的 id / name / subLine 原样保留（subLine = 地区 ｜ 节气·水果），避免动到别处的口径。
+  let poolRows = pool.map(function (t) {
+    const card = townInfo.cardFor(t, origin, farmtown.validTownLocation);
     const region = townInfo.regionLabel(t);
-  const address = (t && t.address) || '';
+    const term = card.termLabel;
     return {
       id: t.id,
-      name: t.name || '',
-      art: townInfo.artFor(t),
-      subLine: [region, term].filter(Boolean).join(' ｜ ')
+      name: card.name,
+      subLine: [region, term].filter(Boolean).join(' ｜ '),
+      card: card,
+      // 体验标签按语言取词（存档值仍是中文，中文模式逐字不变）
+      expTags: card.experiences.map(experienceLabel).filter(Boolean)
     };
   });
+  // 2026-10-12：刚发布 / 保存的那张提到最前（createdAt 只到日期，同日排序会「平手」），其余顺序不动；
+  // 没记住该 id 或它已被排票用掉时 promote 原样返回 → 与改动前逐项一致（不报错、不空白）。
+  poolRows = recentTown.promote(poolRows);
   const preview = poolExpanded ? poolRows : poolRows.slice(0, POOL_PREVIEW);
   const rest = poolExpanded ? [] : poolRows.slice(POOL_PREVIEW);
   return {
@@ -411,9 +583,14 @@ function decorate(tickets, towns, townsFailed, poolExpanded) {
     pool: poolRows,
     poolPreview: preview,
     poolRest: rest,
-    // 「查看更多果园 N ›」的文案在页内拼（i18n 只放纯文案，不支持插值）
+    // 「查看更多果园 N ›」的文案在页内拼（i18n 只放纯文案，不支持插值）。
+    // 英文按数量取单/复数：1 个用 rt_pool_all_one（more orchard），其余用 rt_pool_all（more orchards），
+    // 修掉 N=1 时「1 more orchards ›」的单复数错误（2026-10-12 第13 轮）。
+    // 中文两种数量都走 rt_pool_all，输出与改动前逐字一致：查看更多果园 N ›。
     poolMoreLabel: rest.length
-      ? (i18n.getLang() === 'en' ? rest.length + ' ' + i18n.t('rt_pool_all') + ' ›' : i18n.t('rt_pool_all') + ' ' + rest.length + ' ›')
+      ? (i18n.getLang() === 'en'
+        ? rest.length + ' ' + i18n.t(rest.length === 1 ? 'rt_pool_all_one' : 'rt_pool_all') + ' ›'
+        : i18n.t('rt_pool_all') + ' ' + rest.length + ' ›')
       : '',
     next: sortedPending.length ? pack(sortedPending[0]) : null,
     pending: sortedPending.slice(1).map(pack),

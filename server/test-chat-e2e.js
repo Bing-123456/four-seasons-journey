@@ -3,9 +3,7 @@
 // 运行前设置环境变量 OPENAI_API_KEY 等（与云托管相同配置）
 const { createChatService } = require('./chat');
 const fruitCulture = require('../miniprogram/data/fruit-culture');
-let WORLD;
-try { WORLD = require('./world-fruit-culture'); }
-catch (e) { WORLD = require('../miniprogram/data/world-fruit-culture'); }
+let WORLD = require('../miniprogram/data/world-fruit-culture');
 
 // 模拟客户端 buildContexts：给定水果名，拼出该水果各维度资料卡（含去重）
 function categoryText(cat) {

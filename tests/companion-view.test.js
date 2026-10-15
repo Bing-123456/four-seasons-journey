@@ -116,6 +116,24 @@ test('preview cache is bounded and evicts old variants without deleting files',(
     assert.equal(platform.deletes,0);
   });
 });
+test('config 声明为任意类型：调用方未就绪时的 undefined/null 不再触发组件类型告警',()=>{
+  const configProp=view(undefined).definition.properties.config;
+  assert.equal(configProp.type,null,'type:null 在微信组件规范里表示「任意类型」，空值不再触发 [Component] type-uncompatible 告警');
+  assert.equal(configProp.value,null,'空值的默认值仍是 null，组件内部照旧归一成默认果灵');
+  assert.doesNotThrow(()=>view(undefined).ready());
+  assert.doesNotThrow(()=>view(null).ready());
+});
+test('空 config 与默认 config 画出同一张预览，渲染行为没有改变',()=>{
+  const platform=previewPlatform();
+  usingWx(platform.api,()=>{
+    const missing=view(undefined);missing.ready();
+    assert.deepEqual(missing.calls.events,[],'空 config 不触发 rendererror');
+    assert.equal(missing.subject.data.failed,false);
+    const fallback=view(c.defaultConfig(),{definition:missing.definition});fallback.ready();
+    assert.equal(platform.exports.length,1,'空 config 归一成默认果灵，命中同一份预览缓存');
+    assert.equal(fallback.subject.data.imagePath,missing.subject.data.imagePath);
+  });
+});
 test('generated image cache reuses the finished artwork, never its loading placeholder',()=>{
   const platform=previewPlatform();usingWx(platform.api,()=>{
     const config={...c.defaultConfig(),kind:'generated-image',sourcePath:'wxfile://usr/companions/personal/source.png'};

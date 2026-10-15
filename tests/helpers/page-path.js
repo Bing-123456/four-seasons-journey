@@ -16,7 +16,8 @@ const fs = require('fs');
 const path = require('path');
 
 const MP = path.resolve(__dirname, '../../miniprogram');
-const PKG_DIRS = ['packageMore', 'packageFruit', 'packageTrip', 'packageWorld'];
+// 2026-10-15 起玩法页（playground）从主包 pages 迁到 packageGame 分包（主包 1892.6→1355 KiB）。
+const PKG_DIRS = ['packageGame', 'packageMore', 'packageFruit', 'packageTrip', 'packageWorld'];
 
 // 把各种输入拆成候选的绝对路径，按优先级排列。
 function candidates(name, base, ext) {
@@ -32,11 +33,13 @@ function candidates(name, base, ext) {
 
   let n = String(name);
   // 情况 B：显式带分包根前缀，如 'packageMore/search/search'
+  // 必须就此返回：否则下面的 dir/base 分支会再拼一次 'pages/'，得到 pages/packageX/... 这种不存在的路径。
   const withPkg = PKG_DIRS.find(p => n.indexOf(p + '/') === 0);
   if (withPkg) {
     push(path.join(MP, n + suffix));
+    return list;
   }
-  n = n.replace(/^(pages|packageMore|packageFruit|packageTrip|packageWorld)\//, '');
+  n = n.replace(/^(pages|packageGame|packageMore|packageFruit|packageTrip|packageWorld)\//, '');
   // name 恰好就是某个根名（如 'pages'）且未带尾斜杠时，上面正则不匹配，这里补一次
   if (n === 'pages' || PKG_DIRS.indexOf(n) >= 0) n = '';
   if (n === '') {
@@ -49,6 +52,9 @@ function candidates(name, base, ext) {
     // 情况 C：dir + 显式 base
     push(path.join(MP, 'pages', n, base + suffix));
     PKG_DIRS.forEach(p => push(path.join(MP, p, n, base + suffix)));
+    // 分包内部还有一层 pages/ 的布局（packageGame/pages/playground/、packageFruit/pages/fruit-town/…）也要试，
+    // 与情况 D 保持一致；追加在末尾，不会改动以上候选的命中顺序。
+    PKG_DIRS.forEach(p => push(path.join(MP, p, 'pages', n, base + suffix)));
     return list;
   }
 
@@ -61,6 +67,8 @@ function candidates(name, base, ext) {
     PKG_DIRS.forEach(p => push(path.join(MP, p, dir, file + suffix)));
   } else {
     push(path.join(MP, 'pages', n, n + suffix));
+    // packageMore/packageGame 之类的分包内部还有一层 pages/（packageFruit、packageWorld 没有），两种布局都试。
+    PKG_DIRS.forEach(p => push(path.join(MP, p, 'pages', n, n + suffix)));
     PKG_DIRS.forEach(p => push(path.join(MP, p, n, n + suffix)));
   }
   return list;

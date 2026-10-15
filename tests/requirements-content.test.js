@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {execFileSync} = require('node:child_process');
 const culture = require('../miniprogram/data/fruit-culture');
-const quiz = require('../miniprogram/data/fruit-quiz');
+const quiz = require('../miniprogram/packageGame/data/fruit-quiz');
 const farm = require('../miniprogram/lib/farm');
 
 test('core seasonal fruit groups follow the requested lists and preserve original deep links', () => {
@@ -82,7 +82,7 @@ test('farm calendar deduplicates old dates and fruit appears only after 30 actua
 });
 test('cultural favourites open the exact note while remove uses a separate event', () => {
   let page,opened='';const oldPage=global.Page,oldWx=global.wx;global.Page=v=>{page=v;};global.wx={navigateTo:o=>{opened=o.url;}};
-  try { delete require.cache[require.resolve('../miniprogram/pages/favorites/favorites')];require('../miniprogram/pages/favorites/favorites');page.openKnowledge({currentTarget:{dataset:{id:'autumn-jujube:history'}}});assert.equal(opened,'/packageMore/fruit-note/fruit-note?fruit=autumn-jujube&cat=history');page.openKnowledge({currentTarget:{dataset:{id:'missing:bad'}}});assert.equal(opened,'/packageMore/fruit-note/fruit-note?fruit=autumn-jujube&cat=history'); }
+  try { delete require.cache[require.resolve('../miniprogram/pages/favorites/favorites')];require('../miniprogram/pages/favorites/favorites');page.openKnowledge({currentTarget:{dataset:{id:'autumn-jujube:history'}}});assert.equal(opened,'/packageFruit/pages/fruit-note/fruit-note?fruit=autumn-jujube&cat=history');page.openKnowledge({currentTarget:{dataset:{id:'missing:bad'}}});assert.equal(opened,'/packageFruit/pages/fruit-note/fruit-note?fruit=autumn-jujube&cat=history'); }
   finally {global.Page=oldPage;global.wx=oldWx;}
   const markup=fs.readFileSync(path.resolve(__dirname,'../miniprogram/pages/favorites/favorites.wxml'),'utf8');assert.match(markup,/catchtap="removeKnowledge"/);assert.match(markup,/bindtap="openKnowledge"/);
 });

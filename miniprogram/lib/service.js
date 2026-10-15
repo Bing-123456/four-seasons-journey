@@ -202,12 +202,18 @@ module.exports = {
   sellerInsight: function (payload, fallback) {
     // The server validates the model echo against the deterministic status;
     // the client re-checks the shape so a bad proxy can never reach the page.
+    // v59：长度上限按这次请求自己上报的语言取（payload.lang 由 pages/seller/publish/publish.js 送当前界面语言）。
+    // 英文侧放宽，否则英文方案会在这里被判无效、整条换成中文兜底；中文侧数值一个没动（缺省也是中文那组）。
+    // 这两组数值与 server/validation.js 的 INSIGHT_CAPS 必须一致，改一处要同步另一处。
+    const caps = (payload && payload.lang === 'en')
+      ? { reading: 400, suggestion: 180, step: 270 }
+      : { reading: 160, suggestion: 60, step: 90 };
     return withFallback('/api/seller-insight', payload, fallback, function (result) {
       return !!(result && typeof result.status === 'string' && ['insufficient', 'clear', 'attention', 'urgent'].includes(result.status) &&
-        typeof result.reading === 'string' && result.reading.length >= 10 && result.reading.length <= 160 &&
+        typeof result.reading === 'string' && result.reading.length >= 10 && result.reading.length <= caps.reading &&
         Array.isArray(result.suggestions) && result.suggestions.length >= 2 && result.suggestions.length <= 4 &&
-        result.suggestions.every(function (item) { return typeof item === 'string' && item.trim().length > 0 && item.length <= 60; }) &&
-        Array.isArray(result.planSteps) && result.planSteps.every(function (item) { return typeof item === 'string' && item.length <= 90; }));
+        result.suggestions.every(function (item) { return typeof item === 'string' && item.trim().length > 0 && item.length <= caps.suggestion; }) &&
+        Array.isArray(result.planSteps) && result.planSteps.every(function (item) { return typeof item === 'string' && item.length <= caps.step; }));
     });
   }
 };

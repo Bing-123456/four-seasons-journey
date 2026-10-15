@@ -4,7 +4,13 @@
     <view class="mark serif" aria-hidden="true">乡</view>
     <view class="title serif">{{L.sl_title}}</view>
   </view>
-  <button class="publish-btn" bindtap="publishNew">＋ 发布我的果乡名片</button>
+  <view class="plan-entry" bindtap="publishNew" role="button" aria-label="{{L.sl_plan_entry}}">
+    <view class="pe-main">
+      <view class="pe-title">{{L.sl_plan_entry}}</view>
+      <view class="pe-hint">{{L.sl_plan_entry_hint}}</view>
+    </view>
+    <view class="pe-arrow" aria-hidden="true">›</view>
+  </view>
 
   <view wx:if="{{loading}}" class="state-tip">{{L.loading}}</view>
   <view wx:elif="{{waking}}" class="state-tip">{{L.sl_waking}}</view>
@@ -19,14 +25,14 @@
       <view class="tc-main">
         <view class="tc-label">{{L.pub_name}}</view>
         <view class="tc-name">{{item.name}}</view>
-        <view class="tc-tag">{{item.term}} · {{item.fruit}}</view>
+        <view class="tc-tag">{{item.metaLine}}</view>
       <view wx:if="{{item.region}}" class="tc-label">{{L.sl_region}}</view>
           <view wx:if="{{item.region}}" class="tc-line">{{item.region}}</view>
-      <view wx:if="{{item.dateText}}" class="tc-line">{{L.sl_date}}：{{item.dateText}}</view>
+      <view wx:if="{{item.dateText}}" class="tc-line">{{L.sl_date_colon}}{{item.dateText}}</view>
       <view wx:if="{{item.address}}" class="tc-label">{{L.sl_address}}</view>
           <view wx:if="{{item.address}}" class="tc-line">{{item.address}}</view>
-          <view wx:if="{{item.openDateText}}" class="tc-line">{{L.sl_open_date}}：{{item.openDateText}}</view>
-          <view wx:if="{{item.openTimeText}}" class="tc-line">{{L.sl_open_time}}：{{item.openTimeText}}</view>
+          <view wx:if="{{item.openDateText}}" class="tc-line">{{L.sl_open_date_colon}}{{item.openDateText}}</view>
+          <view wx:if="{{item.openTimeText}}" class="tc-line">{{L.sl_open_time_colon}}{{item.openTimeText}}</view>
       <view wx:if="{{item.experienceList.length}}" class="tc-chips">
         <text wx:for="{{item.experienceList}}" wx:for-item="exp" wx:key="*this" class="tc-chip">{{exp}}</text>
       </view>
@@ -35,9 +41,14 @@
         <view class="tc-intro {{expandedId === item.id ? 'open' : ''}}">{{item.intro}}</view>
         <text wx:if="{{item.introLong}}" class="tc-more" data-id="{{item.id}}" bindtap="toggleIntro">{{expandedId === item.id ? L.sl_less : L.sl_more}}</text>
       </view>
-      <view wx:if="{{item.transport}}" class="tc-line">{{L.sl_transport}}：{{item.transport}}</view>
-          <view class="tc-line">微信号：{{item.wechat || '无'}}</view>
-          <view class="tc-line">手机号：{{item.phone || '无'}}</view>
+      <view wx:if="{{item.transport}}" class="tc-line">{{L.sl_transport_colon}}{{item.transport}}</view>
+          <view class="tc-line">{{L.sl_wechat_colon}}{{item.wechat || L.sl_none}}</view>
+          <view class="tc-line">{{L.sl_phone_colon}}{{item.phone || L.sl_none}}</view>
+          <view wx:if="{{item.hasPlan}}" class="tc-block">
+            <view class="tc-label">{{L.sl_my_plan}}</view>
+            <view class="tc-plan-title">{{item.planTitle}}</view>
+            <view wx:for="{{item.planSteps}}" wx:for-item="step" wx:for-index="stepIndex" wx:key="*this" class="tc-plan-step">{{stepIndex + 1}}. {{step}}</view>
+          </view>
       </view>
       <view class="tc-status {{item.published ? 'on' : 'off'}}">{{item.statusText}}</view>
       <view class="tc-actions">

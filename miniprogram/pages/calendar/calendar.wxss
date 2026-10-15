@@ -31,9 +31,16 @@ page{height:100%;overflow:hidden;background: #F1E7D6}
 /* 10.2 / P02①：名字改由 node() 按角度定位到节点朝圆心的一侧（内圈），这里只管外观。
    限宽＋单行省略，保证内圈排布时名字之间、名字与水果都不互相压住。 */
 .graph-fruit-art{z-index:1}.graph-fruit-name{position:absolute;max-width:92rpx;box-sizing:border-box;padding:2rpx 6rpx;border-radius:8rpx;background:rgba(253,251,244,.94);font-size: calc(21rpx * var(--fs-scale, 1));font-weight:500;line-height:1.22;letter-spacing:.2rpx;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
-.graph-fruit.en .graph-fruit-name{max-width:96rpx;font-size: calc(21rpx * var(--fs-scale, 1));line-height:1.16;letter-spacing:0}
-.is-dense .graph-fruit{width:100rpx;height:100rpx;min-width:40px;min-height:40px}
+/* 10.10：英文名不再截断（原来 max-width:96rpx + nowrap + ellipsis 会把 Persimmon 显示成 Persim…）。
+   宽度略放宽 + 允许换行 + 按名字长度分档字号，保证完整、整齐、互不遮挡。 */
+.graph-fruit.en .graph-fruit-name{max-width:112rpx;font-size: calc(21rpx * var(--fs-scale, 1));line-height:1.14;letter-spacing:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;word-break:normal}
+.graph-fruit.en .graph-fruit-name.len-m{font-size: calc(19rpx * var(--fs-scale, 1))}
+.graph-fruit.en .graph-fruit-name.len-l{font-size: calc(17rpx * var(--fs-scale, 1))}
+.is-dense .graph-fruit{width:88rpx;height:88rpx;min-width:38px;min-height:38px}
 .is-dense .graph-fruit-name{font-size: calc(19rpx * var(--fs-scale, 1));max-width:84rpx}
+.is-dense .graph-fruit.en .graph-fruit-name{max-width:104rpx;font-size: calc(13rpx * var(--fs-scale, 1))}
+.is-dense .graph-fruit.en .graph-fruit-name.len-m{font-size: calc(13rpx * var(--fs-scale, 1))}
+.is-dense .graph-fruit.en .graph-fruit-name.len-l{font-size: calc(13rpx * var(--fs-scale, 1))}
 .is-dense .graph-fruit-art.native,.is-dense .graph-fruit-art.introduced{border-width:5rpx}
 .graph-fruit.is-locked{opacity:.5}
 .season-summer{}.season-summer .graph-center{background:#F3DFD2;color:#976F58;box-shadow:0 0 0 12rpx rgba(255,247,241,.8)}.season-summer .graph-line{border-color:rgba(164,123,92,.16)}

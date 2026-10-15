@@ -30,8 +30,8 @@ const routes = [
   ['account', '/pages/account/account'], ['fruit-note', '/pages/fruit-note/fruit-note?fruit=spring-plum&cat=folk'],
   ['place-finder', '/pages/place-finder/place-finder'], ['world', '/packageWorld/pages/index/index'],
   ['journal', '/pages/journal/journal'], ['fruit-detail', '/pages/fruit-detail/fruit-detail?fruit=spring-plum'],
-  ['playground-paint', '/pages/playground/playground?game=paint'], ['playground-quiz', '/pages/playground/playground?game=quiz'],
-  ['playground-identify', '/pages/playground/playground?game=identify'], ['route-detail', '/pages/route-detail/route-detail'],
+  ['playground-paint', '/packageGame/pages/playground/playground?game=paint'], ['playground-quiz', '/packageGame/pages/playground/playground?game=quiz'],
+  ['playground-identify', '/packageGame/pages/playground/playground?game=identify'], ['route-detail', '/pages/route-detail/route-detail'],
   ['fruit-note-craft', '/pages/fruit-note/fruit-note?fruit=spring-plum&cat=craft']
 ];
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));

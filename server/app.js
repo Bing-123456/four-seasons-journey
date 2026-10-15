@@ -68,7 +68,9 @@ function createServer(options = {}) {
   speech.purge();
   const asr = createAsrService(options.asrAdapter, { now: options.now });
   const chat = createChatService(config, options.chatFetch || globalThis.fetch);
-  const farmtown = createFarmtownService({ file: options.farmtownFile || process.env.FARMTWON_DATA_FILE || nodePath.join(nodeOs.tmpdir(), 'guayouji-farmtown.json'), now: options.now, chat });
+  // 果乡名片改走云数据库（与 community 同一套 TCB_ENV_ID / TCB_ACCESS_KEY）；未配置或不可用时
+  // farmtown 内部自动退回原 JSON 文件方案。file 传入后仅作为退路与旧数据迁移源。
+  const farmtown = createFarmtownService({ file: options.farmtownFile || process.env.FARMTWON_DATA_FILE || nodePath.join(nodeOs.tmpdir(), 'guayouji-farmtown.json'), envId: (config.cloudbase && config.cloudbase.envId) || '', accessKey: (config.cloudbase && config.cloudbase.accessKey) || '', now: options.now, chat });
   const community = createCommunityService({ envId: (config.cloudbase && config.cloudbase.envId) || '', accessKey: (config.cloudbase && config.cloudbase.accessKey) || '' });
   const auth = createAuth(config, { now: options.now, onPairingCode: options.onPairingCode });
   const rateWindows = new Map();
@@ -168,7 +170,7 @@ function createServer(options = {}) {
         const body = await readBody(request, 256);
         send(200, await community.rename(body.oldNickname, body.newNickname, communityOpenid())); return;
       }
-      if (/^\/api\/(booking-clients|booking-activities|booking-summary|bookings)(\/|$)/.test(path)) {
+      if (/^\/api\/(booking-clients|booking-activities|booking-summary|booking-availability|bookings)(\/|$)/.test(path)) {
         if (!auth.inspect(request).authenticated) throw new InputError('服务连接已过期', 'unauthorized', 401);
         if (!rateAllowed(request, request.method === 'GET')) throw new InputError('请求过于频繁', 'rate_limited', 429);
         const result = bookings.dispatch({ method: request.method, path, credential: request.headers['x-booking-client'], body: request.method === 'POST' ? await readBody(request, 8192) : undefined, query: Object.fromEntries(new URL(request.url, 'http://localhost').searchParams) });
@@ -217,10 +219,16 @@ function createServer(options = {}) {
         if (!rateAllowed(request)) throw new InputError('请求过于频繁', 'rate_limited', 429);
         const owner = (request.headers.authorization || '').startsWith('Bearer ') ? request.headers.authorization.slice(7) : 'anonymous';
         if (path === '/api/farmtown-polish' && request.method === 'POST') {
-          const result = await farmtown.polish(await readBody(request, 2048));
-          send(result.status, result.body); return;
+          // farmtown.polish() 返回的是**响应体本身**（{ polishedText }，见 server/farmtown.js 的 polish），
+          // 不是 handle/dispatch 那种 { status, body }。原来照 dispatch 的形状取 result.status / result.body，
+          // 两个都是 undefined → send() 里 response.writeHead(undefined) 抛 ERR_HTTP_INVALID_STATUS_CODE
+          // → 落到下面同一个 catch，成了 500 internal_error（这条接口因此从来没成功过）。
+          // 这里照 /api/place-recommend / /api/speech 那几处的既有写法直接 send：状态码 200 与
+          // 响应体 { polishedText } 这个对外契约一个字没改。出错时（模型未配置 503 / 介绍没填 400 /
+          // 模型不可用 502）farmtown.polish 照旧抛 InputError，仍由下面同一个 catch 按原口径回。
+          send(200, await farmtown.polish(await readBody(request, 2048))); return;
         }
-        const result = farmtown.dispatch({ method: request.method, path, query: Object.fromEntries(new URL(request.url, 'http://localhost').searchParams), body: request.method === 'POST' ? await readBody(request, 8192) : undefined, owner });
+        const result = await farmtown.dispatch({ method: request.method, path, query: Object.fromEntries(new URL(request.url, 'http://localhost').searchParams), body: request.method === 'POST' ? await readBody(request, 8192) : undefined, owner });
         send(result.status, result.body); return;
       }
       const audioFile = path.match(/^\/speech\/([a-f0-9]{64}\.(?:mp3|wav))$/);

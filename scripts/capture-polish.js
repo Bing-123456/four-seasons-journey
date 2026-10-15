@@ -51,7 +51,10 @@ async function bounded(promise, label, timeout = 12000) {
     backedUp = true;
     report.viewport = await evaluate(() => { const s = wx.getSystemInfoSync(); return { width: s.windowWidth, height: s.windowHeight, pixelRatio: s.pixelRatio }; });
     await navigate('/pages/mine/mine');
-    await evaluate(() => { getCurrentPages().slice(-1)[0].enterDemo(); return true; });
+    // Enter the demo account through the shared Page handler changeDemo (its body is
+    // store.enterDemo(); the store layer is untouched). A module-scoped require is not
+    // available inside App.evaluate, so lib/store cannot be required from the runtime.
+    await evaluate(() => { getCurrentPages().slice(-1)[0].changeDemo('enterDemo'); return true; });
     await evaluate(() => {
       const key = 'guayouji.demo.v1', state = wx.getStorageSync(key);
       state.identity = Object.assign({}, state.identity, { role: 'tourist', roleChosen: true, greetingCustomized: true });

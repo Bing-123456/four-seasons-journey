@@ -56,7 +56,11 @@ async function run(scope = 'all') {
     assert.equal(await evaluate(() => { const p = getCurrentPages().slice(-1)[0], c = p.selectComponent('#demo-mode-notice'); return !!c && c.data.active; }), true);
   }
   async function mine() { return navigate('/pages/mine/mine'); }
-  async function resetDemo() { const p = await mine(); await p.callMethod('enterDemo'); await p.callMethod('resetDemo'); return p; }
+  // The Page-level demo-entry handler was removed on user request; the isolated demo
+  // account is still entered through the shared Page handler changeDemo, whose body is
+  // store.enterDemo(). App.evaluate exposes no module-scoped require, so the runtime
+  // cannot require lib/store directly.
+  async function resetDemo() { const p = await mine(); await p.callMethod('changeDemo', 'enterDemo'); await p.callMethod('resetDemo'); return p; }
   try {
     mp = await automator.connect({ wsEndpoint: process.env.WECHAT_WS_ENDPOINT || 'ws://127.0.0.1:9420' });
     personalDigest = hash(await evaluate(key => wx.getStorageSync(key), PERSONAL));
@@ -74,7 +78,7 @@ async function run(scope = 'all') {
     await check('退出恢复个人账户，再进入保留演示记录', async () => {
       await page.callMethod('exitDemo'); assert.equal(await page.data('demoSummary.active'), false);
       assert.equal(hash(await evaluate(key => wx.getStorageSync(key), PERSONAL)), personalDigest);
-      await page.callMethod('enterDemo'); assert.equal(await page.data('demoSummary.routeStops'), 2);
+      await page.callMethod('changeDemo', 'enterDemo'); assert.equal(await page.data('demoSummary.routeStops'), 2);
     });
     await check('演示账户云端直连默认开启且设置锁定，无法在演示内关闭', async () => {
       assert.equal(await page.data('settings.useAI'), true);

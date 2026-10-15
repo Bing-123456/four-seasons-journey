@@ -4,7 +4,7 @@
     <view class="graph-center {{en ? 'en' : ''}}">{{seasonMeta.centerName}}</view>
     <view wx:for="{{graphNodes}}" wx:key="id" id="fruit-node-{{item.id}}" class="graph-fruit {{en ? 'en' : ''}} {{item.locked ? 'is-locked' : ''}}" style="{{item.style}}" data-id="{{item.id}}" data-locked="{{item.locked ? '1' : ''}}" bindtap="selectFruit" role="button" aria-label="{{item.locked ? item.name + L.fruit_locked : item.name}}">
       <view class="graph-fruit-art {{item.originClass}}"><view class="graph-fruit-crop"><image src="{{item.art.src}}" mode="scaleToFill" aria-hidden="true"/></view></view>
-      <text class="graph-fruit-name" style="{{item.nameStyle}}">{{item.name}}</text>
+      <text class="graph-fruit-name {{item.nameClass}}" style="{{item.nameStyle}}">{{item.name}}</text>
     </view>
   </view>
 </template>

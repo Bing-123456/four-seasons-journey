@@ -1,4 +1,8 @@
 'use strict';
+// 预约服务客户端封装。服务端挂载见 server/app.js:173-185，接口契约见 server/bookings.js:71-83。
+// 超时给到 45 秒（原 20 秒）：云托管缩容到 0 后冷启动实测 30–90 秒才通，20 秒会让每次尝试
+// 都在冷启动里超时、重试也永远等不到服务起来；45 秒与 lib/service.js:76 是同口径。
+// 页面仍按仓库习惯再重试（2s/4s，参考 lib/farmtown-service.js:11-27）。
 const store = require('./store');
 const pending = {};
 function context(role) { const cloud = store.getCloudConnection(); return { role: role || 'visitor', partition: store.capturePartition(), apiBase: cloud.apiBase.replace(/\/$/, ''), token: cloud.token }; }
@@ -35,6 +39,8 @@ function requestId() { return 'request-' + Date.now().toString(36) + '-' + (++se
 module.exports = { getCredential, ensureClient, requestId,
   listActivities: () => call('visitor', '/api/booking-activities', undefined, 'GET'),
   listBookings: () => call('visitor', '/api/bookings', undefined, 'GET'),
+  // 逐日余量（只读聚合数）。契约见 server/bookings.js:73-87：days 已按 [startDate,endDate] 逐日给全、升序。
+  availability: activityId => call('visitor', '/api/booking-availability?activityId=' + encodeURIComponent(activityId || ''), undefined, 'GET'),
   reserve: body => call('visitor', '/api/bookings', body),
   cancel: id => call('visitor', '/api/bookings/' + encodeURIComponent(id) + '/cancel', {}),
   publish: body => call('seller', '/api/booking-activities', body),

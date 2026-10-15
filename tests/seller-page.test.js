@@ -141,38 +141,27 @@ test('unpublish confirms, requests unpublish and flips status to 已下架', () 
   });
 });
 
-test('publish form walks three steps, caps experiences at 3, polishes and submits', () => {
+test('publish form walks two steps and submits (AI polish removed)', () => {
   const subject = makePage('publish');
   subject.onLoad();
   subject.inputName({ detail: { value: '洛川苹果园' } });
   subject.onRegionChange({ detail: { value: ['陕西', '延安市', '洛川县'] } });
   subject.inputFruit({ detail: { value: '苹果' } });
-    subject.inputAddress({ detail: { value: '洛川县凤栖镇××路8号' } });
-    subject.onOpenDate({ detail: { value: '2026-06-21' } });
-    subject.onOpenTime({ detail: { value: '09:00' } });
-    subject.onCloseDate({ detail: { value: '2026-06-25' } });
-    subject.onCloseTime({ detail: { value: '17:00' } });
+  subject.inputAddress({ detail: { value: '洛川县凤栖镇××路8号' } });
+  subject.onOpenDate({ detail: { value: '2026-06-21' } });
+  subject.onOpenTime({ detail: { value: '09:00' } });
+  subject.onCloseDate({ detail: { value: '2026-06-25' } });
+  subject.onCloseTime({ detail: { value: '17:00' } });
   subject.next1();
   assert.equal(subject.data.step, 2);
-    assert.equal(subject.data.form.address, '洛川县凤栖镇××路8号');
-    assert.equal(subject.data.form.openTime, '09:00');
-    assert.equal(subject.data.form.closeTime, '17:00');
+  assert.equal(subject.data.form.address, '洛川县凤栖镇××路8号');
   subject.toggleExp({ currentTarget: { dataset: { exp: '采摘' } } });
   subject.toggleExp({ currentTarget: { dataset: { exp: '观光' } } });
-  subject.toggleExp({ currentTarget: { dataset: { exp: '手作' } } });
-  subject.toggleExp({ currentTarget: { dataset: { exp: '餐饮' } } }); // 现在允许最多 5 个（全部可选）
-  assert.equal(subject.data.form.experiences.length, 4);
   subject.inputDesc({ detail: { value: '三代人种苹果，霜降后最甜。' } });
-      subject.inputWechat({ detail: { value: 'guoyuan2026' } });
-      subject.inputPhone({ detail: { value: '13800000000' } });
-  subject.next2();
-  assert.equal(subject.data.step, 3);
-  subject.polish();
-  return wait().then(() => {
-    assert.equal(subject.data.polishedText, '润色后的果乡文案。');
-    subject.submit();
-    return wait(700);
-  }).then(() => {
+  subject.inputWechat({ detail: { value: 'guoyuan2026' } });
+  subject.inputPhone({ detail: { value: '13800000000' } });
+  subject.next2();   // 第 2 页就是最后一页：校验后直接提交
+  return wait(700).then(() => {
     assert.ok(calls.requests.some(u => u.includes('/api/farmtown/create')));
     assert.match(calls.toasts.at(-1).title, /发布成功/);
     assert.equal(calls.navigation.at(-1), 'navigateBack');

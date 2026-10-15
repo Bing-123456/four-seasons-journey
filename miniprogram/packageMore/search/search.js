@@ -16,6 +16,72 @@ const i18n = require('../../lib/i18n');
 const media = require('../../lib/media-service');
 const { createSpeechInput } = require('../lib/speech-input');
 const chatHistory = require('../lib/chat-history');
+// 10.11：英文模式下证据包改用英文正文（同分包副本，避免跨分包 require）
+const fruitCultureEn = require('../data/fruit-culture-en');
+function enNameOf(fruit) { const entry = i18n.dict['fruit_' + fruit.id]; return entry ? entry[1] : ''; }
+
+// —— 第 3 阶段：切换语言时，把历史果灵回答/追问建议就地翻译并缓存（甲方案）——
+// 服务端已有 /api/translate（blocks/target，中↔英双向，单块 ≤600 字、每请求 ≤10 块）。
+// 每条 elf 消息带 lang（当前正文语言）+ textZh/textEn + followUpsZh/followUpsEn 缓存；
+// 旧记录没有这些字段时按 zh 处理（线上此前只有中文回答）。只翻缺缓存的，翻过就读缓存。
+const TRANSLATE_MAX_CHARS = 600;
+const TRANSLATE_MAX_BLOCKS = 10;
+function splitForTranslate(text) {
+  const s = String(text == null ? '' : text);
+  const parts = [];
+  for (let i = 0; i < s.length; i += TRANSLATE_MAX_CHARS) parts.push(s.slice(i, i + TRANSLATE_MAX_CHARS));
+  return parts.length ? parts : [''];
+}
+// 从消息列表里收集「切换到 target 后还缺译文」的内容，组织成批量任务（最新消息在前）。
+// 返回 { tasks, blocks }：blocks 与 tasks 顺序一致，每条 task 记录它在 blocks 里的 [start, count)。
+function collectTranslationTasks(messages, target) {
+  const cacheText = target === 'en' ? 'textEn' : 'textZh';
+  const cacheFup = target === 'en' ? 'followUpsEn' : 'followUpsZh';
+  const tasks = [];
+  const blocks = [];
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const msg = messages[i];
+    if (!msg || msg.role !== 'elf' || msg.lang === target) continue;
+    if (!msg[cacheText]) {
+      const chunks = splitForTranslate(msg.text);
+      const start = blocks.length;
+      chunks.forEach(chunk => blocks.push({ text: chunk }));
+      tasks.push({ start, count: chunks.length, apply(items) { msg[cacheText] = items.join(''); msg.text = msg[cacheText]; } });
+    }
+    const fups = Array.isArray(msg.followUps) ? msg.followUps : [];
+    fups.forEach((fup, fi) => {
+      const cache = Array.isArray(msg[cacheFup]) ? msg[cacheFup] : [];
+      if (cache[fi]) return;
+      blocks.push({ text: fup });
+      tasks.push({ start: blocks.length - 1, count: 1, apply(items) {
+        const arr = Array.isArray(msg[cacheFup]) ? msg[cacheFup] : (msg[cacheFup] = []);
+        arr[fi] = items[0]; msg.followUps[fi] = items[0];
+      } });
+    });
+  }
+  return { tasks, blocks };
+}
+// 某条消息的正文与追问缓存都齐了，才把 lang 标成 target（缺任一缓存就留着，下次 onShow 补翻）。
+function finalizeLang(messages, target) {
+  const cacheText = target === 'en' ? 'textEn' : 'textZh';
+  const cacheFup = target === 'en' ? 'followUpsEn' : 'followUpsZh';
+  messages.forEach(msg => {
+    if (!msg || msg.role !== 'elf' || msg.lang === target) return;
+    if (!msg[cacheText]) return;
+    const fups = Array.isArray(msg.followUps) ? msg.followUps : [];
+    const cache = Array.isArray(msg[cacheFup]) ? msg[cacheFup] : [];
+    if (fups.every((_, fi) => cache[fi])) msg.lang = target;
+  });
+}
+
+// 6 条提示问法按「当前语言」现算。
+// 不能写在 Page({ data: {...} }) 里：小程序页面模块只 require 一次，那时算出来的数组会
+// 一直冻在 data 初值里，切换语言后这 6 条不会跟着变（10.11 用户截图反馈：别的都英文、就它中文）。
+function suggestionList() {
+  return i18n.getLang() === 'en'
+    ? ["What's in season right now", "How to pick a good watermelon", "How did watermelon reach China", "Plum vs apricot: what's the difference", "What does Start of Winter mean", "Pineapple vs pineapple fruit"]
+    : ['现在吃什么水果当季', '如何挑选西瓜', '西瓜是怎么传入中国的', '李子和杏子有什么区别', '立冬有什么讲究', '凤梨和菠萝是什么关系'];
+}
 
 const RECENT_KEY = 'guoling.search.recent.v1';
 const CAT_LABEL = { folk: 'ans_cat_folk', history: 'ans_cat_history', craft: 'ans_cat_craft', story: 'ans_cat_story', tools: 'ans_cat_tools', health: 'ans_cat_health' };
@@ -151,6 +217,35 @@ function normalizeAliases(text) {
   return normalized;
 }
 
+// —— 英文果名匹配（10.11）——
+// 起因：英文界面下问「watermelon」，问题里没有汉字 → 中文别名表命中 0 个水果 → 客户端把问题
+// 当成「泛时令」发出去（只带当季清单）→ 模型只好回"资料库没有此水果"；而中文问「西瓜」能答对。
+// 这里用 i18n 里的官方英文名（42/42 齐全）按**词边界**匹配，避免 apple/appear 这类子串误伤。
+// 另配一张口语别名表，补齐官方英文名与日常写法不一致的几个（pear→秋梨、grape→葡萄…）。
+const EN_FRUIT_ALIASES = { pear: '秋梨', grape: '葡萄', kiwi: '猕猴桃', wampee: '黄皮', starfruit: '杨桃', dragonfruit: '火龙果', passionfruit: '百香果' };
+function escapeRegExp(text) { return String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+let enFruitIndex = null;
+function englishFruitIndex() {
+  if (enFruitIndex) return enFruitIndex;
+  const rows = [];
+  fruitCulture.seasons.forEach(season => {
+    fruitCulture.seasonFruits(season).forEach(fruit => {
+      if (rows.some(row => row.fruit.name === fruit.name)) return;   // 跨季节的果只留第一次出现的那条
+      const entry = i18n.dict['fruit_' + fruit.id];
+      const names = [];
+      if (entry && entry[1]) names.push(entry[1]);
+      rows.push({ fruit, seasonId: season.id, seasonName: season.name, names });
+    });
+  });
+  Object.keys(EN_FRUIT_ALIASES).forEach(alias => {
+    const row = rows.find(item => item.fruit.name === EN_FRUIT_ALIASES[alias]);
+    if (row) row.names.push(alias);
+  });
+  rows.forEach(row => { row.pattern = new RegExp('\\b(?:' + row.names.map(escapeRegExp).join('|') + ')\\b', 'i'); });
+  enFruitIndex = rows;
+  return rows;
+}
+
 // 从问题里识别提到的水果（支持“李子和杏子有什么区别”这类对比问法）。
 // 覆盖链图全部节点：内圈当季水果与外圈世界风物都能被检索到。
 function matchFruits(question) {
@@ -184,6 +279,13 @@ function matchFruits(question) {
       });
     });
   });
+  // 英文果名（只在问题里确实出现拉丁字母时才跑，中文问题不做 42 条正则的无用功）
+  if (/[A-Za-z]/.test(text)) {
+    englishFruitIndex().forEach(row => {
+      if (hits.some(hit => hit.fruit.name === row.fruit.name)) return;
+      if (row.pattern.test(text)) hits.push({ seasonId: row.seasonId, seasonName: row.seasonName, fullId: row.seasonId + '-' + row.fruit.id, fruit: row.fruit });
+    });
+  }
   return hits;
 }
 
@@ -314,7 +416,14 @@ function composeAnswer(fruits, question) {
 }
 
 // 拼接一条资料：正文（detail）已包含导语（text）时，不再重复贴一遍导语。
-function composeCategoryText(cat) {
+// 注意第二个参数是**中文果名**：fruit-culture-en.js 的顶层键是中文果名（如 '西瓜'），
+// 早前这里传的是英文名（'Watermelon'）→ 永远查不到 → 英文模式的证据包一直静默回退中文。
+function composeCategoryText(cat, fruitName) {
+  // 10.11：英文模式优先用英文正文；缺失时回退中文（不空白）
+  if (i18n.getLang() === 'en' && fruitName) {
+    const en = fruitCultureEn[fruitName] && fruitCultureEn[fruitName][cat.cat];
+    if (en && en.detail) return '【' + catLabel(cat.cat) + '】' + en.detail;
+  }
   const header = '【' + (CAT_NAMES[cat.cat] || cat.cat) + '】';
   const lead = cat.text || '';
   const detail = cat.detail || '';
@@ -326,20 +435,22 @@ function composeCategoryText(cat) {
 // 9.28 修复：各维度分块先按「与问点的问点词重合数」排序再拼接——相关材料在前，
 // 无关材料在后，截断（1800 字）只可能吃掉无关尾巴，不再把最相关的内容截掉。
 function buildContexts(fruits, question) {
+  const en = i18n.getLang() === 'en';
   const contexts = fruits.slice(0, 3).map(hit => {
+    const enName = enNameOf(hit.fruit);
     const sections = (hit.fruit.categories || [])
-      .map(cat => ({ cat, text: composeCategoryText(cat) }))
+      .map(cat => ({ cat, text: composeCategoryText(cat, hit.fruit.name) }))
       .map((section, index) => Object.assign({}, section, { index, score: relevanceScore(question, section.text) }))
       .sort((a, b) => (b.score - a.score) || (a.index - b.index))
       .map(section => section.text);
-    return { name: hit.fruit.name + '·四时素材', text: sections.join('\n').slice(0, 1800) };
+    return { name: (en && enName ? enName + ' · Seasonal material' : hit.fruit.name + '·四时素材'), text: sections.join('\n').slice(0, 1800) };
   });
   const proverbText = farmProverbs.proverbs
     .filter(item => fruits.some(hit => proverbMatches(hit.fruit.name, item.text)))
     .slice(0, 2)
-    .map(item => '「' + item.text + '」' + item.note)
+    .map(item => en ? ('"' + item.en + '" ' + item.noteEn) : ('「' + item.text + '」' + item.note))
     .join('\n');
-  if (proverbText) contexts.push({ name: '农谚集', text: proverbText.slice(0, 600) });
+  if (proverbText) contexts.push({ name: en ? 'Proverbs' : '农谚集', text: proverbText.slice(0, 600) });
   return contexts;
 }
 
@@ -356,44 +467,78 @@ function currentSeasonId() {
   return 'winter';
 }
 function buildSeasonalContexts() {
+  const en = i18n.getLang() === 'en';
   const season = fruitCulture.seasons.find(item => item.id === currentSeasonId()) || fruitCulture.seasons[0];
   const fruits = fruitCulture.seasonFruits(season) || [];
   const listText = fruits.map(fruit => {
     const first = (fruit.categories || [])[0];
-    const intro = first ? String(first.text || '').replace(/\s+/g, '').slice(0, 50) : '';
-    return '·' + fruit.name + (intro ? '：' + intro : '');
+    // 英文模式用官方英文名 + fruit-culture-en 里那一段的英文导语（同一份资料，不是新写内容）
+    const enRec = en ? (fruitCultureEn[fruit.name] || null) : null;
+    const enSeg = enRec && first ? enRec[first.cat] : null;
+    const source = en && enSeg && enSeg.text ? enSeg.text : (first ? first.text : '');
+    const intro = source ? String(source).replace(/\s+/g, en ? ' ' : '').slice(0, en ? 140 : 50) : '';
+    const name = en ? ((i18n.dict['fruit_' + fruit.id] || [, fruit.name])[1] || fruit.name) : fruit.name;
+    return '·' + name + (intro ? (en ? ': ' + intro : '：' + intro) : '');
   }).join('\n');
   // 二十四节气全量收录（名称+一句话果事）：用户可能问任何节气的讲究（十月的用户
   // 就可能问立冬——立冬属冬季节气），只放当前季节会误拒答；当前季节的节气再附全文。
-  const termList = solarTermNotes.TERMS.map(term => '·' + term.name + '（' + term.headline + '）').join('\n');
+  const termList = solarTermNotes.TERMS.map(term => en
+    ? '·' + term.enName + ' (' + term.enHeadline + ')'
+    : '·' + term.name + '（' + term.headline + '）').join('\n');
   const seasonTerms = solarTermNotes.TERMS
     .filter(term => term.season === season.id)
-    .map(term => '·' + term.name + '：' + term.text)
+    .map(term => en ? '·' + term.enName + ': ' + term.enText : '·' + term.name + '：' + term.text)
     .join('\n');
-  const termText = '二十四节气果事一览：\n' + termList + '\n\n本季节气详解：\n' + seasonTerms;
+  const termText = en
+    ? 'The 24 solar terms, fruit notes at a glance:\n' + termList + '\n\nThis season in detail:\n' + seasonTerms
+    : '二十四节气果事一览：\n' + termList + '\n\n本季节气详解：\n' + seasonTerms;
   const proverbText = farmProverbs.proverbs
     .filter(item => fruits.some(fruit => proverbMatches(fruit.name, item.text)))
     .slice(0, 4)
-    .map(item => '「' + item.text + '」' + item.note)
+    .map(item => en ? ('"' + item.en + '" ' + item.noteEn) : ('「' + item.text + '」' + item.note))
     .join('\n');
+  const seasonName = en ? (i18n.dict['season_name_' + season.id] ? i18n.t('season_name_' + season.id) : season.name) : season.name;
   const contexts = [
-    { name: '当季果品·' + season.name + '（' + season.months.join('-') + '月）', text: ('当前正当季的果品清单：\n' + listText).slice(0, 1800) },
-    { name: '二十四节气札·' + season.name, text: termText.slice(0, 1800) }
+    {
+      name: en ? 'In season · ' + seasonName + ' (' + season.months.join('-') + ')' : '当季果品·' + season.name + '（' + season.months.join('-') + '月）',
+      text: (en ? 'Fruits in season right now:\n' + listText : '当前正当季的果品清单：\n' + listText).slice(0, 1800)
+    },
+    {
+      name: en ? '24 solar terms · ' + seasonName : '二十四节气札·' + season.name,
+      text: termText.slice(0, 1800)
+    }
   ];
-  if (proverbText) contexts.push({ name: '农谚集', text: proverbText.slice(0, 600) });
+  if (proverbText) contexts.push({ name: en ? 'Proverbs' : '农谚集', text: proverbText.slice(0, 600) });
   return contexts;
 }
 
 // 纯问候/道谢/告别：本地直接回应，不消耗模型调用。
+// 10.11：文案改走 i18n 字典（replyKey），**调用时现取语言** —— 不能在这里放定死的中文，
+// 否则 English 界面下问「你好」会拿到中文问候（用户截图反馈）。
 const TRIVIAL_CHATS = [
-  { match: /^(你好|您好|哈喽|嗨|hello|hi)[!！。～~\s]*$/i, reply: '你好呀，我是果灵🌱 四时果园里的小精灵。想聊哪种水果都可以，问我时令、挑选、吃法或习俗都行～' },
-  { match: /^(谢谢|感谢|多谢|thanks|thank you)[!！。～~\s]*$/i, reply: '不客气～有果的问题随时来问我。' },
-  { match: /^(再见|拜拜|bye)[!！。～~\s]*$/i, reply: '再见啦，四时果园随时欢迎你回来。' }
+  { match: /^(你好|您好|哈喽|嗨|hello|hi)[!！。～~\s]*$/i, replyKey: 'chat_hello' },
+  { match: /^(谢谢|感谢|多谢|thanks|thank you)[!！。～~\s]*$/i, replyKey: 'chat_thanks' },
+  { match: /^(再见|拜拜|bye)[!！。～~\s]*$/i, replyKey: 'chat_bye' }
 ];
 
 // 本地拒答的指路（与服务端 REFUSAL_GUIDE 同思路）：拒答不能是死胡同，
 // 拒答的同时给两条可点的建议问法，帮不知道能问什么的用户找到入口。
-const REFUSAL_GUIDE = ['当季吃什么水果好？', '怎么挑西瓜？'];
+// 10.11：写成函数、按当前语言现取（与服务端 REFUSAL_GUIDE_EN 的两条一致）。
+function refusalGuide() { return [i18n.t('chat_guide_1'), i18n.t('chat_guide_2')]; }
+
+// 外来果品/境外农耕的婉拒正文。
+// 中文侧**原样沿用** fruit-scope 的现有话术（零改动）；英文侧用字典里的英文模板，
+// 不改 data/fruit-scope.js —— 那个文件服务端也在引用（server/tasks.js 把它写进中文系统提示词）。
+function scopeOutText(scope) {
+  if (!scope) return '';
+  const suggestions = scope.suggestions || [];
+  const name = scope.subject || '';
+  if (i18n.getLang() !== 'en') return fruitScope.refusalText(scope);
+  // 命中「境外农耕文化」还是「外来果品」：拿 fruit-scope 导出的模板原文比对（不猜字段）
+  const isTopic = scope.message === String(fruitScope.TEMPLATES.topic).replace('{{name}}', name);
+  const base = isTopic ? i18n.t('chat_scope_topic', { name }) : i18n.t('chat_scope_fruit', { name });
+  return suggestions.length ? base + i18n.t('chat_scope_hint', { names: suggestions.join(', ') }) : base;
+}
 
 let messageSeq = 0;
 function uid() { messageSeq += 1; return 'm' + Date.now().toString(36) + '-' + messageSeq; }
@@ -402,17 +547,15 @@ function uid() { messageSeq += 1; return 'm' + Date.now().toString(36) + '-' + m
 function matchedChips(question) {
   const nameOf = hit => { const key = 'fruit_' + hit.fruit.id; return i18n.dict[key] ? i18n.t(key) : hit.fruit.name; };
   const seasonOf = hit => { const key = 'season_name_' + (hit.seasonId || ''); return i18n.dict[key] ? i18n.t(key) : hit.seasonName; };
-  return matchFruits(question).map(hit => ({ fullId: hit.fullId, name: nameOf(hit), seasonName: seasonOf(hit), jumpLabel: '前往四时【' + nameOf(hit) + '】' }));
+  return matchFruits(question).map(hit => ({ fullId: hit.fullId, name: nameOf(hit), seasonName: seasonOf(hit), jumpLabel: i18n.t('chat_jump_pill', { name: nameOf(hit) }) }));
 }
 
 Page({
   data: { L: {}, keyword: '', recent: [], messages: [], pending: false, pendingStep: 0, pendingSteps: [], scrollInto: '', listening: false, recognizing: false, keyboardHeight: 0,
     // 提示问题分两份（2026-10-09 用户要求）：
-    //   suggestions     = 全部推荐问法（固定不变）
+    //   suggestions     = 全部推荐问法（按当前语言，onLoad/onShow 现算，不在这里定死）
     //   suggestionsLeft = 其中"还没问过"的那些 —— 问过的从画面上那列里去掉，全问完就不显示这列
-    suggestions: i18n.getLang() === 'en'
-      ? ["What's in season right now", "How to pick a good watermelon", "How did watermelon reach China", "Plum vs apricot: what's the difference", "What does Start of Winter mean", "Pineapple vs pineapple fruit"]
-      : ['现在吃什么水果当季', '如何挑选西瓜', '西瓜是怎么传入中国的', '李子和杏子有什么区别', '立冬有什么讲究', '凤梨和菠萝是什么关系'],
+    suggestions: [],
     suggestionsLeft: [],
     companion: null,
     // 兼容保留：finishSearch 作为离线兜底引擎，仍写入这些字段（测试与降级路径使用）。
@@ -421,6 +564,8 @@ Page({
     // 聊天记录只存本机（按账户分区），重新进入自动恢复；服务端不留存。
     this.setData({ recent: readRecent(), messages: chatHistory.load(), L: i18n.labels(['guoling','guoling_intro','search_recent','search_recent_empty','search_clear','search_action','search_thinking','search_step1','search_step2','search_step3','search_no_result','answer_farming','answer_food','answer_extra','answer_tag','search_jump_hint','ask_guoling','side_proverbs','news_term','id_search_aria','chat_input_hint','chat_send','chat_voice','chat_listening','chat_recognizing','chat_thinking','chat_step1','chat_step2','chat_step3','chat_evidence','chat_offline','chat_followups','chat_welcome','chat_clear','chat_clear_confirm','chat_cleared','chat_header_sub','chat_suggest_title']), companion: store.getCompanion(),
       pendingSteps: [i18n.t('chat_step1'), i18n.t('chat_step2'), i18n.t('chat_step3')] });
+    this.setData({ suggestions: suggestionList() });
+    this._suggestLang = i18n.getLang() === 'en' ? 'en' : 'zh';
     this.refreshSuggestions();
     // 恢复历史后滚到最新一条，避免停在顶部看不到对话。
     if (this.data.messages.length) {
@@ -430,7 +575,88 @@ Page({
   },
   onShow: function () {
     this.setData({ fontClass: typeof getApp === 'function' && getApp() ? getApp().getFontClass() : 'fs-normal' });
- this.setData({ companion: store.getCompanion() }); },
+ this.setData({ companion: store.getCompanion() });
+    // 语言变了：6 条提示问法按新语言重算（它们不靠 onLoad 之外的机制刷新）。
+    const lang = i18n.getLang() === 'en' ? 'en' : 'zh';
+    if (this._suggestLang !== lang) {
+      this._suggestLang = lang;
+      this.setData({ suggestions: suggestionList() });
+      this.refreshSuggestions();
+    }
+    // 跳转卡文案（含果名）也随语言走：老消息里存的是中文按钮 + 中文果名，按 fullId 重算。
+    this._syncChipLanguage();
+    // 切语言时把历史果灵回答/追问建议跟着换语言（只翻缺缓存的，翻过读缓存）。
+    this._syncChatLanguage(); },
+  // 跳转卡（气泡下方那颗按钮）的文案随语言走：老消息里存的是「前往四时【西瓜】」+中文果名，
+  // 这里按 fullId 反查水果、用当前语言重算 name / seasonName / jumpLabel。
+  // 纯本地计算，不调模型；语言没变就直接返回。
+  _syncChipLanguage: function () {
+    const lang = i18n.getLang() === 'en' ? 'en' : 'zh';
+    if (this._chipLang === lang) return;
+    this._chipLang = lang;
+    const messages = this.data.messages || [];
+    let changed = false;
+    messages.forEach(message => {
+      if (!message || message.role !== 'elf' || !Array.isArray(message.chips) || !message.chips.length) return;
+      message.chips.forEach(chip => {
+        const hit = fruitsFromChips([chip])[0];
+        if (!hit) return;
+        const nameKey = 'fruit_' + hit.fruit.id;
+        const name = i18n.dict[nameKey] ? i18n.t(nameKey) : hit.fruit.name;
+        const seasonKey = 'season_name_' + (hit.seasonId || '');
+        chip.name = name;
+        chip.seasonName = i18n.dict[seasonKey] ? i18n.t(seasonKey) : (chip.seasonName || hit.seasonName || '');
+        chip.jumpLabel = i18n.t('chat_jump_pill', { name });
+        changed = true;
+      });
+    });
+    if (changed) { this.setData({ messages }); chatHistory.save(messages); }
+  },
+  // —— 第 3 阶段：语言同步（甲方案）——
+  // 依据是缓存是否齐全，而不是「上次语言」：缺目标语言缓存的消息才会被挑出来翻，
+  // 失败不缓存、保留原文，下次 onShow 自动补剩余；已翻过的切回来直接读缓存、不再调模型。
+  _syncChatLanguage: function () {
+    if (this._translating) return;
+    const target = i18n.getLang() === 'en' ? 'en' : 'zh';
+    const collected = collectTranslationTasks(this.data.messages, target);
+    if (!collected.blocks.length) return;
+    let context;
+    try { context = media.capture(); } catch (error) { context = null; }
+    if (!context || !context.token) return;   // 没云端凭证：保留原文，下次进入再试
+    this._translating = true;
+    this._runTranslationBatches(collected, target, context, () => { this._translating = false; });
+  },
+  _runTranslationBatches: function (collected, target, context, done) {
+    const tasks = collected.tasks;
+    const blocks = collected.blocks;
+    // 任务已按「最新在前」排好；按每批 ≤10 块切成整批（不切开单条任务的块）。
+    const batches = [];
+    let cur = { tasks: [], count: 0 };
+    tasks.forEach(task => {
+      if (cur.count && cur.count + task.count > TRANSLATE_MAX_BLOCKS) { batches.push(cur); cur = { tasks: [], count: 0 }; }
+      cur.tasks.push(task); cur.count += task.count;
+    });
+    if (cur.tasks.length) batches.push(cur);
+    const page = this;
+    const runBatch = (index) => {
+      if (index >= batches.length) { done(); return; }
+      const batch = batches[index];
+      const batchBlocks = [];
+      batch.tasks.forEach(task => { for (let j = task.start; j < task.start + task.count; j += 1) batchBlocks.push(blocks[j]); });
+      media.request(context, 'POST', '/api/translate', { blocks: batchBlocks.map(b => b.text), target })
+        .then(result => {
+          if (!result || result.translated !== true || !Array.isArray(result.items) || result.items.length !== batchBlocks.length) throw new Error('翻译结果无效');
+          let cursor = 0;
+          batch.tasks.forEach(task => { task.apply(result.items.slice(cursor, cursor + task.count)); cursor += task.count; });
+          finalizeLang(page.data.messages, target);
+          page.setData({ messages: page.data.messages });
+          chatHistory.save(page.data.messages);   // 边翻边落盘，中断也不丢已翻的
+          runBatch(index + 1);
+        })
+        .catch(() => { done(); });   // 失败：不缓存、保留原文；下次 onShow 自动补剩余
+    };
+    runBatch(0);
+  },
   // 把"问过的推荐问法"从提示列表里去掉（依据就是"最近搜过"那份记录，不新增任何存储）。
   // 清空最近提问 或 清空对话 之后，记录空了 → 提示问题自动恢复齐全（用户 2026-10-09 选的方案 A）。
   refreshSuggestions: function () {
@@ -472,7 +698,7 @@ Page({
             ? '\nYou could ask about these local fruits instead: ' + scope.suggestions.join(', ') + '.'
             : '\n可以换成这些本土水果问我：' + scope.suggestions.join('、') + '。')
         : '';
-      this.appendElf(scope.message + advice, { local: true, followUps: (scope.suggestions || []).slice(0, 2) });
+      this.appendElf(scopeOutText(scope) + advice, { local: true, followUps: (scope.suggestions || []).slice(0, 2) });
       return;
     }
     // 先检索；命中的水果走证据包问答。没有命中任何水果的问题不再一棍子打死：
@@ -487,13 +713,13 @@ Page({
       .map(item => ({ role: 'user', content: item.text }));
     if (!fruits.length) {
       const trivial = TRIVIAL_CHATS.find(item => item.match.test(question));
-      if (trivial) { this.appendElf(trivial.reply, { local: true }); return; }
+      if (trivial) { this.appendElf(i18n.t(trivial.replyKey), { local: true }); return; }
       this.runPendingSteps();
-      this.requestChat({ question, history, contexts: buildSeasonalContexts(), seasonal: true });
+      this.requestChat({ question, history, contexts: buildSeasonalContexts(), seasonal: true, lang: i18n.getLang() });
       return;
     }
     this.runPendingSteps();
-    this.requestChat({ question, history, contexts: buildContexts(fruits, question) });
+    this.requestChat({ question, history, contexts: buildContexts(fruits, question), lang: i18n.getLang() });
   },
   doSearch: function (raw) { this.ask(raw); },
 
@@ -512,7 +738,7 @@ Page({
     let context;
     try { context = media.capture(); } catch (error) { context = null; }
     if (!context || !context.token) {
-      this.appendElf('连接云端失败：没有可用凭证。', { local: true });
+      this.appendElf(i18n.t('chat_no_credential'), { local: true });
       return;
     }
     const seq = (this._chatSeq = (this._chatSeq || 0) + 1);
@@ -523,40 +749,56 @@ Page({
       if (!answer) {
         if (!attempt) { this.requestChat(payload, true); return; }
         if (payload.seasonal) { this.fallbackLocal(payload.question); return; }
-        this.appendElf('云端返回了空答案，请稍后再试。', { local: true });
+        this.appendElf(i18n.t('chat_empty_answer'), { local: true });
         return;
       }
-      this.appendElf(answer, { evidence: Array.isArray(result.usedEvidence) ? result.usedEvidence : [], followUps: Array.isArray(result.followUps) ? result.followUps : [], chips: matchedChips(payload.question) });
+      this.appendElf(answer, { evidence: Array.isArray(result.usedEvidence) ? result.usedEvidence : [], followUps: Array.isArray(result.followUps) ? result.followUps : [], chips: matchedChips(payload.question), lang: payload.lang || i18n.getLang() });
     }).catch((error) => {
       // 云端失败：先重试一次；再失败时，时令类问题落本地兜底（仍有诚实话术可答），
       // 其余直接提示用户，不再用本地兜底糊弄。
       if (seq !== this._chatSeq) return;
       clearTimeout(this._stepTimer);
       if (!attempt) {
-        this.requestChat(payload, true);
+        // 10.11：改成「等 2 秒再重试」。服务冷启动（callContainer 102002 请求超时）时
+        // 立刻重试基本白费，隔一会儿重试才有机会命中已启动的实例。
+        // 测试用 RETRY_DELAY_MS = 0 走同步分支，不必真等 2 秒。
+        const retry = () => { if (seq === this._chatSeq) this.requestChat(payload, true); };
+        const delay = typeof this.RETRY_DELAY_MS === 'number' ? this.RETRY_DELAY_MS : 2000;
+        if (delay <= 0) { retry(); return; }
+        clearTimeout(this._retryTimer);
+        this._retryTimer = setTimeout(retry, delay);
         return;
       }
       if (payload.seasonal) { this.fallbackLocal(payload.question); return; }
-      this.appendElf('连接云端失败：' + (error.message || '请检查网络后重试') + '。', { local: true });
+      // 10.11：英文模式下不拼 error.message —— 那是 media-service 里的中文 SDK 报错，
+      // 拼进去会变成「英文句子里夹中文」。英文只给通用原因，中文模式保持原样（带原始细节，便于排查）。
+      const detail = i18n.getLang() === 'en' ? i18n.t('chat_check_network') : (error.message || i18n.t('chat_check_network'));
+      this.appendElf(i18n.t('chat_cloud_fail', { detail }), { local: true });
     });
     doRequest();
   },
 
   // 本地兜底：与改版前的 finishSearch 同一检索与组织逻辑，渲染为果灵气泡。
-  // 拒答（没命中素材）时必须带 REFUSAL_GUIDE 指路，不做死胡同（2026-10-01 用户反馈）。
+  // 拒答（没命中素材）时必须带指路建议，不做死胡同（2026-10-01 用户反馈）。
   fallbackLocal: function (question) {
     this.finishSearch(question);
+    // 10.11 英文模式：本地兜底正文是从**中文**素材库拼出来的，英文界面下不再拼中文，
+    // 改为一句诚实的英文提示（连不上云端就说连不上，不糊弄）。中文模式完全不变。
+    if (i18n.getLang() === 'en') {
+      this.appendElf(i18n.t('chat_offline_cloud_down'), { local: true, chips: this.data.result ? this.data.matched : [], followUps: refusalGuide() });
+      return;
+    }
     let text;
     if (this.data.result) {
       text = this.data.answerBlocks.map(block => '【' + block.title + '】\n' + block.lines.join('\n')).join('\n\n');
     } else if (this.data.empty) {
-      text = this.data.emptyNote || '这个问题素材库里还没有答案，换个水果关键词试试。';
+      text = this.data.emptyNote || i18n.t('chat_offline_note');
     } else if (this.data.proverbs && this.data.proverbs.length) {
       text = '素材库里暂时没有直接对应的资料，找到几条相关农谚：\n' + this.data.proverbs.map(item => '「' + item.text + '」').join('\n');
     } else {
       text = '这个问题素材库里还没有答案，可以问：挑选、时令、吃法、习俗，或直接说一个水果名字。';
     }
-    this.appendElf(text, { local: true, chips: this.data.result ? this.data.matched : [], followUps: this.data.result ? [] : REFUSAL_GUIDE.slice() });
+    this.appendElf(text, { local: true, chips: this.data.result ? this.data.matched : [], followUps: this.data.result ? [] : refusalGuide() });
   },
 
   appendMessage: function (message) {
@@ -588,13 +830,23 @@ Page({
   appendElf: function (text, extras) {
     const options = extras || {};
     clearTimeout(this._stepTimer);
-    this.appendMessage({
-      id: uid(), role: 'elf', text,
+    const lang = options.lang === 'en' ? 'en' : (options.lang === 'zh' ? 'zh' : i18n.getLang());
+    const message = {
+      id: uid(), role: 'elf', text, lang,
       local: !!options.local,
       evidence: options.evidence || [],
       followUps: options.followUps || [],
       chips: options.chips || []
-    });
+    };
+    // 记录出生语言并留好双语缓存位：同语言侧先填，另一侧留空待翻。
+    if (lang === 'en') {
+      message.textEn = text; message.textZh = '';
+      message.followUpsEn = message.followUps; message.followUpsZh = [];
+    } else {
+      message.textZh = text; message.textEn = '';
+      message.followUpsZh = message.followUps; message.followUpsEn = [];
+    }
+    this.appendMessage(message);
     this.setData({ pending: false, pendingStep: 0 });
   },
   tapFollowUp: function (event) {
@@ -638,7 +890,7 @@ Page({
       patch.thinMaterial = answer.thinMaterial;
       const nameOf = hit => { const key = 'fruit_' + hit.fruit.id; return i18n.dict[key] ? i18n.t(key) : hit.fruit.name; };
       const seasonOf = hit => { const key = 'season_name_' + (hit.seasonId || ''); return i18n.dict[key] ? i18n.t(key) : hit.seasonName; };
-      patch.matched = fruits.map(hit => ({ fullId: hit.fullId, name: nameOf(hit), seasonName: seasonOf(hit), jumpLabel: '前往四时' + '【' + nameOf(hit) + '】' }));
+      patch.matched = fruits.map(hit => ({ fullId: hit.fullId, name: nameOf(hit), seasonName: seasonOf(hit), jumpLabel: i18n.t('chat_jump_pill', { name: nameOf(hit) }) }));
       // 相关农谚与节气札：丰富搜索结果。
       patch.proverbs = farmProverbs.proverbs.filter(item => fruits.some(hit => item.text.indexOf(hit.fruit.name) !== -1)).slice(0, 3);
       patch.terms = solarTermNotes.TERMS.filter(term => fruits.some(hit => term.text.indexOf(hit.fruit.name) !== -1)).slice(0, 2);
@@ -647,7 +899,7 @@ Page({
       const scope = fruitScope.classify(question);
       if (scope.scope === 'out') {
         patch.empty = true;
-        patch.emptyNote = fruitScope.refusalText(scope);
+        patch.emptyNote = scopeOutText(scope);
       } else {
         // P16：不再用「问题前四字」去碰农谚原文拼答案卡——那条路选出的内容与提问
         // 多半无关，还会渲染一张没有正文的答案卡。素材不足就诚实说明并给出关键词。
@@ -672,12 +924,12 @@ Page({
       }, 600);
     } });
   },
-  onUnload: function () { clearTimeout(this._timer); clearTimeout(this._stepTimer); try { this._voice && this._voice.stop(); } catch (error) {} },
+  onUnload: function () { clearTimeout(this._timer); clearTimeout(this._stepTimer); clearTimeout(this._retryTimer); try { this._voice && this._voice.stop(); } catch (error) {} },
   noop: function () {}
 });
 
 // 供 tests/chat-quality.test.js 与 scripts/evaluate-chat.js 复用同一套检索与上下文组装
 // （保证评测与线上同源）。小程序运行时没有模块会 require 本页，这里的赋值不影响页面注册。
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { matchFruits, buildContexts, buildSeasonalContexts, focusTermsOf, relevanceScore, composeAnswer, stripNonFruit };
+  module.exports = { matchFruits, buildContexts, buildSeasonalContexts, focusTermsOf, relevanceScore, composeAnswer, stripNonFruit, splitForTranslate, collectTranslationTasks, finalizeLang };
 }

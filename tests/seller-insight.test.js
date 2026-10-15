@@ -77,3 +77,54 @@ test('shape violations on reading and suggestions fall back, never pass through'
   const one = { status: 'attention', reading: '这是一条足够长的解读文本，用于测试建议数量不足时的表现。', suggestions: ['唯一'], planTitle: 't', planSteps: ['s1', 's2', 's3'] };
   assert.throws(() => validation.sellerInsight(one, parsed), /建议无效/);
 });
+
+// v59：语言字段与英文侧长度上限。中文侧数值（10/160、建议 ≤60、步骤 ≤90、标题 ≤40）一个没动，
+// 英文侧（400 / 180 / 270 / 120）只在 lang === 'en' 时生效，且要与客户端同口径校验
+// （miniprogram/lib/service.js 的 sellerInsight）保持一致。
+test('v59 lang defaults to zh, accepts only en, and relaxes length caps for English alone', () => {
+  assert.equal(validation.sellerInsightRequest(input()).lang, 'zh', '老客户端不传 lang 时必须按 zh');
+  assert.equal(validation.sellerInsightRequest(Object.assign(input(), { lang: 'zh' })).lang, 'zh');
+  assert.equal(validation.sellerInsightRequest(Object.assign(input(), { lang: 'en' })).lang, 'en');
+  assert.equal(validation.sellerInsightRequest(Object.assign(input(), { lang: 'fr' })).lang, 'zh', '只认 en，其余一律按 zh');
+  assert.equal(validation.sellerInsightRequest(Object.assign(input(), { lang: null })).lang, 'zh');
+
+  const zh = validation.sellerInsightRequest(input());
+  const en = validation.sellerInsightRequest(Object.assign(input(), { lang: 'en' }));
+  // reading 300 字符 / 每条建议 120 字符 / 每条步骤 200 字符：三处都超中文口径，都在英文口径内
+  const longEnglish = {
+    status: 'attention', reading: 'a'.repeat(300),
+    suggestions: ['b'.repeat(120), 'c'.repeat(120)], planTitle: 'orchard weekend session',
+    planSteps: ['d'.repeat(200), 'e'.repeat(200), 'f'.repeat(200)], capacity: 30, budget: 120,
+    alternative: 'g'.repeat(300)
+  };
+  const accepted = validation.sellerInsight(longEnglish, en);
+  assert.equal(accepted.reading.length, 300, '英文长解读不再被判无效');
+  assert.equal(accepted.planSteps[0].length, 200, '英文长步骤不再被判无效');
+  assert.equal(accepted.suggestions[0].length, 120);
+  assert.equal(accepted.planTitle, 'orchard weekend session');
+  // 中文侧：同一份超长英文结果仍按老上限整条拒（防回归）
+  assert.throws(() => validation.sellerInsight(longEnglish, zh), /解读为空或过长/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, reading: 'a'.repeat(150) }, zh), /建议无效/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, reading: 'a'.repeat(150), suggestions: ['b', 'c'] }, zh), /步骤无效/);
+
+  // 中文侧老上限逐条仍在：161 字解读 / 61 字建议 / 91 字步骤照样拒
+  const zhBase = { status: 'attention', reading: '这是一条足够长的中文解读文本，用来核对中文侧的老上限是否原样保留下来。', suggestions: ['按周拆解销售节奏', '小规模试接待'], planTitle: '瓜田到访体验', planSteps: ['核对文化出处', '发布到访草案', '记录执行反馈'] };
+  assert.equal(validation.sellerInsight(zhBase, zh).reading.length, zhBase.reading.length);
+  assert.throws(() => validation.sellerInsight({ ...zhBase, reading: '一'.repeat(161) }, zh), /解读为空或过长/);
+  assert.throws(() => validation.sellerInsight({ ...zhBase, suggestions: ['一'.repeat(61), 'b'] }, zh), /建议无效/);
+  assert.throws(() => validation.sellerInsight({ ...zhBase, planSteps: ['一'.repeat(91), 's2', 's3'] }, zh), /步骤无效/);
+  assert.throws(() => validation.sellerInsight({ ...zhBase, planTitle: '一'.repeat(41) }, zh), /方案标题为空或过长/);
+
+  // 英文侧也有上限：401 字解读 / 181 字建议 / 271 字步骤照样拒
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, reading: 'a'.repeat(401) }, en), /解读为空或过长/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, suggestions: ['b'.repeat(181), 'c'] }, en), /建议无效/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, planSteps: ['d'.repeat(271), 'e', 'f'] }, en), /步骤无效/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, planTitle: '一'.repeat(121) }, en), /方案标题为空或过长/);
+
+  // 标题：英文侧上限 120、中文侧仍是 40；空标题按既有规则照样判无效（兜底常量 'AI plan draft'
+  // 与中文侧 'AI 文旅方案草案' 只是同一处的假值兜底，行为与改动前一致：空串先被 text() 拦下）。
+  assert.equal(validation.sellerInsight({ ...longEnglish, planTitle: 'a'.repeat(120) }, en).planTitle.length, 120);
+  assert.throws(() => validation.sellerInsight({ ...zhBase, planTitle: '' }, zh), /方案标题为空或过长/);
+  assert.throws(() => validation.sellerInsight({ ...longEnglish, planTitle: '' }, en), /方案标题为空或过长/);
+});
+

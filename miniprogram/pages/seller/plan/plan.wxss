@@ -1,0 +1,20 @@
+/* 活动方案结果页（设计图 3 第 4 版）：来源行 + 方案卡 + 一个按钮。
+   字号一律挂 --fs-scale，跟「我的」里的字体大小设置走。 */
+page { padding: 24rpx 28rpx 60rpx; background: #FFFDF8; min-height: 100vh; box-sizing: border-box; }
+.src { font-size: calc(23rpx * var(--fs-scale, 1)); color: #47634B; background: #EEF3E7; border-radius: 12rpx; padding: 14rpx 18rpx; line-height: 1.6; }
+.missing { font-size: calc(23rpx * var(--fs-scale, 1)); color: #7A7062; line-height: 1.6; margin-top: 12rpx; }
+.card { background: #fff; border: 2rpx solid #E1E5D9; border-radius: 16rpx; padding: 22rpx 20rpx; margin-top: 22rpx; }
+.plan-card { border-left: 8rpx solid #A8915A; }
+.card-head { display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: calc(24rpx * var(--fs-scale, 1)); color: #87917B; font-weight: 600; }
+.badge { font-size: calc(20rpx * var(--fs-scale, 1)); color: #47634B; background: #EEF3E7; border-radius: 20rpx; padding: 4rpx 14rpx; }
+.plan-title { font-size: calc(38rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; line-height: 1.5; margin-top: 10rpx; }
+.when { font-size: calc(26rpx * var(--fs-scale, 1)); color: #4A5A4A; line-height: 1.7; margin-top: 8rpx; }
+.row { display: flex; margin-top: 16rpx; }
+.row.stacked { display: block; }
+.row-label { font-size: calc(28rpx * var(--fs-scale, 1)); font-weight: 700; color: #234B3C; margin-right: 18rpx; }
+.row-value { flex: 1; font-size: calc(26rpx * var(--fs-scale, 1)); color: #2E4A38; line-height: 1.7; }
+.steps { margin-top: 10rpx; }
+.step { font-size: calc(26rpx * var(--fs-scale, 1)); color: #2E4A38; line-height: 1.75; margin-bottom: 8rpx; }
+.submit { width: 100%; margin-top: 30rpx; background: #47634B; color: #fff; border-radius: 44rpx; font-size: calc(28rpx * var(--fs-scale, 1)); }
+.expired { font-size: calc(28rpx * var(--fs-scale, 1)); color: #7A7062; line-height: 1.7; margin-top: 30rpx; }

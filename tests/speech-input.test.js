@@ -321,7 +321,9 @@ test('the module really calls requirePlugin, which justifies the app.json declar
   const fs = require('node:fs');
   const path = require('node:path');
   const source = fs.readFileSync(path.join(__dirname, '../miniprogram/packageMore/lib/speech-input.js'), 'utf8');
-  assert.match(source, /requirePlugin\(\s*PLUGIN_NAME\s*\)/, 'the plugin path must stay wired up');
+  // 扫描器只认字面量，所以调用处写成 requirePlugin('WechatSI')；这里两种写法都接受，
+  // 但「必须有 requirePlugin 调用」这个意图不打折。
+  assert.match(source, /requirePlugin\(\s*(?:PLUGIN_NAME|'WechatSI'|"WechatSI")\s*\)/, 'the plugin path must stay wired up');
   assert.ok(source.includes('/api/asr'), 'and the server fallback must stay wired up too');
   const app = JSON.parse(fs.readFileSync(path.join(__dirname, '../miniprogram/app.json'), 'utf8'));
   assert.equal(app.plugins && app.plugins.WechatSI && app.plugins.WechatSI.provider, 'wx069ba97219f66d99');

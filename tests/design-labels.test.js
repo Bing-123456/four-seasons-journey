@@ -51,7 +51,9 @@ test('route language changes restore summary units and localize the saved trip w
   assert.equal(savedRoute.ok, true);
   store.saveRoute(savedRoute);
   const before = clone(store.getRoute());
-  const route = page('route');
+  // 行程整页在 packageMore/route-detail（逻辑 packageMore/lib/route-controller.js）；
+  // pages/route/route.js 是「票夹」页，不再持有 dateLabel/seasonTitle/L.rt_stops_unit 这套字段。
+  const route = page('route-detail');
   language('en'); route.onShow();
   assert.equal(route.data.dateLabel, 'Sep 22 · Tue');
   assert.equal(route.data.seasonTitle, 'Autumn Frost Fruits');

@@ -8,6 +8,9 @@ const files = ['miniprogram', 'server', 'scripts', 'tests'].flatMap(d => walk(pa
 const app = JSON.parse(fs.readFileSync(path.join(root, 'miniprogram/app.json')));
 const appRoots = (app.subPackages || app.subpackages || []).map(pkg => pkg.root.replace(/\/$/, ''));
 let js = 0, json = 0, bytes = 0, subBytes = 0;
+// 分包体积要**逐个**算：微信的规则是每个分包各自 ≤ 2MB，不是几个分包加起来 ≤ 2MB。
+// 2026-10-13 修：原先只累加一个总数，四个分包相加恒定 2775KB > 2MB，脚本永远红、守卫形同虚设。
+const subBytesByRoot = new Map();
 for (const file of files) {
   const ext = path.extname(file);
   if (['.js', '.cjs'].includes(ext)) { execFileSync(process.execPath, ['--check', file]); js++; }
@@ -18,8 +21,13 @@ for (const file of files) {
   if (norm.includes('/miniprogram/')) {
     const rel = norm.slice(norm.indexOf('/miniprogram/') + '/miniprogram/'.length);
     const subRoot = rel.split('/')[0];
-    if ((appRoots || []).includes(subRoot)) subBytes += fs.statSync(file).size;
-    else bytes += fs.statSync(file).size;
+    if ((appRoots || []).includes(subRoot)) {
+      const size = fs.statSync(file).size;
+      subBytes += size;
+      subBytesByRoot.set(subRoot, (subBytesByRoot.get(subRoot) || 0) + size);
+    } else {
+      bytes += fs.statSync(file).size;
+    }
   }
   // iOS 上 image 组件不解析本地 WebP（webp 属性仅支持网络资源），本地位图只用 jpg/png。
   if (ext === '.webp' && file.includes(`${path.sep}miniprogram${path.sep}`)) throw Error('小程序内禁止本地 WebP 资源（iOS 不渲染）：' + path.relative(root, file));
@@ -144,5 +152,8 @@ for (const pair of mirroredPairs) {
   }
 }
 if (bytes >= 2 * 1024 * 1024) throw Error('主包超出 2 MB 开发预算，需要拆分子包');
-if (subBytes >= 2 * 1024 * 1024) throw Error('分包超出 2 MB 开发预算');
+// 逐个分包判断（每个分包各自 ≤ 2MB），并说清是哪个分包超了、超到多少。
+for (const [root, size] of subBytesByRoot) {
+  if (size >= 2 * 1024 * 1024) throw Error('分包 ' + root + '/ 超出 2 MB 开发预算（' + Math.round(size / 1024) + 'KB / 2048KB），需要再拆分');
+}
 console.log(JSON.stringify({ pages: app.pages.length, subPackages: (app.subPackages || []).length, javascriptFiles: js, jsonFiles: json, mainPackageBytes: bytes, subPackageBytes: subBytes, attributedPhotos: photos.length, secretScan: 'passed' }, null, 2));

@@ -60,12 +60,6 @@
     </view>
   </view>
 
-  <!-- 我的收获 -->
-  <view class="group">
-    <view class="group-title">{{L.grp_harvest}}</view>
-    <view class="stats"><view id="stat-knowledge" bindtap="openKnowledgeFavorites"><text>{{knowledgeFavorites.length}}</text>{{L.stat_culture}}</view><view id="stat-places" bindtap="openPlaceFavorites"><text>{{favorites.length}}</text>{{L.stat_places}}</view></view>
-  </view>
-
   <!-- 我的伙伴 -->
   <view class="group">
     <view class="group-title">{{L.grp_companion}}</view>
@@ -121,7 +115,8 @@
     <view class="demo-metrics"><text>{{demoSummary.routeStops}} {{L.demo_metric_stops}}</text><text>{{demoSummary.completedLessons}} {{L.demo_metric_lessons}}</text><text>{{L.demo_metric_cloud}}</text></view>
     <view class="demo-actions"><button id="exit-demo" bindtap="exitDemo">{{L.exit_demo}}</button><button id="reset-demo" bindtap="resetDemo">{{L.reset_demo}}</button></view>
   </view>
-  <view wx:else class="demo-entry"><view><view class="subheading">{{L.demo_entry_title}}</view><view class="muted">{{L.demo_entry_sub}}</view></view><button id="enter-demo" bindtap="enterDemo">{{L.demo_entry_btn}}</button></view>
+  <!-- 2026-10 用户拍板：删掉旅客体验案例入口整块（卡片 / 按钮 / 说明，及其三个专属词条）。
+       演示账户本身（store 的 demo 分区、退出/重置面板、各页横幅）是共用功能，不在本次删除范围。 -->
 
   <view class="menu"><view bindtap="clearData" class="danger"><text>{{demoSummary.active ? L.clear_demo : L.clear_data}}</text><text>↺</text></view></view>
   <view class="footer-note">{{L.footer_note}}</view>

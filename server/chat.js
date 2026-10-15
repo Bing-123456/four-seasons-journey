@@ -58,6 +58,78 @@ const SYSTEM = [
 const ANSWER_TEMPLATE = '';
 const SYSTEM_FULL = ANSWER_TEMPLATE ? SYSTEM + '\n\n' + ANSWER_TEMPLATE : SYSTEM;
 
+// 10.11：英文模式。规则完全沿用上面中文铁律（模型读中文指令无障碍），只额外约定三件事：
+// ① 整段英文输出 ② 中文专名一律原样保留 ③ 常识标记用 [general knowledge] 代替【补充常识】。
+const SYSTEM_EN_SUFFIX = [
+  '',
+  '【OUTPUT LANGUAGE / 输出语言】',
+  'Answer entirely in English: the "answer" field and every item of "followUps" must be English.',
+  'The output language follows this instruction, not the language of the question: even if the user asks in Chinese while this instruction is in force, answer in English.',
+  'Translate every ordinary word into English, ordinary fruit names included — write watermelon, persimmon, pear, pomegranate, grape, jujube, fig, the library, the sources, customs, agronomy. Never copy a Chinese sentence from the material, and never leave an ordinary Chinese word (for example 资料, 素材库, 习俗, 农事, 柿子, 梨, 石榴, 葡萄) inside an English sentence.',
+  'Chinese characters are allowed ONLY for the proper nouns below, only when they already appear in the material, and each must sit inside a fully English sentence: classic book or poem titles and quoted lines (《齐民要术》, 《诗经》, 「桃李不言，下自成蹊」); historical or alternative fruit names and variety names (嘉庆子, 红心脆); place names (吐鲁番); puns and homophone lore (「枣」 sounds like 「早」, 「柚」 sounds like 「佑」); traditional food names (糖葫芦); traditional Chinese medicine terms. Never translate, transliterate or paraphrase them, and never introduce one that is not in the material.',
+  'Wherever the Chinese rules above require the 【补充常识】 marker, write [general knowledge] instead, and close that paragraph with: This is general everyday knowledge, not from the sources.',
+  'Wherever a refusal template is required, give its English equivalent and still provide two followUps drawn only from the library.',
+  'Each followUp should stay under 8 English words.',
+  'Same warm, plain, spoken tone: short sentences, bullet points, one point per line, and keep the whole answer under 260 English words.',
+  'usedEvidence must repeat each source label exactly as it was received, keeping any Chinese characters that are part of the label itself.'
+].join('\n');
+
+// 10.11：农事挑战（/api/chat taskType=challenge）的英文提示词。与中文提示词分开写死：
+// ①② 整段英文输出（素材是中文也用英文作答）③ 字段名一个不变：correct / cause / origin / elfMessage。
+// 中文模式仍用原来的中文字符串，一个字未改。
+const CHALLENGE_SYSTEM_EN = [
+  'You are "Guoling", the AI culture assistant of the Chinese fruit-culture mini program 果物四时记, and you are playing the "Farming Challenge" game with the user.',
+  'The user has just answered one scenario multiple-choice question about a fruit in a given solar term: its farming work, old methods, storage, food and health use, tree care, or a disaster. You are a friendly playmate: warm, and encouraging above all.',
+  'Answer only from the knowledge-base passage given to you, and never invent farming or folk facts. If that passage is empty, you may still explain from publicly reliable common knowledge, but no empty slogans.',
+  '',
+  '【OUTPUT LANGUAGE / 输出语言】',
+  'Answer entirely in English. This holds even when the material, the situation, the options or the knowledge-base passage are in Chinese: the output language follows this instruction, not the language of the material.',
+  'Chinese characters are allowed ONLY for the proper nouns below, only when they already appear in the material, and each must sit inside a fully English sentence: classic book or poem titles and quoted lines; historical or alternative fruit names and variety names; place names; puns and homophone lore; traditional Chinese medicine terms; traditional food names. Never translate, transliterate or paraphrase them, and never introduce one that is not in the material.',
+  'Everything else must be English, ordinary fruit names included (write plum, mulberry, cherry, loquat, persimmon, jujube, pear, kumquat); never leave an ordinary Chinese word (for example 资料, 素材库, 习俗, 农事, storage) inside an English sentence.',
+  '',
+  'Output JSON only, and keep the four field names exactly as they are: {"correct":true/false,"cause":"...","origin":"...","elfMessage":"..."}.',
+  'Requirements:',
+  '1. Echo isCorrect from the input into "correct", unchanged.',
+  '2. "cause": why it happens — the climate, plant-physiology or farming reason (why this solar term brings this trouble, why this practice is the right one). One connected paragraph of about 40-70 words; no bullet points and do not copy the options back.',
+  '3. "origin": where this rule or practice comes from — its historical source, the classic book or proverb it rests on, the old method or folk tradition handed down. One connected paragraph of about 40-70 words; no bullet points, do not copy the options back, and do not repeat the cause.',
+  '4. If the material really does not support one of the two paragraphs, return an empty string for that one; never force it.',
+  '5. "elfMessage": a warm, encouraging note of about 15-25 words that does not repeat the two paragraphs above.'
+].join('\n');
+
+// 10.11：文化连连看（/api/chat taskType=match）的英文提示词。字段名仍是 correct / comment / knowledge。
+const MATCH_SYSTEM_EN = [
+  'You are "Guoling", the AI culture assistant of the Chinese fruit-culture mini program 果物四时记, and you are playing the "Culture Match" game with the user.',
+  'The user has just paired one fruit with one culture label. You are a friendly playmate: warm, and encouraging above all.',
+  'Answer only from the culture-library text given to you, and never invent poems, allusions, places of origin or uses.',
+  '',
+  '【OUTPUT LANGUAGE / 输出语言】',
+  'Answer entirely in English. This holds even when the material, the label or the culture-library text are in Chinese: the output language follows this instruction, not the language of the material.',
+  'Chinese characters are allowed ONLY for the proper nouns below, only when they already appear in the material, and each must sit inside a fully English sentence: classic book or poem titles and quoted lines; historical or alternative fruit names and variety names; place names; puns and homophone lore; traditional Chinese medicine terms; traditional food names. Never translate, transliterate or paraphrase them, and never introduce one that is not in the material.',
+  'Everything else must be English, ordinary fruit names included (write plum, mulberry, litchi, pomelo, kumquat); never leave an ordinary Chinese word (for example 资料, 素材库, 习俗, 农事) inside an English sentence.',
+  '',
+  'Output JSON only, and keep the three field names exactly as they are: {"correct":true/false,"comment":"...","knowledge":"..."}.',
+  'Echo isCorrect from the input into "correct", unchanged. "comment" is your review of the pairing and "knowledge" is the culture explanation; each within 100 words.'
+].join('\n');
+
+// 10.11：英文模式的 user 消息也用英文字段名 —— 中文的「节气：/水果：/困境类型：」会教模型
+// 在英文回答里跟出中文词，与 answer() 把外壳换成 Material:/Question: 是同一条经验。
+function challengeUserEn(input) {
+  return 'Solar term: ' + (input.term || '')
+    + '\nFruit: ' + (input.fruit || '')
+    + '\nTrouble type: ' + (input.category || '')
+    + '\nSituation: ' + (input.situation || '')
+    + '\nUser answer: ' + (input.userChoice || '')
+    + '\nIs correct: ' + (input.isCorrect ? 'Yes' : 'No')
+    + '\nKnowledge-base passage:\n' + (input.context || '');
+}
+function matchUserEn(input) {
+  return 'Fruit: ' + (input.fruit || '')
+    + '\nLabel category: ' + (input.category || '')
+    + '\nLabel content: ' + (input.label || '')
+    + '\nMatch is correct: ' + (input.isCorrect ? 'Yes' : 'No')
+    + '\nCulture-library text for this pair:\n' + (input.context || '');
+}
+
 // —— 答点守卫（通用词法机制，不含任何具体问题/水果的特判）——
 // 从问题里抽「双实义字」词作为问点词：两字都不是常见虚字才保留，问点词在回答里出现
 // 视为「回应了问点」。守卫只做两件事：回答既不覆盖问点、又不是诚实拒答时要求模型重答
@@ -242,6 +314,15 @@ function withRefusalGuide(parsed) {
   return { ...parsed, followUps: REFUSAL_GUIDE.slice() };
 }
 
+// 10.11：英文模式的拒答指路。上面那条 REFUSAL_GUIDE 的中文版照旧只服务中文模式；
+// 英文模式下 isHonestRefusal 认不出英文拒答，所以统一按「模型没给建议问法就补两条」处理，
+// 建议问法是上面中文两条的忠实英文说法，不新增任何事实。
+const REFUSAL_GUIDE_EN = ['What fruit is in season now?', 'How do I pick a good watermelon?'];
+function withRefusalGuideEn(parsed) {
+  if (parsed.followUps && parsed.followUps.length) return parsed;
+  return { ...parsed, followUps: REFUSAL_GUIDE_EN.slice() };
+}
+
 function cleanText(value, maximum) {
   if (typeof value !== 'string') return '';
   return value.replace(/\s+/g, ' ').trim().slice(0, maximum);
@@ -298,6 +379,8 @@ function validateBody(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new InputError('请求格式无效');
   const question = cleanText(body.question, 300);
   if (!question) throw new InputError('请输入问题');
+  // 10.11：语言白名单，只认 en，其余一律按 zh 处理
+  const lang = body.lang === 'en' ? 'en' : 'zh';
   // 只保留 user/assistant 两类历史；system 等角色一律丢弃，客户端无法注入系统提示。
   const history = (Array.isArray(body.history) ? body.history : [])
     .filter(item => item && (item.role === 'user' || item.role === 'assistant'))
@@ -313,7 +396,7 @@ function validateBody(body) {
   // 客户端没命中水果（泛时令/节气/闲聊问题）时 contexts 为空：服务端补当季时令包。
   if (!contexts.length) contexts = seasonalContexts();
   if (!contexts.length) throw new InputError('没有可依据的资料');
-  return { question, history, contexts };
+  return { question, history, contexts, lang };
 }
 
 // 问题里的口语别称提示：问「提子是什么」时客户端会路由到葡萄资料，但问题原文
@@ -330,7 +413,7 @@ function aliasHintOf(question) {
   });
   return hints.join('；');
 }
-function buildMessages({ question, history, contexts }, corrective = false) {
+function buildMessages({ question, history, contexts, lang }, corrective = false) {
   // 资料名形如「西瓜·四时素材」，取「·」前的果名查分类标签，拼进证据标题。
   // 查不到标签的资料（农谚集等）保持原名，模型按铁律九不强行标注。
   const evidence = contexts.map(item => {
@@ -338,8 +421,13 @@ function buildMessages({ question, history, contexts }, corrective = false) {
     return '【' + item.name + (tag ? '｜' + tag : '') + '】' + item.text;
   }).join('\n');
   const aliasHint = aliasHintOf(question);
-  const userContent = '资料：\n' + evidence + '\n\n问题：' + question + (aliasHint ? '\n（别称说明：' + aliasHint + '）' : '');
-  const messages = [{ role: 'system', content: SYSTEM_FULL }];
+  // 10.11：英文模式下连外壳标签也用英文 —— 否则模型会跟着「资料：」这个中文词，
+  // 在英文句子里塞「资料」。中文模式一个字未改。
+  const userContent = (lang === 'en' ? 'Material:\n' : '资料：\n') + evidence
+    + (lang === 'en' ? '\n\nQuestion: ' : '\n\n问题：') + question
+    + (aliasHint ? (lang === 'en' ? '\n(Note on the name: ' : '\n（别称说明：') + aliasHint + (lang === 'en' ? ')' : '）') : '');
+  // 10.11：英文模式在系统提示词末尾追加英文输出指令（中文模式完全不变）
+  const messages = [{ role: 'system', content: SYSTEM_FULL + (lang === 'en' ? '\n\n' + SYSTEM_EN_SUFFIX : '') }];
   history.forEach(item => messages.push({ role: item.role, content: item.content }));
   messages.push({ role: 'user', content: userContent });
   if (corrective === 'refocus') {
@@ -480,6 +568,12 @@ function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
       throw new InputError('对话服务未配置', 'model_disabled', 503);
     }
     const parsed = parseAnswer(await callModel(buildMessages(input)));
+    // 10.11 英文模式：答点守卫的问点词是中文双字词（focusTermsOf 只抽中文），英文回答结构上
+    // 不可能命中，会把合格英文回答判成「答非所问」→ 重答 → 最终落到中文兜底话术
+    // （结果就是 English 状态下用中文提问会拿到中文回答）。英文模式直接采信第一稿：
+    // 系统提示词已经约束「只依据资料、回应问点、整段英文」，这里不做中文词法复核。
+    // 中文模式的守卫、拒答复核、兜底模板一行都不动。
+    if (input.lang === 'en') return { ...withRefusalGuideEn(parsed), mode: 'chat-evidence' };
     if (!isHonestRefusal(parsed.answer) && acceptableAnswer(input.question, parsed.answer)) {
       return { ...parsed, mode: 'chat-evidence' };
     }
@@ -528,18 +622,50 @@ function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
   }
 
   // 果乡名片 AI 润色（P13 果农工作台）：复用同一模型通道，把果农写的介绍润色成温暖短文。
-  async function polish({ description, term, fruit }) {
-    if (config.provider === 'disabled' || !config.providerBase) {
-      throw new InputError('对话服务未配置', 'model_disabled', 503);
-    }
-    const system = '你是「果物四时记」小程序里的果乡文案助手。任务：把果农写的一段果乡介绍，润色成温暖、有乡土气息、适合游客阅读的短文，100字以内。保留原文的真实信息（地名、人物、果树、节气），不编造、不夸大功效、不出现具体数字。只输出润色后的文字，不要解释、不要引号、不要 JSON 外壳。';
-    const user = '节气：' + (term || '当季') + '\n水果：' + (fruit || '当地水果') + '\n原文：' + (description || '');
-    const raw = await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]);
-    let polished = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-    const brace = polished.match(/\{[\s\S]*\}/);
-    if (brace) { try { const obj = JSON.parse(brace[0]); const val = obj.polishedText || obj.text || obj.answer; if (typeof val === 'string' && val.trim()) polished = val.trim(); } catch (_) {} }
-    return { polishedText: cleanText(polished, 300) || description };
+async function polish(input) {
+  const description = (input && input.description) || '';
+  const term = (input && input.term) || '';
+  const fruit = (input && input.fruit) || '';
+  const region = (input && input.region) || '';
+  const address = (input && input.address) || '';
+  const exps = Array.isArray(input && input.experiences) ? input.experiences.filter(Boolean) : [];
+  const openDate = (input && input.openDate) || '';
+  const openTime = (input && input.openTime) || '';
+  const closeDate = (input && input.closeDate) || '';
+  const closeTime = (input && input.closeTime) || '';
+  if (config.provider === 'disabled' || !config.providerBase) {
+    throw new InputError('对话服务未配置', 'model_disabled', 503);
   }
+  const system = [
+    '你是「果物四时记」小程序里的果乡文案助手。任务：把果农写的果乡介绍，润色成温暖、有画面感、能吸引游客的短文；2~4 句，约 80~160 字，最多不超过 300 字。',
+    '硬性要求（违反即视为失败）：',
+    '1. 只能使用「素材」里给出的事实（水果、所在地区、可体验、可去时段、原文内容）；素材里没有的，绝对不许添加。',
+    '2. 严禁编造或推测：不要添加产地荣誉、产量、面积、树龄、年份、检测认证、奖项、价格、电话。',
+    '3. 严禁编造农谚、古籍、典故、传说；严禁给水果加功效或医疗暗示。',
+    '4. 严禁新增服务承诺：不能写「包吃住」「免费」「保证有果」「随时来都行」这类话。',
+    '5. 不要用「最」「第一」「唯一」「绝对」这类绝对化说法。',
+    '6. 不要写具体数字（棵数、斤数、年数、亩数），除非原文里已经写过。',
+    '7. 保留原文真实信息与口吻：不要改名、不要改地点、不要改水果。',
+    '8. 「具体位置」只用于避免写错，不要把它（门牌号等）直接抄进文案。',
+    '9. 直接输出润色后的文字：不要解释、不要加引号、不要输出 JSON、不要分点编号。',
+    '10. 语言：简体中文，温暖、朴实、有乡土气，不要公文腔、不要广告腔。'
+  ].join('\n');
+  const user = [
+    '素材（果农填写）：',
+    '水果：' + (fruit || '未填写'),
+    '所在地区：' + (region || '未填写'),
+    '具体位置（仅供避免写错，不要抄进文案）：' + (address || '未填写'),
+    '可体验：' + (exps.length ? exps.join('、') : '未填写'),
+    '可去时段：' + ((openDate || closeDate) ? ((openDate || '?') + ' 至 ' + (closeDate || '?')) : '未填写') + ((openTime || closeTime) ? ('，每天 ' + (openTime || '?') + '-' + (closeTime || '?')) : ''),
+    '节气：' + (term || '未填写'),
+    '原文：' + (description || '')
+  ].join('\n');
+  const raw = await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]);
+  let polished = String(raw || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const brace = polished.match(/\{[\s\S]*\}/);
+  if (brace) { try { const obj = JSON.parse(brace[0]); const val = obj.polishedText || obj.text || obj.answer; if (typeof val === 'string' && val.trim()) polished = val.trim(); } catch (e) { /* 忽略 */ } }
+  return { polishedText: cleanText(polished, 300) || description };
+}
 
   // 解析 challenge/match 的结构化输出，失败时返回 null，由客户端本地数据兜底。
   function parseStructured(raw) {
@@ -560,26 +686,32 @@ function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
     catch (e) { return {}; }
   }
   function kbSave(obj) { try { fs.writeFileSync(KB_FILE, JSON.stringify(obj, null, 2)); } catch (e) {} }
-  function kbKey(fruit, term, category) { return 'v2|' + fruit + '|' + term + '|' + category; }
-  function kbGet(fruit, term, category) {
+  // 10.11：缓存键按语言分开（中文 v2 / 英文 v2en）。中文模式的键与改动前逐字一致，
+  // 英文模式既读不到中文缓存，也不会把英文讲解写进中文键（否则中文用户会拿到英文）。
+  function kbKey(fruit, term, category, lang) { return (lang === 'en' ? 'v2en|' : 'v2|') + fruit + '|' + term + '|' + category; }
+  function kbGet(fruit, term, category, lang) {
     const all = kbLoad();
-    const v = all[kbKey(fruit, term, category)];
+    const v = all[kbKey(fruit, term, category, lang)];
     if (!v || typeof v !== 'object') return null;
     const cause = typeof v.cause === 'string' ? v.cause : '';
     const origin = typeof v.origin === 'string' ? v.origin : '';
     return (cause || origin) ? { cause: cause, origin: origin } : null;
   }
-  function kbSet(fruit, term, category, knowledge) {
+  function kbSet(fruit, term, category, knowledge, lang) {
     if (!knowledge || (!knowledge.cause && !knowledge.origin)) return;
     const all = kbLoad();
-    all[kbKey(fruit, term, category)] = { cause: knowledge.cause || '', origin: knowledge.origin || '' };
+    all[kbKey(fruit, term, category, lang)] = { cause: knowledge.cause || '', origin: knowledge.origin || '' };
     kbSave(all);
   }
   // 两段拼成客户端认识的 knowledgePoints（客户端的知识卡就是逐条渲染这个数组）
-  function knowledgePointsOf(knowledge) {
+  // 10.11：标签跟语言走 —— 中文「原因：/由来：」，英文「Reason: /Origin: 」。与客户端
+  // i18n 的 challenge_kb_cause / challenge_kb_origin 两个键、以及 splitPoint 的英文分支同源，
+  // 中文模式输出与改动前逐字一致。
+  function knowledgePointsOf(knowledge, lang) {
+    const en = lang === 'en';
     const out = [];
-    if (knowledge && knowledge.cause) out.push('原因：' + knowledge.cause);
-    if (knowledge && knowledge.origin) out.push('由来：' + knowledge.origin);
+    if (knowledge && knowledge.cause) out.push((en ? 'Reason: ' : '原因：') + knowledge.cause);
+    if (knowledge && knowledge.origin) out.push((en ? 'Origin: ' : '由来：') + knowledge.origin);
     return out;
   }
 
@@ -587,51 +719,71 @@ function createChatService(config, fetchImpl = globalThis.fetch, sdk) {
   // 优先级（2026-10-09 第24 轮）：随包发布的知识库（miniprogram/data/challenge-explanations.js，按题 id 写好）
   //   → 本地临时缓存（AI 生成过的）→ 现调 AI。
   let challengeExplicit = null;
-  try { challengeExplicit = require('../miniprogram/data/challenge-explanations'); } catch (e) { challengeExplicit = null; }
-  function explicitFor(id) {
-    if (!challengeExplicit || !id) return null;
-    const e = challengeExplicit[id];
+  try { challengeExplicit = require('../miniprogram/packageGame/data/challenge-explanations'); } catch (e) { challengeExplicit = null; }
+  // 10.11：英文版随包知识库（challenge-explanations-en.js，同一批 150 个题 id）。
+  // 英文模式只查它 —— 中文库与中文缓存一律不碰，否则英文界面会拿到中文讲解。
+  let challengeExplicitEn = null;
+  try { challengeExplicitEn = require('../miniprogram/packageGame/data/challenge-explanations-en'); } catch (e) { challengeExplicitEn = null; }
+  function explicitFrom(book, id) {
+    if (!book || !id) return null;
+    const e = book[id];
     if (!e || (!e.cause && !e.origin)) return null;
     return { cause: e.cause || '', origin: e.origin || '' };
   }
+  function explicitFor(id) { return explicitFrom(challengeExplicit, id); }
+  function explicitForEn(id) { return explicitFrom(challengeExplicitEn, id); }
   async function challenge(input) {
+    // 10.11：语言白名单，与 validateBody 同一条规则（只认 'en'，缺省/其它一律按 'zh'）。
+    const lang = input.lang === 'en' ? 'en' : 'zh';
+    const en = lang === 'en';
     // 知识库是随包发布的静态内容，**先查它**：命中了就不需要模型（模型没配/挂了也能出两段）。
-    const explicit = explicitFor(input.questionId);
+    // 英文模式查英文库（两库同 id，命中行为与中文侧一样：命中就不调模型）。
+    const explicit = en ? explicitForEn(input.questionId) : explicitFor(input.questionId);
     if (explicit) {
-      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(explicit), elfMessage: '' };
+      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(explicit, lang), elfMessage: '' };
     }
     if (config.provider === 'disabled' || !config.providerBase) throw new InputError('对话服务未配置', 'model_disabled', 503);
-    const cached = kbGet(input.fruit, input.term, input.category);
+    const cached = kbGet(input.fruit, input.term, input.category, lang);
     if (cached) {
-      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(cached), elfMessage: '' };
+      return { correct: input.isCorrect === true, explanation: '', knowledgePoints: knowledgePointsOf(cached, lang), elfMessage: '' };
     }
-    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「农事挑战」游戏。用户刚回答了一道关于水果在特定节气下农事、民俗、储存、食用、礼节或灾害方面的情境选择题。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的知识库相关段落作答，不编造农事或民俗事实；若知识库段落为空，也需基于公开可靠常识给出讲解，禁止空泛口号。只输出 JSON：{"correct":true/false,"cause":"原因","origin":"由来","elfMessage":"果灵寄语"}。\n要求：\n1. correct 用输入里的 isCorrect 原样回显。\n2. cause 写「原因」：为什么会这样 —— 讲清气候、生理或农事上的道理（为什么这个节气会出现这种困境、为什么这样做才对），约 40-70 字，一段连贯的话，不要分点、不要复述选项原文。\n3. origin 写「由来」：这个讲究或做法从哪来 —— 讲清历史源流、典籍农谚依据、古法或民俗传承，约 40-70 字，一段连贯的话，不要分点、不要复述选项原文，且不要与原因重复。\n4. 材料里确实没有把握的那一段就留空字符串，不要硬编。\n5. elfMessage 保持温暖鼓励（20-40 字），不重复上面两段内容。';
-    const user = '节气：' + (input.term || '') + '\n水果：' + (input.fruit || '') + '\n困境类型：' + (input.category || '') + '\n情境：' + (input.situation || '') + '\n用户选择：' + (input.userChoice || '') + '\n是否正确：' + (input.isCorrect ? '是' : '否') + '\n知识库相关段落：\n' + (input.context || '');
+    const systemZh = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「农事挑战」游戏。用户刚回答了一道关于水果在特定节气下农事、民俗、储存、食用、礼节或灾害方面的情境选择题。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的知识库相关段落作答，不编造农事或民俗事实；若知识库段落为空，也需基于公开可靠常识给出讲解，禁止空泛口号。只输出 JSON：{"correct":true/false,"cause":"原因","origin":"由来","elfMessage":"果灵寄语"}。\n要求：\n1. correct 用输入里的 isCorrect 原样回显。\n2. cause 写「原因」：为什么会这样 —— 讲清气候、生理或农事上的道理（为什么这个节气会出现这种困境、为什么这样做才对），约 40-70 字，一段连贯的话，不要分点、不要复述选项原文。\n3. origin 写「由来」：这个讲究或做法从哪来 —— 讲清历史源流、典籍农谚依据、古法或民俗传承，约 40-70 字，一段连贯的话，不要分点、不要复述选项原文，且不要与原因重复。\n4. 材料里确实没有把握的那一段就留空字符串，不要硬编。\n5. elfMessage 保持温暖鼓励（20-40 字），不重复上面两段内容。';
+    const userZh = '节气：' + (input.term || '') + '\n水果：' + (input.fruit || '') + '\n困境类型：' + (input.category || '') + '\n情境：' + (input.situation || '') + '\n用户选择：' + (input.userChoice || '') + '\n是否正确：' + (input.isCorrect ? '是' : '否') + '\n知识库相关段落：\n' + (input.context || '');
+    const system = en ? CHALLENGE_SYSTEM_EN : systemZh;
+    const user = en ? challengeUserEn(input) : userZh;
     const parsed = parseStructured(await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]));
     if (!parsed) throw new InputError('对话服务返回异常', 'model_invalid_output', 502);
-    const knowledge = { cause: cleanText(parsed.cause, 90), origin: cleanText(parsed.origin, 90) };
-    const points = knowledgePointsOf(knowledge);
-    if (points.length) kbSet(input.fruit, input.term, input.category, knowledge);
+    // 中文两段各限 90 字符；英文同样内容按词算要长得多（40-70 词 ≈ 250-450 字符），
+    // 沿用 90 会把英文讲解拦腰截断，所以英文模式放宽到 500 字符（中文一字未改）。
+    const knowledge = { cause: cleanText(parsed.cause, en ? 500 : 90), origin: cleanText(parsed.origin, en ? 500 : 90) };
+    const points = knowledgePointsOf(knowledge, lang);
+    if (points.length) kbSet(input.fruit, input.term, input.category, knowledge, lang);
     return {
       correct: parsed.correct === true,
       explanation: cleanText(parsed.explanation, 120),
       knowledgePoints: points,
-      elfMessage: cleanText(parsed.elfMessage, 60)
+      elfMessage: cleanText(parsed.elfMessage, en ? 200 : 60)
     };
   }
 
   // 文化连连看：针对一对「水果 × 文化标签」，输出点评与文化讲解。
   // 只依据文化库原文作答，不编造诗词、典故、产地或用途。
   async function match(input) {
+    // 10.11：语言白名单，与 validateBody 同一条规则（只认 'en'，缺省/其它一律按 'zh'）。
+    const lang = input.lang === 'en' ? 'en' : 'zh';
+    const en = lang === 'en';
     if (config.provider === 'disabled' || !config.providerBase) throw new InputError('对话服务未配置', 'model_disabled', 503);
-    const system = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「文化连连看」游戏。用户刚把一种水果和一个文化标签配成一对。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的文化库原文作答，不编造诗词、典故、产地或用途。只输出 JSON：{"correct":true/false,"comment":"点评正文（150字以内）","knowledge":"文化讲解正文（150字以内）"}。correct 用输入里的 isCorrect 原样回显。';
-    const user = '水果：' + (input.fruit || '') + '\n标签类别：' + (input.category || '') + '\n标签内容：' + (input.label || '') + '\n配对是否正确：' + (input.isCorrect ? '是' : '否') + '\n该条依据的文化库原文：\n' + (input.context || '');
+    const systemZh = '你是「果物四时记」小程序的 AI 文化助手「果灵」，正在陪用户玩「文化连连看」游戏。用户刚把一种水果和一个文化标签配成一对。你是陪玩的朋友，语气温暖、鼓励为主。只依据给出的文化库原文作答，不编造诗词、典故、产地或用途。只输出 JSON：{"correct":true/false,"comment":"点评正文（150字以内）","knowledge":"文化讲解正文（150字以内）"}。correct 用输入里的 isCorrect 原样回显。';
+    const userZh = '水果：' + (input.fruit || '') + '\n标签类别：' + (input.category || '') + '\n标签内容：' + (input.label || '') + '\n配对是否正确：' + (input.isCorrect ? '是' : '否') + '\n该条依据的文化库原文：\n' + (input.context || '');
+    const system = en ? MATCH_SYSTEM_EN : systemZh;
+    const user = en ? matchUserEn(input) : userZh;
     const parsed = parseStructured(await callModel([{ role: 'system', content: system }, { role: 'user', content: user }]));
     if (!parsed) throw new InputError('对话服务返回异常', 'model_invalid_output', 502);
+    // 中文两段各限 160 字符；英文 100 词 ≈ 550-650 字符，英文模式放宽到 600（中文一字未改）。
     return {
       correct: parsed.correct === true,
-      comment: cleanText(parsed.comment, 160),
-      knowledge: cleanText(parsed.knowledge, 160)
+      comment: cleanText(parsed.comment, en ? 600 : 160),
+      knowledge: cleanText(parsed.knowledge, en ? 600 : 160)
     };
   }
 

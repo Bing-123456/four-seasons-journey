@@ -241,6 +241,57 @@ test('route markup keeps the four segments in order and drops the five old actio
   assert.match(wxss, /#B03A4A/, '红章用设计图给的红章色');
 });
 
+// 2026-10-18：果乡 ↔ 活动的对应关系改成「优先 townId，拿不到再回退猜」。
+// 这里从页面这一侧钉住 loadSeats 真正选中的那一场活动（看它拿哪个 activityId 去问按天余量）：
+//   ① 列表里更靠前的那场只是「名字碰巧相等」，真正对应的那场靠在后的 townId 认 → 必须认 townId 那场；
+//   ② 老活动没有 townId（服务端老记录）→ 照旧回退到原有的名字 / 地址等值猜测。
+test('route picks the activity by townId first and still falls back to the name guess', () => {
+  const town = SAMPLE_TOWNS[0];
+  const seatsQueried = [];
+  const serve = activities => (opts) => {
+    const url = opts.url || '';
+    calls.requests.push(url);
+    if (url.includes('/api/farmtown/list')) { opts.success({ statusCode: 200, data: { towns: SAMPLE_TOWNS } }); return; }
+    if (url.includes('/api/booking-clients')) { opts.success({ statusCode: 200, data: { credential: 'a'.repeat(64), role: 'visitor' } }); return; }
+    if (url.includes('/api/booking-activities')) { opts.success({ statusCode: 200, data: { activities: activities } }); return; }
+    if (url.includes('/api/booking-availability')) {
+      seatsQueried.push(url);
+      opts.success({ statusCode: 200, data: { available: true, days: [{ date: dayOffset(1), capacityPerDay: 5, used: 0, remaining: 5, full: false, past: false }] } });
+      return;
+    }
+    opts.success({ statusCode: 200, data: responder(url) });
+  };
+
+  global.wx.request = serve([
+    { id: 'act-same-name', title: town.name, location: '别处集合', batchId: '', townId: '' },
+    { id: 'act-by-townid', title: '与名片名字无关的一场', location: '与名片地址无关的集合点', batchId: '', townId: town.id }
+  ]);
+  const subject = makePage('route');
+  subject.onLoad();
+  return wait().then(() => {
+    subject.loadSeats(town.id);
+    return wait(60).then(() => {
+      assert.equal(seatsQueried.length, 1, '只问了一次这场园子的按天余量');
+      assert.match(seatsQueried[0], /activityId=act-by-townid/, '优先认 townId，不被更靠前的同名活动抢先');
+
+      seatsQueried.length = 0;
+      global.wx.request = serve([
+        { id: 'act-old-name', title: town.name, location: '别处集合' },
+        { id: 'act-unrelated', title: '另一场活动', location: '另一处集合' }
+      ]);
+      const second = makePage('route');
+      second.onLoad();
+      return wait().then(() => {
+        second.loadSeats(town.id);
+        return wait(60).then(() => {
+          assert.equal(seatsQueried.length, 1);
+          assert.match(seatsQueried[0], /activityId=act-old-name/, '没有 townId 就回退到名字相等的既有猜测（退路不删）');
+        });
+      });
+    });
+  });
+});
+
 // —— 果乡详情（本轮未改动，保持通过）——
 
 test('fruit-town detail loads town, defaults to fruit art, uses AI culture text', () => {

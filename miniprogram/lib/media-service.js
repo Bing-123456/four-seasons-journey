@@ -42,6 +42,12 @@ function handleResponse(context, response, resolve, reject) {
     reject(new Error('开发会话未配对或已过期，请在「我的」重新配对'));
   } else {
     const error = new Error(data.error || (response.statusCode === 429 ? '请求过于频繁，请稍后重试' : '图片服务暂不可用，请稍后重试'));
+    // 服务端给的机器可读字段原样挂到 Error 上（有才挂）：文案仍走 message，页面照旧能认；
+    // 多这一份是为了让 pages/seller/publish/publish-flow.js 的 rejectReason 优先读结构化字段，
+    // 不必再从中文文案里反推（从文案反推那条兜底留着，老回执、老服务端一样认得出）。
+    ['code', 'field', 'max', 'reason'].forEach(key => {
+      if (data[key] !== undefined && data[key] !== null) error[key] = data[key];
+    });
     error.retryable = response.statusCode === 429 || response.statusCode >= 500;
     reject(error);
   }

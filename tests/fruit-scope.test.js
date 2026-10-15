@@ -109,6 +109,7 @@ test('the Guoling search page refuses foreign fruit and still finds world-layer 
     setData(patch) { Object.assign(this.data, patch); }
   });
   page.onLoad();
+  page.RETRY_DELAY_MS = 0;   // 关掉「等 2 秒再重试」的等待：本用例不联网，避免定时器跨用例触发
   assert.equal(typeof page.data.L.search_no_result, 'string');
   page.doSearch('榴莲');
   page.finishSearch('榴莲');

@@ -45,6 +45,8 @@ function chatReply(content, answer, extra = {}) {
 test.beforeEach(() => {
   global.wx = Object.assign(memoryStorage(), { showToast() {}, navigateTo() {}, switchTab() {}, showModal() {}, request() {} });
   store.exitDemo(); store.clearAll();
+  // i18n 会缓存语言；每个用例都从「清空后的默认 zh」重新读一次，避免上一个用例的 en 泄漏过来。
+  require('../miniprogram/lib/i18n').invalidateLang();
   chatReply.last = null;
 });
 test.after(() => { global.wx = original.wx; global.Page = original.Page; });
@@ -113,6 +115,7 @@ test('out-of-scope foreign fruit is refused locally without calling the model', 
 test('cloud failure shows a clear error instead of silently fabricating an offline answer', async () => {
   global.wx.request = options => options.fail({ errMsg: 'request:fail timeout' });
   const page = buildPage();
+  page.RETRY_DELAY_MS = 0;   // 关掉「等 2 秒再重试」的等待，保持这条用例的原有节奏
   page.ask('如何挑选西瓜');
   await tick(); await tick();
   const elf = page.data.messages[1];
@@ -124,6 +127,7 @@ test('cloud failure shows a clear error instead of silently fabricating an offli
 test('questions matching nothing in the library stay honest instead of inventing', async () => {
   global.wx.request = () => { throw new Error('must not be called'); };
   const page = buildPage();
+  page.RETRY_DELAY_MS = 0;   // 同上：这条走 seasonal 兜底，需要重试立刻发生
   page.ask('今天天气怎么样');
   await tick(); await tick();
   const elf = page.data.messages[1];
@@ -246,3 +250,191 @@ test('elf answers no longer expose read-aloud controls', () => {
     assert.deepEqual(search.matchFruits('蜂蜜柚子茶怎么做').map(h => h.fruit.name), ['柚子']);
   });
 }
+
+// —— 第 3 阶段：切语言翻历史（甲方案）——
+test('collectTranslationTasks + finalizeLang 驱动双语缓存，切回来读缓存不再翻', () => {
+  const helpers = require('../miniprogram/packageMore/search/search');
+  const long = '长'.repeat(1300);   // 1300 字 → 3 块（600/600/100）
+  const messages = [
+    { id: 'e0', role: 'elf', lang: 'zh', text: '苹果最甜。', textZh: '苹果最甜。', textEn: '', followUps: ['苹果怎么挑？'], followUpsZh: ['苹果怎么挑？'], followUpsEn: [] },
+    { id: 'e1', role: 'elf', lang: 'zh', text: long, textZh: long, textEn: '', followUps: [], followUpsZh: [], followUpsEn: [] }
+  ];
+  const collected = helpers.collectTranslationTasks(messages, 'en');
+  assert.equal(collected.blocks.length, 5, '最新在前：e1 长正文 3 块 + e0 正文 1 块 + e0 追问 1 块');
+  assert.equal(collected.blocks[0].text, long.slice(0, 600));
+  assert.ok(collected.tasks.every(t => t.count <= 3), '单条任务块数不超过 3');
+  // 逐任务应用译文，再落 lang
+  collected.tasks.forEach(t => {
+    const items = collected.blocks.slice(t.start, t.start + t.count).map(b => 'EN:' + b.text);
+    t.apply(items);
+  });
+  helpers.finalizeLang(messages, 'en');
+  assert.equal(messages[1].lang, 'en');
+  assert.equal(messages[0].lang, 'en');
+  assert.equal(messages[0].text, 'EN:苹果最甜。');
+  assert.equal(messages[0].followUps[0], 'EN:苹果怎么挑？');
+  // 已全量缓存 → en 方向与 zh 方向都不再需要翻
+  assert.equal(helpers.collectTranslationTasks(messages, 'en').blocks.length, 0);
+  assert.equal(helpers.collectTranslationTasks(messages, 'zh').blocks.length, 0);
+});
+
+test('switching the app language translates saved history in place and persists the cache', async () => {
+  const chatHistory = require('../miniprogram/packageMore/lib/chat-history');
+  const i18n = require('../miniprogram/lib/i18n');
+  store.saveSettings({ language: 'zh' });
+  i18n.invalidateLang();
+  chatHistory.save([
+    { id: 'u1', role: 'user', text: '西瓜什么时候最甜' },
+    { id: 'e1', role: 'elf', text: '西瓜七月最甜。', followUps: ['西瓜怎么挑？'] }
+  ]);
+  const page = buildPage();
+  assert.equal(page.data.messages[1].text, '西瓜七月最甜。');
+
+  let translateCall = null;
+  global.wx.request = options => {
+    if (String(options.url).endsWith('/api/translate')) {
+      translateCall = options;
+      options.success({ statusCode: 200, data: { translated: true, items: ['Watermelons are sweetest in July.', 'How to pick a watermelon?'] } });
+    } else {
+      options.success({ statusCode: 200, data: {} });
+    }
+  };
+  store.saveSettings({ language: 'en' });
+  i18n.invalidateLang();
+  page.onShow();
+  await tick(); await tick();
+
+  assert.ok(translateCall, '切语言触发一次 /api/translate');
+  assert.equal(translateCall.data.target, 'en');
+  const elf = page.data.messages[1];
+  assert.equal(elf.text, 'Watermelons are sweetest in July.');
+  assert.equal(elf.lang, 'en');
+  assert.equal(elf.textEn, 'Watermelons are sweetest in July.');
+  assert.equal(elf.followUps[0], 'How to pick a watermelon?');
+  assert.equal(elf.followUpsEn[0], 'How to pick a watermelon?');
+  assert.equal(page.data.messages[0].text, '西瓜什么时候最甜', '用户自己的提问不翻');
+  assert.equal(chatHistory.load()[1].text, 'Watermelons are sweetest in July.', '译文已落盘');
+});
+
+// —— 10.11 修复：英文下 6 条提示问法仍是中文 ——
+test('the six suggested questions follow the app language instead of freezing at module load', () => {
+  const i18n = require('../miniprogram/lib/i18n');
+  store.saveSettings({ language: 'zh' });
+  i18n.invalidateLang();
+  const page = buildPage();
+  assert.equal(page.data.suggestionsLeft.length, 6);
+  assert.match(page.data.suggestionsLeft[0], /现在吃什么水果当季/);
+  // 切到英文后 onShow 重算（旧写法在这里会一直是中文）
+  store.saveSettings({ language: 'en' });
+  i18n.invalidateLang();
+  page.onShow();
+  assert.equal(page.data.suggestionsLeft.length, 6);
+  assert.match(page.data.suggestionsLeft[0], /What's in season right now/);
+  assert.match(page.data.suggestionsLeft.join('|'), /How to pick a good watermelon/);
+  // 真实故障场景：模块是中文时加载的，之后切英文再进页面（onLoad 决定初值）
+  page.onLoad();
+  assert.match(page.data.suggestionsLeft[0], /What's in season right now/);
+});
+
+// —— 10.11 修复：本地台词（不经过服务端的回答）也要跟着界面语言走 ——
+// 起因：English 界面下问「你好」拿到中文问候（用户截图反馈）。
+function useLang(code) {
+  store.saveSettings({ language: code });
+  require('../miniprogram/lib/i18n').invalidateLang();
+}
+
+test('English mode answers a Chinese greeting in English (local, no cloud call)', async () => {
+  useLang('en');
+  let called = 0;
+  global.wx.request = () => { called += 1; };
+  const page = buildPage();
+  page.ask('你好');
+  await tick(); await tick();
+  assert.equal(called, 0, '本地问候不调云端');
+  const elf = page.data.messages[1];
+  assert.equal(elf.local, true);
+  assert.match(elf.text, /Guoling/);
+  assert.doesNotMatch(elf.text, /[\u4e00-\u9fa5]/, '英文模式下本地台词不出现中文');
+});
+
+test('Chinese mode still answers an English greeting in Chinese (unchanged)', async () => {
+  const page = buildPage();
+  page.ask('hello');
+  await tick(); await tick();
+  const elf = page.data.messages[1];
+  assert.match(elf.text, /你好呀/);
+  assert.match(elf.text, /果灵/);
+});
+
+test('English mode refuses out-of-scope fruit in English', async () => {
+  useLang('en');
+  const page = buildPage();
+  page.ask('榴莲是什么季节的');
+  await tick(); await tick();
+  const elf = page.data.messages[1];
+  assert.equal(elf.local, true);
+  assert.match(elf.text, /introduced to China from abroad|farming culture outside China/);
+  assert.doesNotMatch(elf.text, /不属于《四时》/);
+});
+
+test('English mode shows cloud failures in English only', async () => {
+  useLang('en');
+  global.wx.request = options => options.fail({ errMsg: 'cloud.callContainer:fail 102002' });
+  const page = buildPage();
+  page.RETRY_DELAY_MS = 0;
+  page.ask('如何挑选西瓜');
+  await tick(); await tick();
+  const elf = page.data.messages[1];
+  assert.equal(elf.local, true);
+  assert.match(elf.text, /^Cloud connection failed: /);
+  assert.doesNotMatch(elf.text, /[\u4e00-\u9fa5]/, '不把中文 SDK 报错拼进英文句子');
+});
+
+test('English mode offline fallback is an honest English line, not the Chinese composed card', async () => {
+  useLang('en');
+  global.wx.request = options => options.fail({ errMsg: 'offline' });
+  const page = buildPage();
+  page.RETRY_DELAY_MS = 0;
+  page.ask('今天天气怎么样');
+  await tick(); await tick();
+  const elf = page.data.messages[1];
+  assert.equal(elf.local, true);
+  assert.match(elf.text, /can't reach the cloud/);
+  assert.doesNotMatch(elf.text, /[\u4e00-\u9fa5]/);
+  assert.equal(elf.followUps.length, 2, '拒答仍指路');
+  assert.match(elf.followUps[0], /What fruit is in season now\?/);
+});
+
+test('jump-pill label and fruit name follow the language, including for already-saved messages', () => {
+  const chatHistory = require('../miniprogram/packageMore/lib/chat-history');
+  // 中文时代存下来的老消息：按钮与果名都是中文
+  chatHistory.save([{ id: 'e1', role: 'elf', text: '西瓜七月最甜。', chips: [{ fullId: 'summer-watermelon', name: '西瓜', seasonName: '夏', jumpLabel: '前往四时【西瓜】' }] }]);
+  useLang('en');
+  const page = buildPage();
+  page.onShow();
+  const chip = page.data.messages[0].chips[0];
+  assert.match(chip.jumpLabel, /^Go to Four Seasons · /);
+  assert.doesNotMatch(chip.jumpLabel, /前往四时/);
+  assert.equal(chip.name, 'Watermelon');
+  assert.equal(chatHistory.load()[0].chips[0].jumpLabel, chip.jumpLabel, '重算后的按钮文案已落盘');
+});
+
+// —— 10.11 修复：云端失败后等一会儿再重试（冷启动 callContainer 102002 请求超时）——
+test('a failed call retries once after a delay instead of immediately', async () => {
+  let calls = 0;
+  global.wx.request = options => {
+    calls += 1;
+    if (calls === 1) options.fail({ errMsg: 'cloud.callContainer:fail 102002' });
+    else options.success({ statusCode: 200, data: { answer: '西瓜七月最甜。', usedEvidence: [], followUps: [] } });
+  };
+  const page = buildPage();
+  page.RETRY_DELAY_MS = 30;
+  page.ask('如何挑选西瓜');
+  await tick(); await tick();
+  assert.equal(calls, 1, '第一次失败后不立刻重试');
+  assert.equal(page.data.messages.length, 1, '等待期间还没有果灵气泡');
+  await new Promise(resolve => setTimeout(resolve, 60));
+  await tick(); await tick();
+  assert.equal(calls, 2, '等一会儿之后重试一次');
+  assert.equal(page.data.messages[1].text, '西瓜七月最甜。');
+});
